@@ -1,0 +1,6 @@
+services:
+  nodejs:
+    build:
+      context: ./server/authentication
+    ports:
+      - '3123:3123'

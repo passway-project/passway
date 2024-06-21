@@ -4,7 +4,9 @@
   "description": "Authentication component for Passway",
   "main": "index.js",
   "scripts": {
-    "format": "prettier \"**/*.{ts,js}\" --write",
+    "build": "docker compose up --build",
+    "start": "docker compose up",
+    "format": "prettier \"**/*.{ts,js,mjs}\" --write",
     "prepare": "husky"
   },
   "repository": {

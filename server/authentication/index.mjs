@@ -6,4 +6,4 @@ app.use(async ctx => {
   ctx.body = 'Hello World'
 })
 
-app.listen(3123)
+app.listen(process.env.AUTHENTICATION_APP_PORT)

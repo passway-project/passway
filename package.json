@@ -3,11 +3,11 @@
   "version": "0.0.0",
   "description": "Authentication component for Passway",
   "scripts": {
-    "build": "dotenvx run -f .env -- docker compose up --build",
+    "build": "dotenvx run -f .env -- docker compose up --build --no-start",
     "start": "dotenvx run -f .env -- docker compose up --detach",
     "stop": "docker compose down",
     "format": "prettier \"**/*.{ts,js,mjs}\" --write",
-    "prepare": "husky && npm run build -- --no-start"
+    "prepare": "husky && npm run build"
   },
   "repository": {
     "type": "git",

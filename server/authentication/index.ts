@@ -1,4 +1,5 @@
 import Koa from 'koa'
+import Router from 'koa-router'
 import pg from 'pg'
 
 const dbContainerName = 'db'
@@ -12,12 +13,14 @@ const dbClient = new pg.Client({
 })
 
 const app = new Koa()
+const router = new Router()
+
 dbClient.connect().then(() => {
-  // TODO: Initialize app routes
+  router.get('/', ctx => {
+    ctx.body = 'Hello World'
+  })
 })
 
-app.use(async ctx => {
-  ctx.body = 'Hello World'
-})
+app.use(router.routes()).use(router.allowedMethods())
 
 app.listen(3000)

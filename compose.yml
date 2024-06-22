@@ -1,5 +1,7 @@
 services:
   nodejs:
+    volumes:
+      - ./server/authentication:/usr/src/app
     build:
       context: ./server/authentication
     ports:

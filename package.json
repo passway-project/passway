@@ -4,8 +4,8 @@
   "description": "Authentication component for Passway",
   "main": "index.js",
   "scripts": {
-    "build": "docker compose up --build",
-    "start": "docker compose up",
+    "build": "dotenvx run -f .env -f server/authentication/.env  -- docker compose up --build",
+    "start": "dotenvx run -f .env -f server/authentication/.env  -- docker compose up",
     "format": "prettier \"**/*.{ts,js,mjs}\" --write",
     "prepare": "husky"
   },
@@ -23,5 +23,8 @@
     "husky": "^9.0.11",
     "prettier": "^3.3.2",
     "pretty-quick": "^4.0.0"
+  },
+  "dependencies": {
+    "@dotenvx/dotenvx": "^0.45.0"
   }
 }

@@ -3,4 +3,4 @@ services:
     build:
       context: ./server/authentication
     ports:
-      - '3123:3123'
+      - '${AUTHENTICATION_APP_PORT}:${INTERNAL_AUTHENTICATION_APP_PORT}'

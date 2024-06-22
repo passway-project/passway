@@ -7,5 +7,5 @@ RUN npm ci
 
 COPY . .
 
-EXPOSE 3123
+EXPOSE ${INTERNAL_AUTHENTICATION_APP_PORT}
 CMD ["npm", "start"]

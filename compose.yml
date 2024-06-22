@@ -20,7 +20,8 @@ services:
     networks:
       - passway-network
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     env_file: '.env'
 
   db:
@@ -33,10 +34,15 @@ services:
       - '${DB_PORT}:5432'
     networks:
       - passway-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-      # NOTE: Uncomment/modify these lines as desired to mount host system directory
-      #volumes:
-      #  - ./server/db:/var/lib/postgresql/data
+    # NOTE: Uncomment/modify these lines as desired to mount host system directory
+    #volumes:
+    #  - ./server/db:/var/lib/postgresql/data
 
 networks:
   passway-network:

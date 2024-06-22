@@ -21,6 +21,7 @@ services:
       - passway-network
     depends_on:
       - db
+    env_file: '.env'
 
   db:
     image: postgres:16

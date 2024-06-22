@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "description": "Authentication component for Passway",
   "scripts": {
-    "build": "dotenvx run -f .env -f server/authentication/.env -- docker compose up --build",
-    "start": "dotenvx run -f .env -f server/authentication/.env -- docker compose up --detach",
+    "build": "dotenvx run -f .env -- docker compose up --build",
+    "start": "dotenvx run -f .env -- docker compose up --detach",
     "stop": "docker compose down",
     "format": "prettier \"**/*.{ts,js,mjs}\" --write",
     "prepare": "husky && npm run build -- --no-start"

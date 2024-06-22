@@ -4,7 +4,7 @@
   "description": "Authentication component for Passway",
   "main": "index.mjs",
   "scripts": {
-    "start": "dotenvx run -- nodemon index.mjs",
+    "start": "nodemon index.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,8 +18,6 @@
   },
   "homepage": "https://github.com/passway-project/passway#readme",
   "dependencies": {
-    "@dotenvx/dotenvx": "^0.45.0",
-    "dotenv": "^16.4.5",
     "koa": "^2.15.3",
     "nodemon": "^3.1.4",
     "pg": "^8.12.0"

@@ -17,6 +17,8 @@ services:
       context: ./server/authentication
     expose:
       - 3000
+    ports:
+      - 9229:9229
     networks:
       - passway-network
     depends_on:

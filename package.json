@@ -11,7 +11,8 @@
     "format": "prettier \"**/*.{ts,js,mjs}\" --write",
     "prepare": "husky && npm run build && npm start && npm run db:migrate:dev",
     "db:migrate:dev": "docker compose exec auth npx prisma migrate dev",
-    "db:migrate:prod": "docker compose exec auth npx prisma migrate deploy"
+    "db:migrate:prod": "docker compose exec auth npx prisma migrate deploy",
+    "db:generate:artifacts": "docker compose exec auth npx prisma generate"
   },
   "repository": {
     "type": "git",

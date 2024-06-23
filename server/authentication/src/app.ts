@@ -1,13 +1,36 @@
-import Koa from 'koa'
-import Router from 'koa-router'
+import Fastify from 'fastify'
 
-const app = new Koa()
-const router = new Router()
+const fastify = Fastify({
+  logger: true,
+})
 
-app.listen(3000)
+fastify.route({
+  method: 'GET',
+  url: '/',
+  schema: {
+    // the response needs to be an object with an `hello` property of type 'string'
+    response: {
+      200: {
+        type: 'object',
+        properties: {
+          hello: { type: 'string' },
+        },
+      },
+    },
+  },
+  // this function is executed for every request before the handler is executed
+  preHandler: (request, reply, done) => {
+    // E.g. check authentication
+    done()
+  },
+  handler: (request, reply) => {
+    reply.send({ hello: 'world' })
+  },
+})
 
-app.use(router.routes()).use(router.allowedMethods())
-
-router.get('/', ctx => {
-  ctx.body = 'Hello World'
+fastify.listen({ host: '0.0.0.0', port: 3000 }, err => {
+  if (err) {
+    fastify.log.error(err)
+    process.exit(1)
+  }
 })

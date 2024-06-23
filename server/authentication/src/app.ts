@@ -27,10 +27,11 @@ fastify.route({
     reply.send({ hello: 'world' })
   },
 })
-
-fastify.listen({ host: '0.0.0.0', port: 3000 }, err => {
-  if (err) {
+;(async () => {
+  try {
+    await fastify.listen({ host: '0.0.0.0', port: 3000 })
+  } catch (err) {
     fastify.log.error(err)
     process.exit(1)
   }
-})
+})()

@@ -8,7 +8,7 @@
     "stop": "docker compose down",
     "restart": "npm run stop && npm start",
     "format": "prettier \"**/*.{ts,js,mjs}\" --write",
-    "prepare": "husky && npm run build",
+    "prepare": "husky && npm run build && npm start && npm run db:migrate:dev",
     "db:migrate:dev": "docker compose exec auth npx prisma migrate dev",
     "db:migrate:prod": "docker compose exec auth npx prisma migrate deploy"
   },

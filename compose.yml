@@ -40,9 +40,11 @@ services:
       timeout: 5s
       retries: 5
 
-    # NOTE: Uncomment/modify these lines as desired to mount host system directory
-    #volumes:
-    #  - ./server/db:/var/lib/postgresql/data
+    volumes:
+      - db_data:/var/lib/postgresql/data
 
 networks:
   passway-network:
+
+volumes:
+  db_data:

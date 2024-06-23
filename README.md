@@ -26,7 +26,7 @@ Once installed, Passway can be started.
 npm start
 ```
 
-Once started, Passway can be stopped
+Once started, Passway can be stopped.
 
 ### Stop Passway
 

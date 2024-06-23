@@ -26,6 +26,12 @@ Once installed, Passway can be started.
 npm start
 ```
 
+This will start Passway in Production Mode. You can also start Passway in Development Mode to enable debugging:
+
+```sh
+npm start:dev
+```
+
 Once started, Passway can be stopped.
 
 ### Stop Passway

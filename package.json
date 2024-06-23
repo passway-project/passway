@@ -5,6 +5,7 @@
   "scripts": {
     "build": "dotenvx run -f .env -- docker compose up --build --no-start",
     "start": "dotenvx run -f .env -- docker compose up --detach",
+    "start:dev": "dotenvx run -f .env -- docker compose -f compose.yml -f compose.dev.yml up --detach",
     "stop": "docker compose down",
     "destroy": "docker compose down --volumes",
     "restart": "npm run stop && npm start",

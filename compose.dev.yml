@@ -1,0 +1,4 @@
+services:
+  auth:
+    ports:
+      - 9229:9229

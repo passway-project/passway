@@ -1,5 +1,7 @@
 import { FastifyPluginAsync } from 'fastify'
-import { User } from '@prisma/client'
+import { PrismaClient, User } from '@prisma/client'
+
+const prisma = new PrismaClient()
 
 export const routes: FastifyPluginAsync = async app => {
   app.put<{
@@ -33,7 +35,18 @@ export const routes: FastifyPluginAsync = async app => {
         },
       },
     },
-    (req, reply) => {
+    async (req, reply) => {
+      try {
+        // FIXME: Update retrieved user
+        const retrievedUser = await prisma.user.findFirstOrThrow({
+          where: { passkeyId: req.body.id },
+        })
+
+        reply.send({ success: true })
+      } catch (e) {
+        // FIXME: Log error
+      }
+
       // FIXME: Implement route
       reply.send({ success: false })
     }

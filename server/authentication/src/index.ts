@@ -1,8 +1,6 @@
 import { app } from './app'
 import { routes } from './routes'
-import { dbClient } from './db-client'
-
-dbClient.connect().then(async () => {
+;(async () => {
   app.register(routes, { prefix: '/api/v1' })
 
   try {
@@ -11,4 +9,4 @@ dbClient.connect().then(async () => {
     app.log.error(err)
     process.exit(1)
   }
-})
+})()

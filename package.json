@@ -11,10 +11,11 @@
     "restart": "npm run stop && npm start",
     "format": "prettier \"**/*.{ts,js,mjs}\" --write",
     "prepare": "husky && npm run build && npm start && npm run db:migrate:dev",
-    "db:migrate:dev": "docker compose exec auth npx prisma migrate dev",
-    "db:migrate:prod": "docker compose exec auth npx prisma migrate deploy",
-    "db:generate:artifacts": "docker compose exec auth npx prisma generate",
-    "enter:auth": "docker compose exec auth /bin/sh"
+    "auth": "docker compose exec auth",
+    "db:migrate:dev": "npm run auth -- npx prisma migrate dev",
+    "db:migrate:prod": "npm run auth -- npx prisma migrate deploy",
+    "db:generate:artifacts": "npm run auth -- npx prisma generate",
+    "enter:auth": "npm run auth -- /bin/sh"
   },
   "repository": {
     "type": "git",

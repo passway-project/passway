@@ -12,7 +12,7 @@ export const app = Fastify({
   await app.register(swagger)
 
   await app.register(swaggerUi, {
-    routePrefix: '/documentation',
+    routePrefix: '/',
     uiConfig: {
       docExpansion: 'full',
       deepLinking: true,

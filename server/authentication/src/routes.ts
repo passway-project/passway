@@ -1,52 +1,35 @@
-import { FastifyPluginAsync } from 'fastify'
+import { FastifyPluginAsync, RouteOptions } from 'fastify'
 
 export const routes: FastifyPluginAsync = async app => {
   app.put(
     '/user',
     {
       schema: {
-        description: 'post some data',
         tags: ['user'],
-        summary: 'Endpoint for creating/updating a user record',
-        params: {
+        summary: 'Create or update a user record',
+        body: {
           type: 'object',
           properties: {
             id: {
               type: 'string',
-              description: 'user id',
-            },
-          },
-        },
-        body: {
-          type: 'object',
-          properties: {
-            hello: { type: 'string' },
-            obj: {
-              type: 'object',
-              properties: {
-                some: { type: 'string' },
-              },
+              description: 'User ID',
             },
           },
         },
         response: {
-          200: {
-            description: 'Successful response',
+          201: {
+            description: 'User created',
             type: 'object',
             properties: {
-              hello: { type: 'string' },
-            },
-          },
-          default: {
-            description: 'Default response',
-            type: 'object',
-            properties: {
-              foo: { type: 'string' },
+              success: { type: 'boolean' },
             },
           },
         },
       },
     },
-    (req, reply) => {}
+    (req, reply) => {
+      // FIXME: Implement route
+      reply.send({ success: false })
+    }
   )
 }

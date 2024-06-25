@@ -1,7 +1,13 @@
-import { FastifyPluginAsync, RouteOptions } from 'fastify'
+import { FastifyPluginAsync } from 'fastify'
+import { User } from '@prisma/client'
 
 export const routes: FastifyPluginAsync = async app => {
-  app.put(
+  app.put<{
+    Body: {
+      id: User['passkeyId']
+    }
+    Reply: { success: boolean }
+  }>(
     '/user',
     {
       schema: {

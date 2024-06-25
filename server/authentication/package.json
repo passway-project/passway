@@ -20,7 +20,9 @@
   "dependencies": {
     "@fastify/swagger": "^8.14.0",
     "@fastify/swagger-ui": "^4.0.0",
+    "@fastify/type-provider-typebox": "^4.0.0",
     "@prisma/client": "^5.15.1",
+    "@sinclair/typebox": "^0.32.34",
     "fastify": "^4.28.0",
     "nodemon": "^3.1.4",
     "pg": "^8.12.0",

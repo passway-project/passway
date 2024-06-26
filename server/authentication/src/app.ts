@@ -4,7 +4,16 @@ import swaggerUi from '@fastify/swagger-ui'
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 
 export const app = Fastify({
-  logger: true,
+  logger: {
+    transport: {
+      target: 'pino-pretty',
+      options: {
+        colorize: true,
+        translateTime: 'HH:MM:ss Z',
+        ignore: 'pid,hostname',
+      },
+    },
+  },
 }).withTypeProvider<TypeBoxTypeProvider>()
 
 // NOTE: Invoke async because top-level await isn't supported until this is

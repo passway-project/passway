@@ -25,6 +25,7 @@
     "@sinclair/typebox": "^0.32.34",
     "fastify": "^4.28.0",
     "nodemon": "^3.1.4",
+    "pino-pretty": "^11.2.1",
     "prisma": "^5.15.1",
     "ts-node": "^10.9.2"
   },

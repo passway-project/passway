@@ -1,5 +1,6 @@
 import { FastifyPluginAsync } from 'fastify'
 import { PrismaClient, User } from '@prisma/client'
+import { StatusCodes } from 'http-status-codes'
 
 const prisma = new PrismaClient()
 
@@ -36,19 +37,56 @@ export const routes: FastifyPluginAsync = async app => {
       },
     },
     async (req, reply) => {
-      try {
-        // FIXME: Update retrieved user
-        const retrievedUser = await prisma.user.findFirstOrThrow({
-          where: { passkeyId: req.body.id },
-        })
+      const requestBody = req.body
+      const passkeyId = requestBody.id
+      let retrievedUser: User | undefined
 
-        reply.send({ success: true })
+      try {
+        retrievedUser = await prisma.user.findFirstOrThrow({
+          where: { passkeyId },
+        })
       } catch (e) {
-        // FIXME: Log error
+        app.log.info(`passkeyId ${passkeyId} not found`)
       }
 
-      // FIXME: Implement route
-      reply.send({ success: false })
+      try {
+        const userRecord = {
+          passkeyId,
+        }
+
+        const isNewUser = typeof retrievedUser?.id === 'undefined'
+
+        const upsertedUser = await prisma.user.upsert({
+          create: userRecord,
+          update: {},
+          where: {
+            id: retrievedUser?.id,
+            passkeyId,
+          },
+        })
+
+        if (isNewUser) {
+          app.log.info(
+            `user ${upsertedUser.id} created with ${JSON.stringify(userRecord)}`
+          )
+
+          reply.code(StatusCodes.CREATED)
+        } else {
+          app.log.info(
+            `user ${upsertedUser.id} updated with ${JSON.stringify(userRecord)}`
+          )
+
+          reply.code(StatusCodes.OK)
+        }
+      } catch (e) {
+        app.log.error(`user ${retrievedUser?.id} update failed:
+${e}`)
+        reply.code(StatusCodes.INTERNAL_SERVER_ERROR)
+        reply.send({ success: false })
+        return
+      }
+
+      reply.send({ success: true })
     }
   )
 }

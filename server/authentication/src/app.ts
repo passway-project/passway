@@ -2,6 +2,7 @@ import Fastify from 'fastify'
 import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
+import { API_ROOT } from './constants'
 
 export const app = Fastify({
   logger: {
@@ -22,7 +23,7 @@ export const app = Fastify({
   await app.register(swagger)
 
   await app.register(swaggerUi, {
-    routePrefix: '/',
+    routePrefix: `/${API_ROOT}`,
     uiConfig: {
       docExpansion: 'full',
       deepLinking: true,

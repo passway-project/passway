@@ -4,7 +4,7 @@ import { StatusCodes } from 'http-status-codes'
 
 const prisma = new PrismaClient()
 
-export const routes: FastifyPluginAsync = async app => {
+export const userRoute: FastifyPluginAsync = async app => {
   app.put<{
     Body: {
       id: User['passkeyId']

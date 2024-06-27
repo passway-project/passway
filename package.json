@@ -10,6 +10,7 @@
     "destroy": "docker compose down --volumes",
     "restart": "npm run stop && npm start",
     "format": "prettier \"**/*.{ts,js,mjs}\" --write",
+    "lint": "npm run auth -- npx eslint",
     "prepare": "husky && npm run build && npm start && npm run db:migrate:dev",
     "auth": "docker compose exec auth",
     "db:migrate:dev": "npm run auth -- npx prisma migrate dev",

@@ -1,8 +1,12 @@
 import Fastify from 'fastify'
 import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
+import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes'
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 import { API_ROOT } from './constants'
+
+const theme = new SwaggerTheme()
+const content = theme.getBuffer(SwaggerThemeNameEnum.DARK)
 
 export const app = Fastify({
   logger: {
@@ -28,6 +32,10 @@ export const app = Fastify({
       docExpansion: 'full',
       deepLinking: true,
       tryItOutEnabled: true,
+    },
+
+    theme: {
+      css: [{ filename: 'theme.css', content: content }],
     },
   })
 })()

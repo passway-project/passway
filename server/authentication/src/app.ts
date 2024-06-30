@@ -5,6 +5,7 @@ import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes'
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 import { API_ROOT } from './constants'
 import * as routes from './routes/index'
+import prismaPlugin from '../prisma/prismaPlugin'
 
 const theme = new SwaggerTheme()
 const content = theme.getBuffer(SwaggerThemeNameEnum.DARK)
@@ -24,6 +25,7 @@ export const buildApp = async () => {
   }).withTypeProvider<TypeBoxTypeProvider>()
 
   await app.register(swagger)
+  await app.register(prismaPlugin)
 
   await app.register(swaggerUi, {
     routePrefix: `/${API_ROOT}`,

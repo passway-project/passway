@@ -1,8 +1,6 @@
 import { FastifyPluginAsync } from 'fastify'
-import { PrismaClient, User } from '@prisma/client'
+import { User } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
-
-const prisma = new PrismaClient()
 
 export const userRoute: FastifyPluginAsync = async app => {
   app.put<{
@@ -42,7 +40,7 @@ export const userRoute: FastifyPluginAsync = async app => {
       let retrievedUser: User | undefined
 
       try {
-        retrievedUser = await prisma.user.findFirstOrThrow({
+        retrievedUser = await app.prisma.user.findFirstOrThrow({
           where: { passkeyId },
         })
       } catch (e) {
@@ -56,7 +54,7 @@ export const userRoute: FastifyPluginAsync = async app => {
 
         const isNewUser = typeof retrievedUser?.id === 'undefined'
 
-        const upsertedUser = await prisma.user.upsert({
+        const upsertedUser = await app.prisma.user.upsert({
           create: userRecord,
           update: {},
           where: {

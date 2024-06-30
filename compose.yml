@@ -11,8 +11,6 @@ services:
       - passway-network
 
   auth:
-    volumes:
-      - ./server/authentication:/usr/src/app
     build:
       context: ./server/authentication
     expose:

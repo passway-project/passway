@@ -1,4 +1,6 @@
 services:
   auth:
+    volumes:
+      - ./server/authentication:/usr/src/app
     ports:
       - 9229:9229

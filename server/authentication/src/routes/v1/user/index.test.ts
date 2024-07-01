@@ -9,7 +9,7 @@ import { API_ROOT } from '../../../constants'
 let app: FastifyInstance = fastify()
 
 beforeEach(async () => {
-  app = await buildApp()
+  app = await buildApp({ logger: false })
   app.prisma = mockDeep<PrismaClient>()
 })
 
@@ -18,8 +18,6 @@ afterEach(async () => {
 })
 
 const endpointRoute = `/${API_ROOT}/v1/user`
-
-// FIXME: Silence logs for tests
 
 describe(endpointRoute, () => {
   test('creates a user', async () => {

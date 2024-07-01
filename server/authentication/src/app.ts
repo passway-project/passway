@@ -41,7 +41,7 @@ export const buildApp = async () => {
   })
 
   for (const route of Object.values(routes)) {
-    app.register(route, { prefix: `/${API_ROOT}/v1` })
+    await app.register(route, { prefix: `/${API_ROOT}/v1` })
   }
 
   return app

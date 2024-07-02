@@ -39,5 +39,16 @@ describe(endpointRoute, () => {
 
     expect(bodyJson).toEqual({ success: true })
     expect(response.statusCode).toEqual(StatusCodes.CREATED)
+    expect(
+      (app.prisma as DeepMockProxy<PrismaClient>).user.upsert
+    ).toHaveBeenCalledWith({
+      create: {
+        passkeyId,
+      },
+      update: {},
+      where: {
+        passkeyId,
+      },
+    })
   })
 })

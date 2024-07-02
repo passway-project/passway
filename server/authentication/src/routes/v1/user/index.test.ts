@@ -5,7 +5,6 @@ import { mockDeep, DeepMockProxy } from 'jest-mock-extended'
 import { buildApp } from '../../../app'
 import { API_ROOT } from '../../../constants'
 
-// FIXME: Move this to a setup file
 let app: FastifyInstance = fastify()
 
 beforeEach(async () => {

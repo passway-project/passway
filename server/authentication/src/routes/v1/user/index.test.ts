@@ -27,7 +27,12 @@ describe(endpointRoute, () => {
     ).user.findFirstOrThrow.mockRejectedValueOnce(new Error())
     ;(
       app.prisma as DeepMockProxy<PrismaClient>
-    ).user.upsert.mockResolvedValueOnce({ id: 0, passkeyId })
+    ).user.upsert.mockResolvedValueOnce({
+      id: 0,
+      passkeyId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
 
     const response = await app.inject({
       method: 'PUT',

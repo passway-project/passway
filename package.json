@@ -11,7 +11,7 @@
     "restart": "npm run stop && npm start",
     "format": "prettier \"**/*.{ts,js,mjs}\" --write",
     "lint": "npm run auth -- npx eslint",
-    "test": "npm run auth -- npm test",
+    "test": "npm run auth -- npm test -- --coverage",
     "test:watch": "npm run auth -- npm test -- --watchAll",
     "prepare": "husky && npm run build && npm start && npm run db:migrate:dev",
     "auth": "docker compose exec auth",

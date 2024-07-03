@@ -20,6 +20,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      cache:
+        condition: service_healthy
     env_file: '.env'
 
   db:
@@ -40,6 +42,18 @@ services:
 
     volumes:
       - db_data:/var/lib/postgresql/data
+
+  cache:
+    image: bitnami/valkey:7.2.5
+    environment:
+      VALKEY_PASSWORD: ${CACHE_PASSWORD}
+      VALKEY_DATABASE: ${CACHE_NAME}
+    ports:
+      - '${CACHE_PORT}:6379'
+    networks:
+      - passway-network
+    healthcheck:
+      test: ['CMD', 'valkey-cli', 'ping']
 
 networks:
   passway-network:

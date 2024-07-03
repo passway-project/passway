@@ -102,4 +102,33 @@ describe(endpointRoute, () => {
       },
     })
   })
+
+  test('reports INTERNAL_SERVER_ERROR', async () => {
+    const now = Date.now()
+    const passkeyId = 'foo'
+    const preexistingUser: User = {
+      id: 0,
+      passkeyId,
+      createdAt: new Date(now),
+      updatedAt: new Date(now),
+    }
+
+    ;(
+      app.prisma as DeepMockProxy<PrismaClient>
+    ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
+    ;(
+      app.prisma as DeepMockProxy<PrismaClient>
+    ).user.upsert.mockRejectedValueOnce(new Error())
+
+    const response = await app.inject({
+      method: 'PUT',
+      url: endpointRoute,
+      body: { id: passkeyId },
+    })
+
+    const bodyJson = await response.json()
+
+    expect(bodyJson).toEqual({ success: false })
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR)
+  })
 })

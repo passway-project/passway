@@ -1,8 +1,8 @@
-import Cache from 'iovalkey'
+import Redis from 'ioredis'
 
 const cacheContainerName = 'cache'
 
-export const cache = new Cache({
+export const redisClient = new Redis({
   port: Number(process.env.CACHE_PORT),
   host: cacheContainerName,
   password: process.env.CACHE_PASSWORD,

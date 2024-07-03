@@ -1,4 +1,5 @@
 import fastify, { FastifyInstance } from 'fastify'
+import { FastifyRedis } from '@fastify/redis'
 import { PrismaClient, User } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
 import { mockDeep, DeepMockProxy } from 'jest-mock-extended'
@@ -6,14 +7,21 @@ import { buildApp } from '../../../app'
 import { API_ROOT } from '../../../constants'
 
 let app: FastifyInstance = fastify()
+let redis: FastifyRedis | null = null
 
 beforeEach(async () => {
   app = await buildApp({ logger: false })
   app.prisma = mockDeep<PrismaClient>()
+  redis = app.redis
+  app.redis = mockDeep<FastifyRedis>()
 })
 
 afterEach(async () => {
   app.close()
+})
+
+afterAll(() => {
+  redis?.quit()
 })
 
 const endpointRoute = `/${API_ROOT}/v1/user`

@@ -1,7 +1,4 @@
-import Fastify, {
-  FastifyHttp2SecureOptions,
-  FastifyServerOptions,
-} from 'fastify'
+import Fastify, { FastifyServerOptions } from 'fastify'
 import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
 import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes'
@@ -9,7 +6,6 @@ import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 import { API_ROOT } from './constants'
 import * as routes from './routes/index'
 import prismaPlugin from '../prisma/prismaPlugin'
-import { Http2SecureServer } from 'http2'
 
 const theme = new SwaggerTheme()
 const content = theme.getBuffer(SwaggerThemeNameEnum.DARK)

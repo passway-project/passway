@@ -2,6 +2,8 @@ import { FastifyPluginAsync } from 'fastify'
 import { User } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
 
+export const routeName = 'user'
+
 export const userRoute: FastifyPluginAsync = async app => {
   app.put<{
     Body: {
@@ -11,7 +13,7 @@ export const userRoute: FastifyPluginAsync = async app => {
     }
     Reply: { success: boolean }
   }>(
-    '/user',
+    `/${routeName}`,
     {
       schema: {
         tags: ['user'],

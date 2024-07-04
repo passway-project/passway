@@ -3,8 +3,9 @@ import { StatusCodes } from 'http-status-codes'
 import { DeepMockProxy } from 'jest-mock-extended'
 import { getApp } from '../../../../test/getApp'
 import { API_ROOT } from '../../../constants'
+import { routeName } from '.'
 
-const endpointRoute = `/${API_ROOT}/v1/user`
+const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 
 const stubUserId = 0
 const stubUserEncryptedKeysData = 'ZW5jcnlwdGVkIGtleQo='

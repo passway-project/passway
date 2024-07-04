@@ -8,31 +8,6 @@ import { routeName } from '.'
 
 const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 
-let publicKey = ''
-let privateKey = ''
-
-beforeEach(async () => {
-  const keypair = await webcrypto.subtle.generateKey(
-    {
-      name: 'RSA-OAEP',
-      modulusLength: 2048,
-      publicExponent: new Uint8Array([1, 0, 1]),
-      hash: 'SHA-256',
-    },
-    true,
-    ['encrypt', 'decrypt']
-  )
-
-  const textDecoder = new TextDecoder()
-
-  publicKey = textDecoder.decode(
-    await webcrypto.subtle.exportKey('spki', keypair.publicKey)
-  )
-  privateKey = textDecoder.decode(
-    await webcrypto.subtle.exportKey('pkcs8', keypair.privateKey)
-  )
-})
-
 describe(endpointRoute, () => {
   test('handles nonexistent user lookup', async () => {
     const app = getApp()

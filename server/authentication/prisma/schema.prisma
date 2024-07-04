@@ -14,9 +14,10 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  passkeyId String   @unique
-  keyData   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  passkeyId     String   @unique
+  encryptedKeys String
+  publicKey     String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }

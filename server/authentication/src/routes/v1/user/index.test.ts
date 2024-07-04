@@ -7,7 +7,8 @@ import { API_ROOT } from '../../../constants'
 const endpointRoute = `/${API_ROOT}/v1/user`
 
 const stubUserId = 0
-const stubUserKeyData = 'ZW5jcnlwdGVkIGtleQo='
+const stubUserEncryptedKeysData = 'ZW5jcnlwdGVkIGtleQo='
+const stubUserPublicKeyData = 'cHVibGljIGtleQo='
 
 describe(endpointRoute, () => {
   test('creates a user', async () => {
@@ -21,7 +22,8 @@ describe(endpointRoute, () => {
       app.prisma as DeepMockProxy<PrismaClient>
     ).user.upsert.mockResolvedValueOnce({
       id: stubUserId,
-      keyData: stubUserKeyData,
+      encryptedKeys: stubUserEncryptedKeysData,
+      publicKey: stubUserPublicKeyData,
       passkeyId,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -42,10 +44,12 @@ describe(endpointRoute, () => {
     ).toHaveBeenCalledWith({
       create: {
         passkeyId,
-        keyData: stubUserKeyData,
+        encryptedKeys: stubUserEncryptedKeysData,
+        publicKey: stubUserPublicKeyData,
       },
       update: {
-        keyData: stubUserKeyData,
+        encryptedKeys: stubUserEncryptedKeysData,
+        publicKey: stubUserPublicKeyData,
       },
       where: {
         passkeyId,
@@ -60,7 +64,8 @@ describe(endpointRoute, () => {
     const preexistingUser: User = {
       id: stubUserId,
       passkeyId,
-      keyData: stubUserKeyData,
+      encryptedKeys: stubUserEncryptedKeysData,
+      publicKey: stubUserPublicKeyData,
       createdAt: new Date(now),
       updatedAt: new Date(now),
     }
@@ -73,7 +78,8 @@ describe(endpointRoute, () => {
     ).user.upsert.mockResolvedValueOnce({
       id: stubUserId,
       passkeyId,
-      keyData: stubUserKeyData,
+      encryptedKeys: stubUserEncryptedKeysData,
+      publicKey: stubUserPublicKeyData,
       createdAt: new Date(now),
       updatedAt: new Date(now + 1000),
     })
@@ -93,10 +99,12 @@ describe(endpointRoute, () => {
     ).toHaveBeenCalledWith({
       create: {
         passkeyId,
-        keyData: stubUserKeyData,
+        encryptedKeys: stubUserEncryptedKeysData,
+        publicKey: stubUserPublicKeyData,
       },
       update: {
-        keyData: stubUserKeyData,
+        encryptedKeys: stubUserEncryptedKeysData,
+        publicKey: stubUserPublicKeyData,
       },
       where: {
         id: preexistingUser.id,
@@ -112,7 +120,8 @@ describe(endpointRoute, () => {
     const preexistingUser: User = {
       id: stubUserId,
       passkeyId,
-      keyData: stubUserKeyData,
+      encryptedKeys: stubUserEncryptedKeysData,
+      publicKey: stubUserPublicKeyData,
       createdAt: new Date(now),
       updatedAt: new Date(now),
     }

@@ -4,12 +4,18 @@ import { DeepMockProxy } from 'jest-mock-extended'
 import { getApp } from '../../../../test/getApp'
 import { API_ROOT } from '../../../constants'
 import { routeName } from '.'
+import { getKeypair } from '../../../../test/getKeypair'
 
 const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 
 const stubUserId = 0
 const stubUserEncryptedKeysData = 'ZW5jcnlwdGVkIGtleQo='
-const stubUserPublicKeyData = 'cHVibGljIGtleQo='
+let stubUserPublicKeyData = ''
+
+beforeAll(async () => {
+  const keypair = await getKeypair()
+  stubUserPublicKeyData = btoa(keypair.publicKey)
+})
 
 describe(endpointRoute, () => {
   test('creates a user', async () => {
@@ -33,7 +39,11 @@ describe(endpointRoute, () => {
     const response = await app.inject({
       method: 'PUT',
       url: endpointRoute,
-      body: { id: passkeyId },
+      body: {
+        id: passkeyId,
+        encryptedKeys: stubUserEncryptedKeysData,
+        publicKey: stubUserPublicKeyData,
+      },
     })
 
     const bodyJson = await response.json()
@@ -88,7 +98,11 @@ describe(endpointRoute, () => {
     const response = await app.inject({
       method: 'PUT',
       url: endpointRoute,
-      body: { id: passkeyId },
+      body: {
+        id: passkeyId,
+        encryptedKeys: stubUserEncryptedKeysData,
+        publicKey: stubUserPublicKeyData,
+      },
     })
 
     const bodyJson = await response.json()
@@ -137,7 +151,11 @@ describe(endpointRoute, () => {
     const response = await app.inject({
       method: 'PUT',
       url: endpointRoute,
-      body: { id: passkeyId },
+      body: {
+        id: passkeyId,
+        encryptedKeys: stubUserEncryptedKeysData,
+        publicKey: stubUserPublicKeyData,
+      },
     })
 
     const bodyJson = await response.json()

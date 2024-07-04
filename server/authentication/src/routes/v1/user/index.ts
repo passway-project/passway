@@ -24,18 +24,15 @@ export const userRoute: FastifyPluginAsync = async app => {
             id: {
               type: 'string',
               description: 'User ID',
-              default: 'abc123',
             },
             encryptedKeys: {
               type: 'string',
               description:
                 'Base 64 encoded, encrypted, public/private key pair. DO NOT provide unencrypted data.',
-              default: 'ZW5jcnlwdGVkIGtleQo=',
             },
             publicKey: {
               type: 'string',
               description: 'Base 64 encoded, unencrypted, public key.',
-              default: 'cHVibGljIGtleQo=',
             },
           },
         },

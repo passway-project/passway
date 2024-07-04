@@ -9,18 +9,15 @@ import { API_ROOT } from '../../../constants'
 let app: FastifyInstance = fastify()
 let redis: FastifyRedis | null = null
 
-beforeEach(async () => {
+beforeAll(async () => {
   app = await buildApp({ logger: false })
   app.prisma = mockDeep<PrismaClient>()
   redis = app.redis
   app.redis = mockDeep<FastifyRedis>()
 })
 
-afterEach(async () => {
-  app.close()
-})
-
 afterAll(() => {
+  app.close()
   redis?.quit()
 })
 

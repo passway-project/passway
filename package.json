@@ -9,6 +9,7 @@
     "stop": "docker compose down",
     "destroy": "docker compose down --volumes",
     "restart": "npm run stop && npm start",
+    "restart:dev": "npm run stop && npm run start:dev",
     "format": "prettier \"**/*.{ts,js,mjs}\" --write",
     "lint": "npm run auth -- npx eslint",
     "test": "npm run auth -- npm test -- --coverage",

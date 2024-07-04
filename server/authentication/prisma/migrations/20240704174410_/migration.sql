@@ -2,7 +2,8 @@
 CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
     "passkeyId" TEXT NOT NULL,
-    "keyData" TEXT NOT NULL,
+    "encryptedKeys" TEXT NOT NULL,
+    "publicKey" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

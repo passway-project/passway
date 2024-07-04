@@ -6,6 +6,7 @@ export const userRoute: FastifyPluginAsync = async app => {
   app.put<{
     Body: {
       id: User['passkeyId']
+      keyData: User['keyData']
     }
     Reply: { success: boolean }
   }>(
@@ -20,6 +21,13 @@ export const userRoute: FastifyPluginAsync = async app => {
             id: {
               type: 'string',
               description: 'User ID',
+              default: 'abc123',
+            },
+            keyData: {
+              type: 'string',
+              description:
+                'Base 64 encoded, encrypted, public/private keypair. DO NOT provide unencrypted data.',
+              default: 'ZW5jcnlwdGVkIGtleQo=',
             },
           },
         },
@@ -36,7 +44,7 @@ export const userRoute: FastifyPluginAsync = async app => {
     },
     async (req, reply) => {
       const requestBody = req.body
-      const passkeyId = requestBody.id
+      const { id: passkeyId, keyData } = requestBody
       let retrievedUser: User | undefined
 
       try {
@@ -50,13 +58,16 @@ export const userRoute: FastifyPluginAsync = async app => {
       try {
         const userRecord = {
           passkeyId,
+          keyData,
         }
 
         const isNewUser = typeof retrievedUser?.id === 'undefined'
 
         const upsertedUser = await app.prisma.user.upsert({
           create: userRecord,
-          update: {},
+          update: {
+            keyData,
+          },
           where: {
             id: retrievedUser?.id,
             passkeyId,

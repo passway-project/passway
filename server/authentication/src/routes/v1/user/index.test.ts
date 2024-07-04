@@ -6,6 +6,9 @@ import { API_ROOT } from '../../../constants'
 
 const endpointRoute = `/${API_ROOT}/v1/user`
 
+const stubUserId = 0
+const stubUserKeyData = 'ZW5jcnlwdGVkIGtleQo='
+
 describe(endpointRoute, () => {
   test('creates a user', async () => {
     const app = getApp()
@@ -17,7 +20,8 @@ describe(endpointRoute, () => {
     ;(
       app.prisma as DeepMockProxy<PrismaClient>
     ).user.upsert.mockResolvedValueOnce({
-      id: 0,
+      id: stubUserId,
+      keyData: stubUserKeyData,
       passkeyId,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -38,8 +42,11 @@ describe(endpointRoute, () => {
     ).toHaveBeenCalledWith({
       create: {
         passkeyId,
+        keyData: stubUserKeyData,
       },
-      update: {},
+      update: {
+        keyData: stubUserKeyData,
+      },
       where: {
         passkeyId,
       },
@@ -51,8 +58,9 @@ describe(endpointRoute, () => {
     const now = Date.now()
     const passkeyId = 'foo'
     const preexistingUser: User = {
-      id: 0,
+      id: stubUserId,
       passkeyId,
+      keyData: stubUserKeyData,
       createdAt: new Date(now),
       updatedAt: new Date(now),
     }
@@ -63,8 +71,9 @@ describe(endpointRoute, () => {
     ;(
       app.prisma as DeepMockProxy<PrismaClient>
     ).user.upsert.mockResolvedValueOnce({
-      id: 0,
+      id: stubUserId,
       passkeyId,
+      keyData: stubUserKeyData,
       createdAt: new Date(now),
       updatedAt: new Date(now + 1000),
     })
@@ -84,8 +93,11 @@ describe(endpointRoute, () => {
     ).toHaveBeenCalledWith({
       create: {
         passkeyId,
+        keyData: stubUserKeyData,
       },
-      update: {},
+      update: {
+        keyData: stubUserKeyData,
+      },
       where: {
         id: preexistingUser.id,
         passkeyId,
@@ -98,8 +110,9 @@ describe(endpointRoute, () => {
     const now = Date.now()
     const passkeyId = 'foo'
     const preexistingUser: User = {
-      id: 0,
+      id: stubUserId,
       passkeyId,
+      keyData: stubUserKeyData,
       createdAt: new Date(now),
       updatedAt: new Date(now),
     }

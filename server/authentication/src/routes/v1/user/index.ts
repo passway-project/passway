@@ -32,8 +32,15 @@ export const userRoute: FastifyPluginAsync = async app => {
           },
         },
         response: {
-          201: {
+          [StatusCodes.CREATED]: {
             description: 'User created',
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+            },
+          },
+          [StatusCodes.OK]: {
+            description: 'User updated',
             type: 'object',
             properties: {
               success: { type: 'boolean' },

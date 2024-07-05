@@ -4,3 +4,17 @@ services:
       - ./server/authentication:/usr/src/app
     ports:
       - 9229:9229
+
+  db-admin:
+    image: sosedoff/pgweb
+    ports:
+      - '${DB_ADMIN_PORT}:8081'
+    links:
+      - db:postgres
+    environment:
+      - DATABASE_URL=postgres://$DB_USER:$DB_PASSWORD@db:$DB_PORT/$DB_NAME?sslmode=disable
+    networks:
+      - passway-network
+    depends_on:
+      db:
+        condition: service_healthy

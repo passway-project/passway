@@ -54,6 +54,9 @@ services:
       - passway-network
     healthcheck:
       test: ['CMD', 'valkey-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 networks:
   passway-network:

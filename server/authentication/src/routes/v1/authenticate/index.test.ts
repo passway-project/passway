@@ -1,11 +1,11 @@
-import { webcrypto } from 'node:crypto'
+import { ECKeyPairOptions, webcrypto } from 'node:crypto'
 import { PrismaClient } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
 import { DeepMockProxy } from 'jest-mock-extended'
 import { getApp } from '../../../../test/getApp'
 import { API_ROOT } from '../../../constants'
 import { routeName } from '.'
-import { getKeypair } from '../../../../test/getKeypair'
+import { getKeypair, signatureKeyParams } from '../../../../test/getKeypair'
 
 const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 
@@ -42,21 +42,14 @@ const deriveKey = async (keyMaterial: CryptoKey, salt: BufferSource) => {
 }
 
 beforeAll(async () => {
-  const keypair = await getKeypair({
-    algorithm: {
-      name: 'ECDSA',
-      namedCurve: 'P-256',
-      hash: { name: 'SHA-256' },
-    },
-    usage: ['sign', 'verify'],
-  })
+  const encryptionKeys = await getKeypair()
+  const signatureKeys = await getKeypair(signatureKeyParams)
 
-  const { publicKey, privateKey } = keypair
-  stubUserPublicKeyData = publicKey
+  stubUserPublicKeyData = signatureKeys.publicKey
 
   const keysString = JSON.stringify({
-    publicKey,
-    privateKey,
+    encryptionKeys,
+    signatureKeys,
   })
 
   const encoder = new TextEncoder()

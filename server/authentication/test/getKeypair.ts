@@ -1,14 +1,33 @@
 import { webcrypto } from 'crypto'
 
-export const getKeypair = async ({
-  algorithm = {
+export type KeyParams = {
+  algorithm: webcrypto.RsaHashedKeyGenParams | webcrypto.EcKeyGenParams
+  usage: KeyUsage[]
+}
+
+export const encryptionKeyParams: KeyParams = {
+  algorithm: {
     name: 'RSA-OAEP',
     modulusLength: 2048,
     publicExponent: new Uint8Array([1, 0, 1]),
     hash: 'SHA-256',
   },
+  usage: ['encrypt', 'decrypt'],
+}
+
+export const signatureKeyParams: KeyParams = {
+  algorithm: {
+    name: 'ECDSA',
+    namedCurve: 'P-256',
+    hash: { name: 'SHA-256' },
+  },
+  usage: ['sign', 'verify'],
+}
+
+export const getKeypair = async ({
+  algorithm = encryptionKeyParams.algorithm,
   extractable = true,
-  usage = ['encrypt', 'decrypt'],
+  usage = encryptionKeyParams.usage,
 }: {
   algorithm?: webcrypto.RsaHashedKeyGenParams | webcrypto.EcKeyGenParams
   extractable?: boolean

@@ -2,9 +2,9 @@ import { FastifyPluginAsync } from 'fastify'
 import { User } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
 
-export const routeName = 'authenticate'
+export const routeName = 'verify-signature'
 
-export const autheticateRoute: FastifyPluginAsync = async app => {
+export const verifySignatureRoute: FastifyPluginAsync = async app => {
   app.post<{
     Body: {
       id: User['passkeyId']

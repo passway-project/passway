@@ -1,15 +1,23 @@
 import { webcrypto } from 'crypto'
 
-export const getKeypair = async () => {
+export const getKeypair = async ({
+  algorithm = {
+    name: 'RSA-OAEP',
+    modulusLength: 2048,
+    publicExponent: new Uint8Array([1, 0, 1]),
+    hash: 'SHA-256',
+  },
+  extractable = true,
+  usage = ['encrypt', 'decrypt'],
+}: {
+  algorithm?: webcrypto.RsaHashedKeyGenParams | webcrypto.EcKeyGenParams
+  extractable?: boolean
+  usage?: webcrypto.KeyUsage[]
+} = {}) => {
   const keypair = await webcrypto.subtle.generateKey(
-    {
-      name: 'RSA-OAEP',
-      modulusLength: 2048,
-      publicExponent: new Uint8Array([1, 0, 1]),
-      hash: 'SHA-256',
-    },
-    true,
-    ['encrypt', 'decrypt']
+    algorithm,
+    extractable,
+    usage
   )
 
   const publicKey = Buffer.from(

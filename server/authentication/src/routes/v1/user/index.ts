@@ -5,6 +5,84 @@ import { StatusCodes } from 'http-status-codes'
 export const routeName = 'user'
 
 export const userRoute: FastifyPluginAsync = async app => {
+  app.get<{
+    Headers: {
+      'x-user-id': User['passkeyId']
+    }
+    Reply: {
+      success: boolean
+      user?: { publicKey: User['publicKey']; keys: User['encryptedKeys'] }
+    }
+  }>(
+    `/${routeName}`,
+    {
+      schema: {
+        tags: ['user'],
+        summary: 'Get a user record',
+        headers: {
+          type: 'object',
+          properties: {
+            'x-user-id': {
+              type: 'string',
+              description: 'User ID to look up',
+            },
+          },
+        },
+        response: {
+          [StatusCodes.OK]: {
+            description: 'User found',
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+              user: {
+                type: 'object',
+                properties: {
+                  publicKey: {
+                    type: 'string',
+                  },
+                  keys: {
+                    type: 'string',
+                  },
+                },
+              },
+            },
+          },
+          [StatusCodes.NOT_FOUND]: {
+            description: 'User not found',
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+            },
+          },
+        },
+      },
+    },
+    async (req, reply) => {
+      const requestHeaders = req.headers
+      const { 'x-user-id': passkeyId } = requestHeaders
+      let retrievedUser: User | undefined
+
+      try {
+        retrievedUser = await app.prisma.user.findFirstOrThrow({
+          where: { passkeyId },
+        })
+      } catch (e) {
+        app.log.info(`passkeyId ${passkeyId} not found`)
+        reply.code(StatusCodes.NOT_FOUND)
+        reply.send({ success: false })
+        return
+      }
+
+      reply.send({
+        success: true,
+        user: {
+          keys: retrievedUser.encryptedKeys,
+          publicKey: retrievedUser.publicKey,
+        },
+      })
+    }
+  )
+
   app.put<{
     Body: {
       id: User['passkeyId']

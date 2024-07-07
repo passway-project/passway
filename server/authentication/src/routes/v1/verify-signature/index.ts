@@ -22,9 +22,9 @@ export const verifySignatureRoute: FastifyPluginAsync = async app => {
             id: {
               type: 'string',
               description: 'User ID',
-              default: 'abc123',
             },
           },
+          required: ['id'],
         },
         response: {
           [StatusCodes.OK]: {

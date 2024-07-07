@@ -27,6 +27,7 @@ export const userRoute: FastifyPluginAsync = async app => {
               description: 'User ID to look up',
             },
           },
+          required: ['x-user-id'],
         },
         response: {
           [StatusCodes.OK]: {
@@ -58,6 +59,15 @@ export const userRoute: FastifyPluginAsync = async app => {
       },
     },
     async (req, reply) => {
+      const validationFn = req.getValidationFunction('headers')
+      console.log({ validationFn }, req.headers)
+
+      if (!validationFn(req.headers)) {
+        reply.code(StatusCodes.BAD_REQUEST)
+        reply.send({ success: false })
+        return
+      }
+
       const requestHeaders = req.headers
       const { 'x-user-id': passkeyId } = requestHeaders
       let retrievedUser: User | undefined
@@ -113,6 +123,7 @@ export const userRoute: FastifyPluginAsync = async app => {
               description: 'Base 64 encoded, unencrypted, public key.',
             },
           },
+          required: ['id', 'encryptedKeys', 'publicKey'],
         },
         response: {
           [StatusCodes.CREATED]: {

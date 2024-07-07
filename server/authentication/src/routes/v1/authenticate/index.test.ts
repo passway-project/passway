@@ -135,7 +135,6 @@ describe(endpointRoute, () => {
       ['sign']
     )
 
-    // FIXME: Verify that salt works as expected
     const saltLength = 32
     const rawData = 'Hello, World!'
     const dataBuffer = new TextEncoder().encode(rawData)

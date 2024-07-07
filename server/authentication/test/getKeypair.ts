@@ -17,8 +17,9 @@ export const encryptionKeyParams: KeyParams = {
 
 export const signatureKeyParams: KeyParams = {
   algorithm: {
-    name: 'ECDSA',
-    namedCurve: 'P-256',
+    name: 'RSA-PSS',
+    modulusLength: 2048,
+    publicExponent: new Uint8Array([1, 0, 1]),
     hash: { name: 'SHA-256' },
   },
   usage: ['sign', 'verify'],

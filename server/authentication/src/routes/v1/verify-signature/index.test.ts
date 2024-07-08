@@ -4,7 +4,7 @@ import { StatusCodes } from 'http-status-codes'
 import { DeepMockProxy } from 'jest-mock-extended'
 import { getApp } from '../../../../test/getApp'
 import { API_ROOT } from '../../../constants'
-import { routeName } from '.'
+import { routeName, signatureMessage } from '.'
 import { getKeypair } from '../../../../test/getKeypair'
 import { signatureKeyParams } from '../../../services/Encryption'
 
@@ -41,6 +41,34 @@ const deriveKey = async (keyMaterial: CryptoKey, salt: BufferSource) => {
     false,
     ['encrypt', 'decrypt']
   )
+}
+
+async function getSignature(message: string) {
+  const privateKeyBuffer = Buffer.from(stubUserPrivateKeyData, 'base64')
+  const signaturePrivateKeyBuffer = await webcrypto.subtle.importKey(
+    'pkcs8',
+    privateKeyBuffer,
+    {
+      name: signatureKeyParams.algorithm.name,
+      namedCurve: 'P-256',
+      hash: 'SHA-256',
+    },
+    true,
+    ['sign']
+  )
+
+  const dataBuffer = new TextEncoder().encode(message)
+  const signature = await webcrypto.subtle.sign(
+    {
+      name: signatureKeyParams.algorithm.name,
+      hash: 'SHA-256',
+      saltLength: 32,
+    },
+    signaturePrivateKeyBuffer,
+    dataBuffer
+  )
+
+  return signature
 }
 
 beforeAll(async () => {
@@ -85,10 +113,13 @@ describe(endpointRoute, () => {
       app.prisma as DeepMockProxy<PrismaClient>
     ).user.findFirstOrThrow.mockRejectedValueOnce(new Error())
 
+    const signature = await getSignature(signatureMessage)
+    const signaturePayload = Buffer.from(signature).toString('base64')
+
     const response = await app.inject({
       method: 'POST',
       url: endpointRoute,
-      body: { id: passkeyId },
+      body: { id: passkeyId, signature: signaturePayload },
     })
 
     const bodyJson = await response.json()
@@ -110,56 +141,8 @@ describe(endpointRoute, () => {
       updatedAt: new Date(now),
     }
 
-    const publicKeyBuffer = Buffer.from(stubUserPublicKeyData, 'base64')
-    const signaturePublicKeyBuffer = await webcrypto.subtle.importKey(
-      'spki',
-      publicKeyBuffer,
-      {
-        name: signatureKeyParams.algorithm.name,
-        namedCurve: 'P-256',
-        hash: 'SHA-256',
-      },
-      true,
-      ['verify']
-    )
-
-    const privateKeyBuffer = Buffer.from(stubUserPrivateKeyData, 'base64')
-    const signaturePrivateKeyBuffer = await webcrypto.subtle.importKey(
-      'pkcs8',
-      privateKeyBuffer,
-      {
-        name: signatureKeyParams.algorithm.name,
-        namedCurve: 'P-256',
-        hash: 'SHA-256',
-      },
-      true,
-      ['sign']
-    )
-
-    const saltLength = 32
-    const rawData = 'Hello, World!'
-    const dataBuffer = new TextEncoder().encode(rawData)
-    const signature = await webcrypto.subtle.sign(
-      {
-        name: signatureKeyParams.algorithm.name,
-        hash: 'SHA-256',
-        saltLength,
-      },
-      signaturePrivateKeyBuffer,
-      dataBuffer
-    )
-
-    // FIXME: Move this to the route handler
-    const isValid = await webcrypto.subtle.verify(
-      {
-        name: signatureKeyParams.algorithm.name,
-        hash: 'SHA-256',
-        saltLength,
-      },
-      signaturePublicKeyBuffer,
-      signature,
-      dataBuffer
-    )
+    const signature = await getSignature(signatureMessage)
+    const signaturePayload = Buffer.from(signature).toString('base64')
 
     ;(
       app.prisma as DeepMockProxy<PrismaClient>
@@ -168,11 +151,43 @@ describe(endpointRoute, () => {
     const response = await app.inject({
       method: 'POST',
       url: endpointRoute,
-      body: { id: passkeyId },
+      body: { id: passkeyId, signature: signaturePayload },
     })
 
     const bodyJson = await response.json()
 
     expect(bodyJson).toEqual({ success: true })
+  })
+
+  test('handles invalid signature message', async () => {
+    const app = getApp()
+    const passkeyId = 'foo'
+    const now = Date.now()
+    const preexistingUser: User = {
+      id: stubUserId,
+      passkeyId,
+      encryptedKeys: stubUserEncryptedKeysData,
+      publicKey: stubUserPublicKeyData,
+      createdAt: new Date(now),
+      updatedAt: new Date(now),
+    }
+
+    // FIXME: Also test for invalid signature with correct message
+    const signature = await getSignature('some other message')
+    const signaturePayload = Buffer.from(signature).toString('base64')
+
+    ;(
+      app.prisma as DeepMockProxy<PrismaClient>
+    ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
+
+    const response = await app.inject({
+      method: 'POST',
+      url: endpointRoute,
+      body: { id: passkeyId, signature: signaturePayload },
+    })
+
+    const bodyJson = await response.json()
+
+    expect(bodyJson).toEqual({ success: false })
   })
 })

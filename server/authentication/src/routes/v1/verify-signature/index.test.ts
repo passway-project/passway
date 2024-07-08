@@ -1,11 +1,12 @@
+import { webcrypto } from 'crypto'
 import { PrismaClient, User } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
 import { DeepMockProxy } from 'jest-mock-extended'
 import { getApp } from '../../../../test/getApp'
 import { API_ROOT } from '../../../constants'
 import { routeName } from '.'
-import { getKeypair, signatureKeyParams } from '../../../../test/getKeypair'
-import { webcrypto } from 'crypto'
+import { getKeypair } from '../../../../test/getKeypair'
+import { signatureKeyParams } from '../../../services/Encryption'
 
 const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 

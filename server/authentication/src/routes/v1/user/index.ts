@@ -59,15 +59,6 @@ export const userRoute: FastifyPluginAsync = async app => {
       },
     },
     async (req, reply) => {
-      const validationFn = req.getValidationFunction('headers')
-      console.log({ validationFn }, req.headers)
-
-      if (!validationFn(req.headers)) {
-        reply.code(StatusCodes.BAD_REQUEST)
-        reply.send({ success: false })
-        return
-      }
-
       const requestHeaders = req.headers
       const { 'x-user-id': passkeyId } = requestHeaders
       let retrievedUser: User | undefined

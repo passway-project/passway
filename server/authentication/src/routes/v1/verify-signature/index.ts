@@ -113,6 +113,7 @@ export const verifySignatureRoute: FastifyPluginAsync = async app => {
           dataBuffer
         )
       } catch (e) {
+        reply.code(StatusCodes.BAD_REQUEST)
         reply.send({ success: false })
         return
       }
@@ -121,6 +122,7 @@ export const verifySignatureRoute: FastifyPluginAsync = async app => {
         // FIXME: Create session token and return it here
         reply.send({ success: true })
       } else {
+        reply.code(StatusCodes.BAD_REQUEST)
         reply.send({ success: false })
       }
     }

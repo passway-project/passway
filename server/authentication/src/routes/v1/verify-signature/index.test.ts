@@ -192,6 +192,7 @@ describe(endpointRoute, () => {
     const bodyJson = await response.json()
 
     expect(bodyJson).toEqual({ success: false })
+    expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
   })
 
   test('handles invalid signature', async () => {
@@ -227,5 +228,6 @@ describe(endpointRoute, () => {
     const bodyJson = await response.json()
 
     expect(bodyJson).toEqual({ success: false })
+    expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
   })
 })

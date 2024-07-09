@@ -43,8 +43,11 @@ const deriveKey = async (keyMaterial: CryptoKey, salt: BufferSource) => {
   )
 }
 
-async function getSignature(message: string) {
-  const privateKeyBuffer = Buffer.from(stubUserPrivateKeyData, 'base64')
+async function getSignature(
+  message: string,
+  { privateKey = stubUserPrivateKeyData }: { privateKey?: string } = {}
+) {
+  const privateKeyBuffer = Buffer.from(privateKey, 'base64')
   const signaturePrivateKeyBuffer = await webcrypto.subtle.importKey(
     'pkcs8',
     privateKeyBuffer,
@@ -157,9 +160,10 @@ describe(endpointRoute, () => {
     const bodyJson = await response.json()
 
     expect(bodyJson).toEqual({ success: true })
+    expect(response.statusCode).toEqual(StatusCodes.OK)
   })
 
-  test('handles invalid signature message', async () => {
+  test('handles incorrect signature message', async () => {
     const app = getApp()
     const passkeyId = 'foo'
     const now = Date.now()
@@ -172,8 +176,42 @@ describe(endpointRoute, () => {
       updatedAt: new Date(now),
     }
 
-    // FIXME: Also test for invalid signature with correct message
     const signature = await getSignature('some other message')
+    const signaturePayload = Buffer.from(signature).toString('base64')
+
+    ;(
+      app.prisma as DeepMockProxy<PrismaClient>
+    ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
+
+    const response = await app.inject({
+      method: 'POST',
+      url: endpointRoute,
+      body: { id: passkeyId, signature: signaturePayload },
+    })
+
+    const bodyJson = await response.json()
+
+    expect(bodyJson).toEqual({ success: false })
+  })
+
+  test('handles invalid signature', async () => {
+    const app = getApp()
+    const passkeyId = 'foo'
+    const now = Date.now()
+    const preexistingUser: User = {
+      id: stubUserId,
+      passkeyId,
+      encryptedKeys: stubUserEncryptedKeysData,
+      publicKey: stubUserPublicKeyData,
+      createdAt: new Date(now),
+      updatedAt: new Date(now),
+    }
+
+    const differentSignatureKeys = await getKeypair(signatureKeyParams)
+    const signature = await getSignature(signatureMessage, {
+      privateKey: differentSignatureKeys.privateKey,
+    })
+
     const signaturePayload = Buffer.from(signature).toString('base64')
 
     ;(

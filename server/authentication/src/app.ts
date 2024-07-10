@@ -10,9 +10,14 @@ import { API_ROOT } from './constants'
 import * as routes from './routes/index'
 import prismaPlugin from '../prisma/prismaPlugin'
 import { redisClient } from './cache'
+import RedisStore from 'connect-redis'
 
 const theme = new SwaggerTheme()
 const content = theme.getBuffer(SwaggerThemeNameEnum.DARK)
+
+const store = new RedisStore({
+  client: redisClient,
+})
 
 export const buildApp = async (options?: FastifyServerOptions) => {
   const app = Fastify({
@@ -35,6 +40,7 @@ export const buildApp = async (options?: FastifyServerOptions) => {
   await app.register(fastifyCookie)
   await app.register(fastifySession, {
     secret: process.env.AUTH_SESSION_SECRET ?? '',
+    store,
   })
 
   await app.register(swaggerUi, {

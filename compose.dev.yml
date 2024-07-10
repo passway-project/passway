@@ -18,3 +18,22 @@ services:
     depends_on:
       db:
         condition: service_healthy
+  cache:
+    environment:
+      VALKEY_PASSWORD:
+      ALLOW_EMPTY_PASSWORD: yes
+
+  cache-admin:
+    hostname: redis-commander
+    image: ghcr.io/joeferner/redis-commander:latest
+    restart: always
+    environment:
+      REDIS_HOSTS: 'local:cache:${CACHE_PORT}'
+      REDIS_DATABASE: ${CACHE_NAME}
+    ports:
+      - '${CACHE_ADMIN_PORT}:8081'
+    networks:
+      - passway-network
+    depends_on:
+      cache:
+        condition: service_healthy

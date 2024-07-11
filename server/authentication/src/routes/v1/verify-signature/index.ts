@@ -4,6 +4,12 @@ import { StatusCodes } from 'http-status-codes'
 import { webcrypto } from 'crypto'
 import { signatureKeyParams } from '../../../services/Encryption'
 
+declare module 'fastify' {
+  interface Session {
+    authenticated?: boolean
+  }
+}
+
 export const routeName = 'verify-signature'
 
 // TODO: Make this configurable via an environment variable
@@ -119,12 +125,21 @@ export const verifySignatureRoute: FastifyPluginAsync = async app => {
       }
 
       if (isValid) {
-        // FIXME: Create session token and return it here
-        reply.send({ success: true })
+        // FIXME Test this
+        req.session.authenticated = true
+
+        try {
+          await req.session.save()
+          reply.send({ success: true })
+        } catch (e) {
+          // FIXME Test this
+          reply.code(StatusCodes.INTERNAL_SERVER_ERROR)
+        }
       } else {
         reply.code(StatusCodes.BAD_REQUEST)
-        reply.send({ success: false })
       }
+
+      reply.send({ success: false })
     }
   )
 }

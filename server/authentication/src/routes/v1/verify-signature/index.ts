@@ -125,7 +125,6 @@ export const verifySignatureRoute: FastifyPluginAsync = async app => {
       }
 
       if (isValid) {
-        // FIXME Test this
         req.session.authenticated = true
 
         try {

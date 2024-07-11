@@ -107,6 +107,14 @@ beforeAll(async () => {
   stubUserEncryptedKeysData = encryptedKeysString
 })
 
+const sessionCookie = {
+  httpOnly: true,
+  name: 'sessionId',
+  path: '/',
+  secure: true,
+  value: expect.any(String),
+}
+
 describe(endpointRoute, () => {
   test('handles nonexistent user lookup', async () => {
     const app = getApp()
@@ -129,6 +137,7 @@ describe(endpointRoute, () => {
 
     expect(bodyJson).toEqual({ success: false })
     expect(response.statusCode).toEqual(StatusCodes.NOT_FOUND)
+    expect(response.cookies).not.toContainEqual(sessionCookie)
   })
 
   test('creates session for valid user authentication request', async () => {
@@ -161,6 +170,7 @@ describe(endpointRoute, () => {
 
     expect(bodyJson).toEqual({ success: true })
     expect(response.statusCode).toEqual(StatusCodes.OK)
+    expect(response.cookies).toContainEqual(sessionCookie)
   })
 
   test('handles incorrect signature message', async () => {
@@ -193,6 +203,7 @@ describe(endpointRoute, () => {
 
     expect(bodyJson).toEqual({ success: false })
     expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
+    expect(response.cookies).not.toContainEqual(sessionCookie)
   })
 
   test('handles invalid signature', async () => {
@@ -229,5 +240,6 @@ describe(endpointRoute, () => {
 
     expect(bodyJson).toEqual({ success: false })
     expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
+    expect(response.cookies).not.toContainEqual(sessionCookie)
   })
 })

@@ -134,6 +134,7 @@ export const verifySignatureRoute: FastifyPluginAsync = async app => {
         } catch (e) {
           // FIXME Test this
           reply.code(StatusCodes.INTERNAL_SERVER_ERROR)
+          app.log.error(`Session storage failure: ${e}`)
         }
       } else {
         reply.code(StatusCodes.BAD_REQUEST)

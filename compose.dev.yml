@@ -3,7 +3,9 @@ services:
     volumes:
       - ./server/authentication:/usr/src/app
     ports:
+      # NOTE: These ports are for debugging
       - 9229:9229
+      - 9230:9230
 
   db-admin:
     image: dpage/pgadmin4

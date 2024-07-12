@@ -126,6 +126,7 @@ export const verifySignatureRoute: FastifyPluginAsync = async app => {
 
       if (isValid) {
         req.session.authenticated = true
+        app.log.debug({ authenticated: req.session.authenticated })
 
         try {
           await req.session.save()

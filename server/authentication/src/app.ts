@@ -1,6 +1,5 @@
 import Fastify, { FastifyServerOptions } from 'fastify'
 import swagger from '@fastify/swagger'
-import fastifyRedis from '@fastify/redis'
 import fastifyCookie from '@fastify/cookie'
 import fastifySession from '@fastify/session'
 import swaggerUi from '@fastify/swagger-ui'
@@ -9,15 +8,10 @@ import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 import { API_ROOT } from './constants'
 import * as routes from './routes/index'
 import prismaPlugin from '../prisma/prismaPlugin'
-import { redisClient } from './cache'
-import RedisStore from 'connect-redis'
+import { store } from './sessionStore'
 
 const theme = new SwaggerTheme()
 const content = theme.getBuffer(SwaggerThemeNameEnum.DARK)
-
-const store = new RedisStore({
-  client: redisClient,
-})
 
 export const buildApp = async (options?: FastifyServerOptions) => {
   const app = Fastify({
@@ -36,7 +30,6 @@ export const buildApp = async (options?: FastifyServerOptions) => {
 
   await app.register(swagger)
   await app.register(prismaPlugin)
-  await app.register(fastifyRedis, { client: redisClient })
   await app.register(fastifyCookie)
   await app.register(fastifySession, {
     secret: process.env.AUTH_SESSION_SECRET ?? '',

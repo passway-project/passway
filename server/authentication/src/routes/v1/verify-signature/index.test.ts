@@ -2,12 +2,11 @@ import { webcrypto } from 'crypto'
 import { PrismaClient, User } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
 import { DeepMockProxy } from 'jest-mock-extended'
-import { getApp } from '../../../../test/getApp'
+import { getApp, testAuthenticationRoute } from '../../../../test/getApp'
 import { API_ROOT } from '../../../constants'
 import { routeName, signatureMessage } from '.'
 import { getKeypair } from '../../../../test/getKeypair'
 import { signatureKeyParams } from '../../../services/Encryption'
-import exp from 'constants'
 
 const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 
@@ -128,8 +127,6 @@ describe(endpointRoute, () => {
     const signature = await getSignature(signatureMessage)
     const signaturePayload = Buffer.from(signature).toString('base64')
 
-    const debugLogSpy = jest.spyOn(app.log, 'debug')
-
     const response = await app.inject({
       method: 'POST',
       url: endpointRoute,
@@ -141,7 +138,6 @@ describe(endpointRoute, () => {
     expect(bodyJson).toEqual({ success: false })
     expect(response.statusCode).toEqual(StatusCodes.NOT_FOUND)
     expect(response.cookies).not.toContainEqual(sessionCookie)
-    expect(debugLogSpy).not.toHaveBeenCalledWith({ authenticated: true })
   })
 
   test('creates session for valid user authentication request', async () => {
@@ -164,8 +160,6 @@ describe(endpointRoute, () => {
       app.prisma as DeepMockProxy<PrismaClient>
     ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
 
-    const debugLogSpy = jest.spyOn(app.log, 'debug')
-
     const response = await app.inject({
       method: 'POST',
       url: endpointRoute,
@@ -177,7 +171,16 @@ describe(endpointRoute, () => {
     expect(bodyJson).toEqual({ success: true })
     expect(response.statusCode).toEqual(StatusCodes.OK)
     expect(response.cookies).toContainEqual(sessionCookie)
-    expect(debugLogSpy).toHaveBeenCalledWith({ authenticated: true })
+
+    const authRequest = await app.inject({
+      method: 'GET',
+      url: testAuthenticationRoute,
+      cookies: {
+        sessionId: response.cookies[0].value,
+      },
+    })
+
+    expect(authRequest.statusCode).toEqual(StatusCodes.OK)
   })
 
   test('handles incorrect signature message', async () => {
@@ -200,8 +203,6 @@ describe(endpointRoute, () => {
       app.prisma as DeepMockProxy<PrismaClient>
     ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
 
-    const debugLogSpy = jest.spyOn(app.log, 'debug')
-
     const response = await app.inject({
       method: 'POST',
       url: endpointRoute,
@@ -213,7 +214,6 @@ describe(endpointRoute, () => {
     expect(bodyJson).toEqual({ success: false })
     expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
     expect(response.cookies).not.toContainEqual(sessionCookie)
-    expect(debugLogSpy).not.toHaveBeenCalledWith({ authenticated: true })
   })
 
   test('handles invalid signature', async () => {
@@ -240,8 +240,6 @@ describe(endpointRoute, () => {
       app.prisma as DeepMockProxy<PrismaClient>
     ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
 
-    const debugLogSpy = jest.spyOn(app.log, 'debug')
-
     const response = await app.inject({
       method: 'POST',
       url: endpointRoute,
@@ -253,6 +251,5 @@ describe(endpointRoute, () => {
     expect(bodyJson).toEqual({ success: false })
     expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
     expect(response.cookies).not.toContainEqual(sessionCookie)
-    expect(debugLogSpy).not.toHaveBeenCalledWith({ authenticated: true })
   })
 })

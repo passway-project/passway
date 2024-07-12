@@ -140,7 +140,6 @@ export const verifySignatureRoute: FastifyPluginAsync = async app => {
       }
 
       reply.send({ success: false })
-      app.log.debug({ authenticated: req.session.authenticated })
     }
   )
 }

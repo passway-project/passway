@@ -86,9 +86,6 @@ describe(endpointRoute, () => {
         },
       })
 
-      const bodyJson = await response.json()
-
-      expect(bodyJson).toEqual({ success: false })
       expect(response.statusCode).toEqual(StatusCodes.NOT_FOUND)
       expect(response.cookies).not.toContainEqual(sessionCookie)
     })
@@ -150,9 +147,6 @@ describe(endpointRoute, () => {
         },
       })
 
-      const bodyJson = await response.json()
-
-      expect(bodyJson).toEqual({ success: false })
       expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
       expect(response.cookies).not.toContainEqual(sessionCookie)
     })
@@ -192,7 +186,6 @@ describe(endpointRoute, () => {
 
       const bodyJson = await response.json()
 
-      expect(bodyJson).toEqual({ success: false })
       expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
       expect(response.cookies).not.toContainEqual(sessionCookie)
     })

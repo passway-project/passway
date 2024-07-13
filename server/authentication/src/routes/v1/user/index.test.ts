@@ -73,9 +73,6 @@ describe(endpointRoute, () => {
         },
       })
 
-      const bodyJson = await response.json()
-
-      expect(bodyJson).toEqual({ success: false })
       expect(response.statusCode).toEqual(StatusCodes.NOT_FOUND)
     })
   })
@@ -221,9 +218,6 @@ describe(endpointRoute, () => {
         },
       })
 
-      const bodyJson = await response.json()
-
-      expect(bodyJson).toEqual({ success: false })
       expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR)
     })
   })

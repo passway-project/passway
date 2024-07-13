@@ -1,6 +1,7 @@
 import { FastifyPluginAsync } from 'fastify'
 import { User } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
+import httpErrors from 'http-errors'
 
 export const routeName = 'user'
 
@@ -9,10 +10,12 @@ export const userRoute: FastifyPluginAsync = async app => {
     Headers: {
       'x-user-id': User['passkeyId']
     }
-    Reply: {
-      success: boolean
-      user?: { publicKey: User['publicKey']; keys: User['encryptedKeys'] }
-    }
+    Reply:
+      | {
+          success: boolean
+          user?: { publicKey: User['publicKey']; keys: User['encryptedKeys'] }
+        }
+      | ReturnType<typeof httpErrors.NotFound>
   }>(
     `/${routeName}`,
     {
@@ -69,8 +72,7 @@ export const userRoute: FastifyPluginAsync = async app => {
         })
       } catch (e) {
         app.log.info(`passkeyId ${passkeyId} not found`)
-        reply.code(StatusCodes.NOT_FOUND)
-        reply.send({ success: false })
+        reply.send(httpErrors.NotFound())
         return
       }
 
@@ -90,7 +92,9 @@ export const userRoute: FastifyPluginAsync = async app => {
       encryptedKeys: User['encryptedKeys']
       publicKey: User['publicKey']
     }
-    Reply: { success: boolean }
+    Reply:
+      | { success: boolean }
+      | ReturnType<typeof httpErrors.InternalServerError>
   }>(
     `/${routeName}`,
     {
@@ -184,8 +188,7 @@ export const userRoute: FastifyPluginAsync = async app => {
       } catch (e) {
         app.log.error(`user ${retrievedUser?.id} update failed:
 ${e}`)
-        reply.code(StatusCodes.INTERNAL_SERVER_ERROR)
-        reply.send({ success: false })
+        reply.send(httpErrors.InternalServerError())
         return
       }
 

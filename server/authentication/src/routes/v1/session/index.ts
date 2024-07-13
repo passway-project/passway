@@ -2,6 +2,7 @@ import { FastifyPluginAsync } from 'fastify'
 import { User } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
 import { webcrypto } from 'crypto'
+import httpErrors from 'http-errors'
 import { signatureKeyParams } from '../../../services/Encryption'
 
 declare module 'fastify' {
@@ -21,7 +22,11 @@ export const sessionRoute: FastifyPluginAsync = async app => {
       'x-passway-id': User['passkeyId']
       'x-passway-signature': string
     }
-    Reply: { success: boolean; token?: string }
+    Reply:
+      | { success: boolean; token?: string }
+      | ReturnType<typeof httpErrors.InternalServerError>
+      | ReturnType<typeof httpErrors.BadRequest>
+      | ReturnType<typeof httpErrors.NotFound>
   }>(
     `/${routeName}`,
     {
@@ -78,8 +83,7 @@ export const sessionRoute: FastifyPluginAsync = async app => {
         })
       } catch (e) {
         app.log.info(`passkeyId ${passkeyId} not found`)
-        reply.code(StatusCodes.NOT_FOUND)
-        reply.send({ success: false })
+        reply.send(httpErrors.NotFound())
         return
       }
 
@@ -114,8 +118,7 @@ export const sessionRoute: FastifyPluginAsync = async app => {
           dataBuffer
         )
       } catch (e) {
-        reply.code(StatusCodes.BAD_REQUEST)
-        reply.send({ success: false })
+        reply.send(httpErrors.BadRequest())
         return
       }
 
@@ -124,16 +127,17 @@ export const sessionRoute: FastifyPluginAsync = async app => {
 
         try {
           await request.session.save()
-          reply.send({ success: true })
         } catch (e) {
-          reply.code(StatusCodes.INTERNAL_SERVER_ERROR)
           app.log.error(`Session storage failure: ${e}`)
+          reply.send(httpErrors.InternalServerError())
+          return
         }
       } else {
-        reply.code(StatusCodes.BAD_REQUEST)
+        reply.send(httpErrors.BadRequest())
+        return
       }
 
-      reply.send({ success: false })
+      reply.send({ success: true })
     }
   )
 
@@ -141,7 +145,9 @@ export const sessionRoute: FastifyPluginAsync = async app => {
     Headers: {
       sessionId: string
     }
-    Reply: { success: boolean }
+    Reply:
+      | { success?: boolean }
+      | ReturnType<typeof httpErrors.InternalServerError>
   }>(
     `/${routeName}`,
     {
@@ -164,8 +170,7 @@ export const sessionRoute: FastifyPluginAsync = async app => {
         await request.session.destroy()
       } catch (e) {
         app.log.error(`Session deletion failure: ${e}`)
-        reply.code(StatusCodes.INTERNAL_SERVER_ERROR)
-        reply.send({ success: false })
+        reply.send(httpErrors.InternalServerError())
         return
       }
 

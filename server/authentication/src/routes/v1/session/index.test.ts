@@ -116,152 +116,154 @@ const sessionCookie = {
 }
 
 describe(endpointRoute, () => {
-  test('handles nonexistent user lookup', async () => {
-    const app = getApp()
-    const idHeader = 'foo'
+  describe('GET', () => {
+    test('handles nonexistent user lookup', async () => {
+      const app = getApp()
+      const idHeader = 'foo'
 
-    ;(
-      app.prisma as DeepMockProxy<PrismaClient>
-    ).user.findFirstOrThrow.mockRejectedValueOnce(new Error())
+      ;(
+        app.prisma as DeepMockProxy<PrismaClient>
+      ).user.findFirstOrThrow.mockRejectedValueOnce(new Error())
 
-    const signature = await getSignature(signatureMessage)
-    const signatureHeader = Buffer.from(signature).toString('base64')
+      const signature = await getSignature(signatureMessage)
+      const signatureHeader = Buffer.from(signature).toString('base64')
 
-    const response = await app.inject({
-      method: 'GET',
-      url: endpointRoute,
-      headers: {
-        'x-passway-id': idHeader,
-        'x-passway-signature': signatureHeader,
-      },
+      const response = await app.inject({
+        method: 'GET',
+        url: endpointRoute,
+        headers: {
+          'x-passway-id': idHeader,
+          'x-passway-signature': signatureHeader,
+        },
+      })
+
+      const bodyJson = await response.json()
+
+      expect(bodyJson).toEqual({ success: false })
+      expect(response.statusCode).toEqual(StatusCodes.NOT_FOUND)
+      expect(response.cookies).not.toContainEqual(sessionCookie)
     })
 
-    const bodyJson = await response.json()
+    test('creates session for valid user authentication request', async () => {
+      const app = getApp()
+      const idHeader = 'foo'
+      const now = Date.now()
+      const preexistingUser: User = {
+        id: stubUserId,
+        passkeyId: idHeader,
+        encryptedKeys: stubUserEncryptedKeysData,
+        publicKey: stubUserPublicKeyData,
+        createdAt: new Date(now),
+        updatedAt: new Date(now),
+      }
 
-    expect(bodyJson).toEqual({ success: false })
-    expect(response.statusCode).toEqual(StatusCodes.NOT_FOUND)
-    expect(response.cookies).not.toContainEqual(sessionCookie)
-  })
+      const signature = await getSignature(signatureMessage)
+      const signatureHeader = Buffer.from(signature).toString('base64')
 
-  test('creates session for valid user authentication request', async () => {
-    const app = getApp()
-    const idHeader = 'foo'
-    const now = Date.now()
-    const preexistingUser: User = {
-      id: stubUserId,
-      passkeyId: idHeader,
-      encryptedKeys: stubUserEncryptedKeysData,
-      publicKey: stubUserPublicKeyData,
-      createdAt: new Date(now),
-      updatedAt: new Date(now),
-    }
+      ;(
+        app.prisma as DeepMockProxy<PrismaClient>
+      ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
 
-    const signature = await getSignature(signatureMessage)
-    const signatureHeader = Buffer.from(signature).toString('base64')
+      const response = await app.inject({
+        method: 'GET',
+        url: endpointRoute,
+        headers: {
+          'x-passway-id': idHeader,
+          'x-passway-signature': signatureHeader,
+        },
+      })
 
-    ;(
-      app.prisma as DeepMockProxy<PrismaClient>
-    ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
+      const bodyJson = await response.json()
 
-    const response = await app.inject({
-      method: 'GET',
-      url: endpointRoute,
-      headers: {
-        'x-passway-id': idHeader,
-        'x-passway-signature': signatureHeader,
-      },
+      expect(bodyJson).toEqual({ success: true })
+      expect(response.statusCode).toEqual(StatusCodes.OK)
+      expect(response.cookies).toContainEqual(sessionCookie)
+
+      const authRequest = await app.inject({
+        method: 'GET',
+        url: testAuthenticationRoute,
+        cookies: {
+          sessionId: response.cookies[0].value,
+        },
+      })
+
+      expect(authRequest.statusCode).toEqual(StatusCodes.OK)
     })
 
-    const bodyJson = await response.json()
+    test('handles incorrect signature message', async () => {
+      const app = getApp()
+      const idHeader = 'foo'
+      const now = Date.now()
+      const preexistingUser: User = {
+        id: stubUserId,
+        passkeyId: idHeader,
+        encryptedKeys: stubUserEncryptedKeysData,
+        publicKey: stubUserPublicKeyData,
+        createdAt: new Date(now),
+        updatedAt: new Date(now),
+      }
 
-    expect(bodyJson).toEqual({ success: true })
-    expect(response.statusCode).toEqual(StatusCodes.OK)
-    expect(response.cookies).toContainEqual(sessionCookie)
+      const signature = await getSignature('some other message')
+      const signatureHeader = Buffer.from(signature).toString('base64')
 
-    const authRequest = await app.inject({
-      method: 'GET',
-      url: testAuthenticationRoute,
-      cookies: {
-        sessionId: response.cookies[0].value,
-      },
+      ;(
+        app.prisma as DeepMockProxy<PrismaClient>
+      ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
+
+      const response = await app.inject({
+        method: 'GET',
+        url: endpointRoute,
+        headers: {
+          'x-passway-id': idHeader,
+          'x-passway-signature': signatureHeader,
+        },
+      })
+
+      const bodyJson = await response.json()
+
+      expect(bodyJson).toEqual({ success: false })
+      expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
+      expect(response.cookies).not.toContainEqual(sessionCookie)
     })
 
-    expect(authRequest.statusCode).toEqual(StatusCodes.OK)
-  })
+    test('handles invalid signature', async () => {
+      const app = getApp()
+      const idHeader = 'foo'
+      const now = Date.now()
+      const preexistingUser: User = {
+        id: stubUserId,
+        passkeyId: idHeader,
+        encryptedKeys: stubUserEncryptedKeysData,
+        publicKey: stubUserPublicKeyData,
+        createdAt: new Date(now),
+        updatedAt: new Date(now),
+      }
 
-  test('handles incorrect signature message', async () => {
-    const app = getApp()
-    const idHeader = 'foo'
-    const now = Date.now()
-    const preexistingUser: User = {
-      id: stubUserId,
-      passkeyId: idHeader,
-      encryptedKeys: stubUserEncryptedKeysData,
-      publicKey: stubUserPublicKeyData,
-      createdAt: new Date(now),
-      updatedAt: new Date(now),
-    }
+      const differentSignatureKeys = await getKeypair(signatureKeyParams)
+      const signature = await getSignature(signatureMessage, {
+        privateKey: differentSignatureKeys.privateKey,
+      })
 
-    const signature = await getSignature('some other message')
-    const signatureHeader = Buffer.from(signature).toString('base64')
+      const signatureHeader = Buffer.from(signature).toString('base64')
 
-    ;(
-      app.prisma as DeepMockProxy<PrismaClient>
-    ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
+      ;(
+        app.prisma as DeepMockProxy<PrismaClient>
+      ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
 
-    const response = await app.inject({
-      method: 'GET',
-      url: endpointRoute,
-      headers: {
-        'x-passway-id': idHeader,
-        'x-passway-signature': signatureHeader,
-      },
+      const response = await app.inject({
+        method: 'GET',
+        url: endpointRoute,
+        headers: {
+          'x-passway-id': idHeader,
+          'x-passway-signature': signatureHeader,
+        },
+      })
+
+      const bodyJson = await response.json()
+
+      expect(bodyJson).toEqual({ success: false })
+      expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
+      expect(response.cookies).not.toContainEqual(sessionCookie)
     })
-
-    const bodyJson = await response.json()
-
-    expect(bodyJson).toEqual({ success: false })
-    expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
-    expect(response.cookies).not.toContainEqual(sessionCookie)
-  })
-
-  test('handles invalid signature', async () => {
-    const app = getApp()
-    const idHeader = 'foo'
-    const now = Date.now()
-    const preexistingUser: User = {
-      id: stubUserId,
-      passkeyId: idHeader,
-      encryptedKeys: stubUserEncryptedKeysData,
-      publicKey: stubUserPublicKeyData,
-      createdAt: new Date(now),
-      updatedAt: new Date(now),
-    }
-
-    const differentSignatureKeys = await getKeypair(signatureKeyParams)
-    const signature = await getSignature(signatureMessage, {
-      privateKey: differentSignatureKeys.privateKey,
-    })
-
-    const signatureHeader = Buffer.from(signature).toString('base64')
-
-    ;(
-      app.prisma as DeepMockProxy<PrismaClient>
-    ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
-
-    const response = await app.inject({
-      method: 'GET',
-      url: endpointRoute,
-      headers: {
-        'x-passway-id': idHeader,
-        'x-passway-signature': signatureHeader,
-      },
-    })
-
-    const bodyJson = await response.json()
-
-    expect(bodyJson).toEqual({ success: false })
-    expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
-    expect(response.cookies).not.toContainEqual(sessionCookie)
   })
 })

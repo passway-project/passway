@@ -19,6 +19,16 @@ const rejectUnauthorizedRequests = (app: FastifyInstance) => {
   app.addHook('preHandler', async (request, reply) => {
     const { url } = request
 
+    // NOTE: Skips authentication checks for Swagger routes
+    if (
+      url === 'favicon.ico' ||
+      url === `/${API_ROOT}` ||
+      url.match(new RegExp(`/${API_ROOT}/static/*`)) ||
+      url.match(new RegExp(`/${API_ROOT}/json`))
+    ) {
+      return
+    }
+
     if (isPublicEndpointRoute(url)) {
       if (publicEndpoints[url]?.has(request.method as HTTPMethods)) {
         return

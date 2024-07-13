@@ -158,13 +158,6 @@ export const sessionRoute: FastifyPluginAsync = async app => {
               success: { type: 'boolean' },
             },
           },
-          [StatusCodes.NOT_FOUND]: {
-            description: 'Session ID not found',
-            type: 'object',
-            properties: {
-              success: { type: 'boolean', example: false },
-            },
-          },
         },
       },
     },

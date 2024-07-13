@@ -2,7 +2,7 @@ import { FastifyInstance, HTTPMethods } from 'fastify'
 import { routeName as userRouteName } from '../routes/v1/user'
 import { routeName as sessionRouteName } from '../routes/v1/session'
 import { API_ROOT } from '../constants'
-import { StatusCodes } from 'http-status-codes'
+import httpErrors from 'http-errors'
 
 type publicEndpointRoute = `/${typeof API_ROOT}/v1/${string}`
 
@@ -26,9 +26,7 @@ const rejectUnauthorizedRequests = (app: FastifyInstance) => {
     }
 
     if (!request.session.authenticated) {
-      // TODO: Return a custom error instead
-      reply.code(StatusCodes.FORBIDDEN)
-      reply.send({ success: false })
+      reply.send(httpErrors.Forbidden())
     }
   })
 }

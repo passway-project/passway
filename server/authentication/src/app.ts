@@ -8,7 +8,7 @@ import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 import { API_ROOT } from './constants'
 import * as routes from './routes/index'
 import prismaPlugin from '../prisma/prismaPlugin'
-import { store } from './sessionStore'
+import { sessionStore } from './sessionStore'
 
 const theme = new SwaggerTheme()
 const content = theme.getBuffer(SwaggerThemeNameEnum.DARK)
@@ -33,7 +33,7 @@ export const buildApp = async (options?: FastifyServerOptions) => {
   await app.register(fastifyCookie)
   await app.register(fastifySession, {
     secret: process.env.AUTH_SESSION_SECRET ?? '',
-    store,
+    store: sessionStore,
   })
 
   await app.register(swaggerUi, {
@@ -48,6 +48,8 @@ export const buildApp = async (options?: FastifyServerOptions) => {
       css: [{ filename: 'theme.css', content: content }],
     },
   })
+
+  // FIXME: Add a prehandler hook to reject non-authenticated routes
 
   for (const route of Object.values(routes)) {
     await app.register(route, { prefix: `/${API_ROOT}/v1` })

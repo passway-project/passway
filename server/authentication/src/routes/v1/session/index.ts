@@ -67,10 +67,9 @@ export const sessionRoute: FastifyPluginAsync = async app => {
         },
       },
     },
-    async (req, reply) => {
-      const requestHeaders = req.headers
+    async (request, reply) => {
       const { 'x-passway-id': passkeyId, 'x-passway-signature': signature } =
-        requestHeaders
+        request.headers
       let retrievedUser: User | undefined
 
       try {
@@ -121,13 +120,12 @@ export const sessionRoute: FastifyPluginAsync = async app => {
       }
 
       if (isValid) {
-        req.session.authenticated = true
+        request.session.authenticated = true
 
         try {
-          await req.session.save()
+          await request.session.save()
           reply.send({ success: true })
         } catch (e) {
-          // FIXME Test this
           reply.code(StatusCodes.INTERNAL_SERVER_ERROR)
           app.log.error(`Session storage failure: ${e}`)
         }
@@ -161,18 +159,18 @@ export const sessionRoute: FastifyPluginAsync = async app => {
         },
       },
     },
-    async (req, res) => {
+    async (request, reply) => {
       try {
-        await req.session.destroy()
+        await request.session.destroy()
       } catch (e) {
         app.log.error(`Session deletion failure: ${e}`)
-        res.code(StatusCodes.INTERNAL_SERVER_ERROR)
-        res.send({ success: false })
+        reply.code(StatusCodes.INTERNAL_SERVER_ERROR)
+        reply.send({ success: false })
         return
       }
 
-      res.code(StatusCodes.OK)
-      res.send({ success: true })
+      reply.code(StatusCodes.OK)
+      reply.send({ success: true })
     }
   )
 }

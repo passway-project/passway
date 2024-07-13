@@ -58,8 +58,8 @@ export const userRoute: FastifyPluginAsync = async app => {
         },
       },
     },
-    async (req, reply) => {
-      const requestHeaders = req.headers
+    async (request, reply) => {
+      const requestHeaders = request.headers
       const { 'x-user-id': passkeyId } = requestHeaders
       let retrievedUser: User | undefined
 
@@ -134,8 +134,8 @@ export const userRoute: FastifyPluginAsync = async app => {
         },
       },
     },
-    async (req, reply) => {
-      const requestBody = req.body
+    async (request, reply) => {
+      const requestBody = request.body
       const { id: passkeyId, encryptedKeys, publicKey } = requestBody
       let retrievedUser: User | undefined
 

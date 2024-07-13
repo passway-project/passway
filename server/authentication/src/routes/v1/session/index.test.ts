@@ -118,19 +118,22 @@ const sessionCookie = {
 describe(endpointRoute, () => {
   test('handles nonexistent user lookup', async () => {
     const app = getApp()
-    const passkeyId = 'foo'
+    const idHeader = 'foo'
 
     ;(
       app.prisma as DeepMockProxy<PrismaClient>
     ).user.findFirstOrThrow.mockRejectedValueOnce(new Error())
 
     const signature = await getSignature(signatureMessage)
-    const signaturePayload = Buffer.from(signature).toString('base64')
+    const signatureHeader = Buffer.from(signature).toString('base64')
 
     const response = await app.inject({
-      method: 'POST',
+      method: 'GET',
       url: endpointRoute,
-      body: { id: passkeyId, signature: signaturePayload },
+      headers: {
+        'x-passway-id': idHeader,
+        'x-passway-signature': signatureHeader,
+      },
     })
 
     const bodyJson = await response.json()
@@ -142,11 +145,11 @@ describe(endpointRoute, () => {
 
   test('creates session for valid user authentication request', async () => {
     const app = getApp()
-    const passkeyId = 'foo'
+    const idHeader = 'foo'
     const now = Date.now()
     const preexistingUser: User = {
       id: stubUserId,
-      passkeyId,
+      passkeyId: idHeader,
       encryptedKeys: stubUserEncryptedKeysData,
       publicKey: stubUserPublicKeyData,
       createdAt: new Date(now),
@@ -154,16 +157,19 @@ describe(endpointRoute, () => {
     }
 
     const signature = await getSignature(signatureMessage)
-    const signaturePayload = Buffer.from(signature).toString('base64')
+    const signatureHeader = Buffer.from(signature).toString('base64')
 
     ;(
       app.prisma as DeepMockProxy<PrismaClient>
     ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
 
     const response = await app.inject({
-      method: 'POST',
+      method: 'GET',
       url: endpointRoute,
-      body: { id: passkeyId, signature: signaturePayload },
+      headers: {
+        'x-passway-id': idHeader,
+        'x-passway-signature': signatureHeader,
+      },
     })
 
     const bodyJson = await response.json()
@@ -185,11 +191,11 @@ describe(endpointRoute, () => {
 
   test('handles incorrect signature message', async () => {
     const app = getApp()
-    const passkeyId = 'foo'
+    const idHeader = 'foo'
     const now = Date.now()
     const preexistingUser: User = {
       id: stubUserId,
-      passkeyId,
+      passkeyId: idHeader,
       encryptedKeys: stubUserEncryptedKeysData,
       publicKey: stubUserPublicKeyData,
       createdAt: new Date(now),
@@ -197,16 +203,19 @@ describe(endpointRoute, () => {
     }
 
     const signature = await getSignature('some other message')
-    const signaturePayload = Buffer.from(signature).toString('base64')
+    const signatureHeader = Buffer.from(signature).toString('base64')
 
     ;(
       app.prisma as DeepMockProxy<PrismaClient>
     ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
 
     const response = await app.inject({
-      method: 'POST',
+      method: 'GET',
       url: endpointRoute,
-      body: { id: passkeyId, signature: signaturePayload },
+      headers: {
+        'x-passway-id': idHeader,
+        'x-passway-signature': signatureHeader,
+      },
     })
 
     const bodyJson = await response.json()
@@ -218,11 +227,11 @@ describe(endpointRoute, () => {
 
   test('handles invalid signature', async () => {
     const app = getApp()
-    const passkeyId = 'foo'
+    const idHeader = 'foo'
     const now = Date.now()
     const preexistingUser: User = {
       id: stubUserId,
-      passkeyId,
+      passkeyId: idHeader,
       encryptedKeys: stubUserEncryptedKeysData,
       publicKey: stubUserPublicKeyData,
       createdAt: new Date(now),
@@ -234,16 +243,19 @@ describe(endpointRoute, () => {
       privateKey: differentSignatureKeys.privateKey,
     })
 
-    const signaturePayload = Buffer.from(signature).toString('base64')
+    const signatureHeader = Buffer.from(signature).toString('base64')
 
     ;(
       app.prisma as DeepMockProxy<PrismaClient>
     ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
 
     const response = await app.inject({
-      method: 'POST',
+      method: 'GET',
       url: endpointRoute,
-      body: { id: passkeyId, signature: signaturePayload },
+      headers: {
+        'x-passway-id': idHeader,
+        'x-passway-signature': signatureHeader,
+      },
     })
 
     const bodyJson = await response.json()

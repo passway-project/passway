@@ -10,16 +10,16 @@ declare module 'fastify' {
   }
 }
 
-export const routeName = 'verify-signature'
+export const routeName = 'session'
 
 // TODO: Make this configurable via an environment variable
 export const signatureMessage = 'passway'
 
-export const verifySignatureRoute: FastifyPluginAsync = async app => {
-  app.post<{
-    Body: {
-      id: User['passkeyId']
-      signature: string
+export const sessionRoute: FastifyPluginAsync = async app => {
+  app.get<{
+    Headers: {
+      'x-passway-id': User['passkeyId']
+      'x-passway-signature': string
     }
     Reply: { success: boolean; token?: string }
   }>(
@@ -28,19 +28,19 @@ export const verifySignatureRoute: FastifyPluginAsync = async app => {
       schema: {
         tags: ['Session management'],
         summary: 'Retrieve a session token',
-        body: {
+        headers: {
           type: 'object',
           properties: {
-            id: {
+            'x-passway-id': {
               type: 'string',
               description: 'User ID',
             },
-            signature: {
+            'x-passway-signature': {
               type: 'string',
               description: `Signed, base 64 version of the string "${signatureMessage}" to validate`,
             },
           },
-          required: ['id', 'signature'],
+          required: ['x-passway-id', 'x-passway-signature'],
         },
         response: {
           [StatusCodes.OK]: {
@@ -73,8 +73,9 @@ export const verifySignatureRoute: FastifyPluginAsync = async app => {
       },
     },
     async (req, reply) => {
-      const requestBody = req.body
-      const { id: passkeyId, signature } = requestBody
+      const requestHeaders = req.headers
+      const { 'x-passway-id': passkeyId, 'x-passway-signature': signature } =
+        requestHeaders
       let retrievedUser: User | undefined
 
       try {

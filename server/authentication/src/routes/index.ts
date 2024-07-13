@@ -1,2 +1,2 @@
 export { userRoute } from './v1/user'
-export { verifySignatureRoute } from './v1/verify-signature'
+export { sessionRoute as verifySignatureRoute } from './v1/session'

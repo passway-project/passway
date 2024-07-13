@@ -1,4 +1,3 @@
-import { webcrypto } from 'crypto'
 import { PrismaClient, User } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
 import { DeepMockProxy } from 'jest-mock-extended'
@@ -7,12 +6,12 @@ import { API_ROOT } from '../../../constants'
 import { routeName, signatureMessage } from '.'
 import { getKeypair } from '../../../../test/getKeypair'
 import { signatureKeyParams } from '../../../services/Encryption'
-import { FastifyInstance } from 'fastify'
 import {
   deriveKey,
   getSignature,
   importKey,
 } from '../../../../test/utils/crypto'
+import { requestSession } from '../../../../test/utils/session'
 
 const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 
@@ -28,37 +27,6 @@ const sessionCookie = {
   path: '/',
   secure: true,
   value: expect.any(String),
-}
-
-const requestSession = async (app: FastifyInstance) => {
-  const idHeader = 'foo'
-  const now = Date.now()
-  const preexistingUser: User = {
-    id: stubUserId,
-    passkeyId: idHeader,
-    encryptedKeys: stubUserEncryptedKeysData,
-    publicKey: stubUserPublicKeyData,
-    createdAt: new Date(now),
-    updatedAt: new Date(now),
-  }
-
-  const signature = await getSignature(signatureMessage, {
-    privateKey: stubUserPrivateKeyData,
-  })
-  const signatureHeader = Buffer.from(signature).toString('base64')
-
-  ;(
-    app.prisma as DeepMockProxy<PrismaClient>
-  ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
-
-  return app.inject({
-    method: 'GET',
-    url: endpointRoute,
-    headers: {
-      'x-passway-id': idHeader,
-      'x-passway-signature': signatureHeader,
-    },
-  })
 }
 
 beforeAll(async () => {
@@ -128,18 +96,23 @@ describe(endpointRoute, () => {
     test('creates session for valid user authentication request', async () => {
       const app = getApp()
 
-      const response = await requestSession(app)
-      const bodyJson = await response.json()
+      const sessionResponse = await requestSession(app, {
+        userId: stubUserId,
+        encryptedKeys: stubUserEncryptedKeysData,
+        publicKey: stubUserPublicKeyData,
+        privateKey: stubUserPrivateKeyData,
+      })
+      const bodyJson = await sessionResponse.json()
 
       expect(bodyJson).toEqual({ success: true })
-      expect(response.statusCode).toEqual(StatusCodes.OK)
-      expect(response.cookies).toContainEqual(sessionCookie)
+      expect(sessionResponse.statusCode).toEqual(StatusCodes.OK)
+      expect(sessionResponse.cookies).toContainEqual(sessionCookie)
 
       const authRequest = await app.inject({
         method: 'GET',
         url: testAuthenticationRoute,
         cookies: {
-          sessionId: response.cookies[0].value,
+          sessionId: sessionResponse.cookies[0].value,
         },
       })
 
@@ -229,7 +202,12 @@ describe(endpointRoute, () => {
     test('deletes a session', async () => {
       const app = getApp()
 
-      const sessionResponse = await requestSession(app)
+      const sessionResponse = await requestSession(app, {
+        userId: stubUserId,
+        encryptedKeys: stubUserEncryptedKeysData,
+        publicKey: stubUserPublicKeyData,
+        privateKey: stubUserPrivateKeyData,
+      })
 
       const response = await app.inject({
         method: 'DELETE',

@@ -169,13 +169,6 @@ export const sessionRoute: FastifyPluginAsync = async app => {
       },
     },
     async (req, res) => {
-      // FIXME: Move this to a preHandler hook
-      if (!req.session.authenticated) {
-        res.code(StatusCodes.FORBIDDEN)
-        res.send({ success: false })
-        return
-      }
-
       try {
         await req.session.destroy()
       } catch (e) {

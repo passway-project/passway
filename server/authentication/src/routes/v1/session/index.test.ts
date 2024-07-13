@@ -8,6 +8,11 @@ import { routeName, signatureMessage } from '.'
 import { getKeypair } from '../../../../test/getKeypair'
 import { signatureKeyParams } from '../../../services/Encryption'
 import { FastifyInstance } from 'fastify'
+import {
+  deriveKey,
+  getSignature,
+  importKey,
+} from '../../../../test/utils/crypto'
 
 const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 
@@ -25,64 +30,6 @@ const sessionCookie = {
   value: expect.any(String),
 }
 
-const importKey = async (password: string) => {
-  const encoder = new TextEncoder()
-
-  return crypto.subtle.importKey(
-    'raw',
-    encoder.encode(password),
-    { name: 'PBKDF2' },
-    false,
-    ['deriveKey']
-  )
-}
-
-const deriveKey = async (keyMaterial: CryptoKey, salt: BufferSource) => {
-  return crypto.subtle.deriveKey(
-    {
-      name: 'PBKDF2',
-      salt,
-      iterations: 100000,
-      hash: 'SHA-256',
-    },
-    keyMaterial,
-    { name: 'AES-GCM', length: 256 },
-    false,
-    ['encrypt', 'decrypt']
-  )
-}
-
-async function getSignature(
-  message: string,
-  { privateKey = stubUserPrivateKeyData }: { privateKey?: string } = {}
-) {
-  const privateKeyBuffer = Buffer.from(privateKey, 'base64')
-  const signaturePrivateKeyBuffer = await webcrypto.subtle.importKey(
-    'pkcs8',
-    privateKeyBuffer,
-    {
-      name: signatureKeyParams.algorithm.name,
-      namedCurve: 'P-256',
-      hash: 'SHA-256',
-    },
-    true,
-    ['sign']
-  )
-
-  const dataBuffer = new TextEncoder().encode(message)
-  const signature = await webcrypto.subtle.sign(
-    {
-      name: signatureKeyParams.algorithm.name,
-      hash: 'SHA-256',
-      saltLength: 32,
-    },
-    signaturePrivateKeyBuffer,
-    dataBuffer
-  )
-
-  return signature
-}
-
 const requestSession = async (app: FastifyInstance) => {
   const idHeader = 'foo'
   const now = Date.now()
@@ -95,7 +42,9 @@ const requestSession = async (app: FastifyInstance) => {
     updatedAt: new Date(now),
   }
 
-  const signature = await getSignature(signatureMessage)
+  const signature = await getSignature(signatureMessage, {
+    privateKey: stubUserPrivateKeyData,
+  })
   const signatureHeader = Buffer.from(signature).toString('base64')
 
   ;(
@@ -155,7 +104,9 @@ describe(endpointRoute, () => {
         app.prisma as DeepMockProxy<PrismaClient>
       ).user.findFirstOrThrow.mockRejectedValueOnce(new Error())
 
-      const signature = await getSignature(signatureMessage)
+      const signature = await getSignature(signatureMessage, {
+        privateKey: stubUserPrivateKeyData,
+      })
       const signatureHeader = Buffer.from(signature).toString('base64')
 
       const response = await app.inject({
@@ -208,7 +159,9 @@ describe(endpointRoute, () => {
         updatedAt: new Date(now),
       }
 
-      const signature = await getSignature('some other message')
+      const signature = await getSignature('some other message', {
+        privateKey: stubUserPrivateKeyData,
+      })
       const signatureHeader = Buffer.from(signature).toString('base64')
 
       ;(

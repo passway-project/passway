@@ -49,7 +49,7 @@ export const buildApp = async (options?: FastifyServerOptions) => {
     },
   })
 
-  // FIXME: Add a prehandler hook to reject non-authenticated routes
+  // FIXME: Add a preHandler hook to reject non-authenticated routes
 
   for (const route of Object.values(routes)) {
     await app.register(route, { prefix: `/${API_ROOT}/v1` })

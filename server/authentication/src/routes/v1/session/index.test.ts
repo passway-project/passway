@@ -7,6 +7,7 @@ import { API_ROOT } from '../../../constants'
 import { routeName, signatureMessage } from '.'
 import { getKeypair } from '../../../../test/getKeypair'
 import { signatureKeyParams } from '../../../services/Encryption'
+import { FastifyInstance } from 'fastify'
 
 const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 
@@ -15,6 +16,14 @@ const stubUserPasskeySecret = 'abc123'
 let stubUserEncryptedKeysData = ''
 let stubUserPublicKeyData = ''
 let stubUserPrivateKeyData = ''
+
+const sessionCookie = {
+  httpOnly: true,
+  name: 'sessionId',
+  path: '/',
+  secure: true,
+  value: expect.any(String),
+}
 
 const importKey = async (password: string) => {
   const encoder = new TextEncoder()
@@ -74,6 +83,35 @@ async function getSignature(
   return signature
 }
 
+const requestSession = async (app: FastifyInstance) => {
+  const idHeader = 'foo'
+  const now = Date.now()
+  const preexistingUser: User = {
+    id: stubUserId,
+    passkeyId: idHeader,
+    encryptedKeys: stubUserEncryptedKeysData,
+    publicKey: stubUserPublicKeyData,
+    createdAt: new Date(now),
+    updatedAt: new Date(now),
+  }
+
+  const signature = await getSignature(signatureMessage)
+  const signatureHeader = Buffer.from(signature).toString('base64')
+
+  ;(
+    app.prisma as DeepMockProxy<PrismaClient>
+  ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
+
+  return app.inject({
+    method: 'GET',
+    url: endpointRoute,
+    headers: {
+      'x-passway-id': idHeader,
+      'x-passway-signature': signatureHeader,
+    },
+  })
+}
+
 beforeAll(async () => {
   const encryptionKeys = await getKeypair()
   const signatureKeys = await getKeypair(signatureKeyParams)
@@ -107,14 +145,6 @@ beforeAll(async () => {
   stubUserEncryptedKeysData = encryptedKeysString
 })
 
-const sessionCookie = {
-  httpOnly: true,
-  name: 'sessionId',
-  path: '/',
-  secure: true,
-  value: expect.any(String),
-}
-
 describe(endpointRoute, () => {
   describe('GET', () => {
     test('handles nonexistent user lookup', async () => {
@@ -146,33 +176,8 @@ describe(endpointRoute, () => {
 
     test('creates session for valid user authentication request', async () => {
       const app = getApp()
-      const idHeader = 'foo'
-      const now = Date.now()
-      const preexistingUser: User = {
-        id: stubUserId,
-        passkeyId: idHeader,
-        encryptedKeys: stubUserEncryptedKeysData,
-        publicKey: stubUserPublicKeyData,
-        createdAt: new Date(now),
-        updatedAt: new Date(now),
-      }
 
-      const signature = await getSignature(signatureMessage)
-      const signatureHeader = Buffer.from(signature).toString('base64')
-
-      ;(
-        app.prisma as DeepMockProxy<PrismaClient>
-      ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
-
-      const response = await app.inject({
-        method: 'GET',
-        url: endpointRoute,
-        headers: {
-          'x-passway-id': idHeader,
-          'x-passway-signature': signatureHeader,
-        },
-      })
-
+      const response = await requestSession(app)
       const bodyJson = await response.json()
 
       expect(bodyJson).toEqual({ success: true })
@@ -264,6 +269,54 @@ describe(endpointRoute, () => {
       expect(bodyJson).toEqual({ success: false })
       expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
       expect(response.cookies).not.toContainEqual(sessionCookie)
+    })
+  })
+
+  describe('DELETE', () => {
+    test('deletes a session', async () => {
+      const app = getApp()
+
+      const sessionResponse = await requestSession(app)
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: endpointRoute,
+        cookies: {
+          sessionId: sessionResponse.cookies[0].value,
+        },
+      })
+
+      const bodyJson = await response.json()
+
+      expect(bodyJson).toEqual({ success: true })
+      expect(response.statusCode).toEqual(StatusCodes.OK)
+
+      const authRequest = await app.inject({
+        method: 'GET',
+        url: testAuthenticationRoute,
+        cookies: {
+          sessionId: sessionResponse.cookies[0].value,
+        },
+      })
+
+      expect(authRequest.statusCode).toEqual(StatusCodes.FORBIDDEN)
+    })
+
+    test('handles invalid session', async () => {
+      const app = getApp()
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: endpointRoute,
+        cookies: {
+          sessionId: 'some invalid session',
+        },
+      })
+
+      const bodyJson = await response.json()
+
+      expect(bodyJson).toEqual({ success: false })
+      expect(response.statusCode).toEqual(StatusCodes.FORBIDDEN)
     })
   })
 })

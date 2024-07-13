@@ -48,11 +48,6 @@ export const sessionRoute: FastifyPluginAsync = async app => {
             type: 'object',
             properties: {
               success: { type: 'boolean' },
-              token: {
-                type: 'string',
-                description:
-                  'Session token to use in subsequent requests as x-passway-token header',
-              },
             },
           },
           [StatusCodes.BAD_REQUEST]: {
@@ -141,6 +136,57 @@ export const sessionRoute: FastifyPluginAsync = async app => {
       }
 
       reply.send({ success: false })
+    }
+  )
+
+  app.delete<{
+    Headers: {
+      sessionId: string
+    }
+    Reply: { success: boolean }
+  }>(
+    `/${routeName}`,
+    {
+      schema: {
+        tags: ['Session management'],
+        summary: 'Delete session',
+        response: {
+          [StatusCodes.OK]: {
+            description: 'Session deletion success',
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+            },
+          },
+          [StatusCodes.NOT_FOUND]: {
+            description: 'Session ID not found',
+            type: 'object',
+            properties: {
+              success: { type: 'boolean', example: false },
+            },
+          },
+        },
+      },
+    },
+    async (req, res) => {
+      // FIXME: Move this to a preHandler hook
+      if (!req.session.authenticated) {
+        res.code(StatusCodes.FORBIDDEN)
+        res.send({ success: false })
+        return
+      }
+
+      try {
+        await req.session.destroy()
+      } catch (e) {
+        app.log.error(`Session deletion failure: ${e}`)
+        res.code(StatusCodes.INTERNAL_SERVER_ERROR)
+        res.send({ success: false })
+        return
+      }
+
+      res.code(StatusCodes.OK)
+      res.send({ success: true })
     }
   )
 }

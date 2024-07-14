@@ -4,7 +4,7 @@
   "description": "Authentication component for Passway",
   "main": "src/index.ts",
   "scripts": {
-    "start": "node --require ts-node/register src/index.ts",
+    "start": "ts-node src/index.ts",
     "start:dev": "nodemon --exec 'node --inspect=0.0.0.0:9230 --require ts-node/register src/index.ts' --ext ts",
     "test": "jest",
     "test:debug": "node --inspect-brk=0.0.0.0:9229 node_modules/.bin/jest --runInBand"

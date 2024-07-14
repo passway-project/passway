@@ -13,6 +13,8 @@ services:
   auth:
     build:
       context: ./server/authentication
+    volumes:
+      - ./server/authentication:/usr/src/app
     expose:
       - 3000
     networks:

@@ -18,7 +18,7 @@ const stubUserPasskeySecret = 'abc123'
 const stubKeyData: StubKeyData = {
   publicKey: '',
   privateKey: '',
-  encryptedKeysString: '',
+  encryptedKeys: '',
 }
 
 const sessionCookie = {
@@ -67,9 +67,7 @@ describe(endpointRoute, () => {
 
       const sessionResponse = await requestSession(app, {
         userId: stubUserId,
-        encryptedKeys: stubKeyData.encryptedKeysString,
-        publicKey: stubKeyData.publicKey,
-        privateKey: stubKeyData.privateKey,
+        ...stubKeyData,
       })
 
       const bodyJson = await sessionResponse.json()
@@ -96,7 +94,7 @@ describe(endpointRoute, () => {
       const preexistingUser: User = {
         id: stubUserId,
         passkeyId: idHeader,
-        encryptedKeys: stubKeyData.encryptedKeysString,
+        encryptedKeys: stubKeyData.encryptedKeys,
         publicKey: stubKeyData.publicKey,
         createdAt: new Date(now),
         updatedAt: new Date(now),
@@ -132,7 +130,7 @@ describe(endpointRoute, () => {
       const preexistingUser: User = {
         id: stubUserId,
         passkeyId: idHeader,
-        encryptedKeys: stubKeyData.encryptedKeysString,
+        encryptedKeys: stubKeyData.encryptedKeys,
         publicKey: stubKeyData.publicKey,
         createdAt: new Date(now),
         updatedAt: new Date(now),
@@ -169,9 +167,7 @@ describe(endpointRoute, () => {
 
       const sessionResponse = await requestSession(app, {
         userId: stubUserId,
-        encryptedKeys: stubKeyData.encryptedKeysString,
-        publicKey: stubKeyData.publicKey,
-        privateKey: stubKeyData.privateKey,
+        ...stubKeyData,
       })
 
       const response = await app.inject({

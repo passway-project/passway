@@ -18,7 +18,7 @@ export const getStubKeyData = async (passkeySecret: string) => {
   const importedKey = await importKey(passkeySecret)
   const derivedKey = await deriveKey(importedKey, salt)
 
-  const encryptedKeys = await crypto.subtle.encrypt(
+  const encryptedKeysBuffer = await crypto.subtle.encrypt(
     {
       name: 'AES-GCM',
       iv,
@@ -27,11 +27,11 @@ export const getStubKeyData = async (passkeySecret: string) => {
     encoder.encode(keysString)
   )
 
-  const encryptedKeysString = Buffer.from(encryptedKeys).toString('base64')
+  const encryptedKeys = Buffer.from(encryptedKeysBuffer).toString('base64')
 
   return {
     ...signatureKeys,
-    encryptedKeysString,
+    encryptedKeys,
   }
 }
 

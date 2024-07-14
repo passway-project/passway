@@ -4,16 +4,13 @@ import { DeepMockProxy } from 'jest-mock-extended'
 import { getApp } from '../../../../test/getApp'
 import { API_ROOT } from '../../../constants'
 import { routeName } from '.'
-import { getKeypair } from '../../../../test/getKeypair'
 import { StubKeyData, getStubKeyData } from '../../../../test/getStubKeyData'
 import { requestSession } from '../../../../test/utils/session'
 
 const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 
 const stubUserId = 0
-const stubUserEncryptedKeysData = 'ZW5jcnlwdGVkIGtleQo='
 const stubUserPasskeySecret = 'abc123'
-let stubUserPublicKeyData = ''
 
 const stubKeyData: StubKeyData = {
   publicKey: '',
@@ -22,8 +19,6 @@ const stubKeyData: StubKeyData = {
 }
 
 beforeAll(async () => {
-  const keypair = await getKeypair()
-  stubUserPublicKeyData = btoa(keypair.publicKey)
   Object.assign(stubKeyData, await getStubKeyData(stubUserPasskeySecret))
 })
 
@@ -37,8 +32,8 @@ describe(endpointRoute, () => {
       const preexistingUser: User = {
         id: stubUserId,
         passkeyId,
-        encryptedKeys: stubUserEncryptedKeysData,
-        publicKey: stubUserPublicKeyData,
+        encryptedKeys: stubKeyData.encryptedKeys,
+        publicKey: stubKeyData.publicKey,
         createdAt: new Date(now),
         updatedAt: new Date(now),
       }
@@ -99,8 +94,8 @@ describe(endpointRoute, () => {
         app.prisma as DeepMockProxy<PrismaClient>
       ).user.upsert.mockResolvedValueOnce({
         id: stubUserId,
-        encryptedKeys: stubUserEncryptedKeysData,
-        publicKey: stubUserPublicKeyData,
+        encryptedKeys: stubKeyData.encryptedKeys,
+        publicKey: stubKeyData.publicKey,
         passkeyId,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -111,8 +106,8 @@ describe(endpointRoute, () => {
         url: endpointRoute,
         body: {
           id: passkeyId,
-          encryptedKeys: stubUserEncryptedKeysData,
-          publicKey: stubUserPublicKeyData,
+          encryptedKeys: stubKeyData.encryptedKeys,
+          publicKey: stubKeyData.publicKey,
         },
       })
 
@@ -125,12 +120,12 @@ describe(endpointRoute, () => {
       ).toHaveBeenCalledWith({
         create: {
           passkeyId,
-          encryptedKeys: stubUserEncryptedKeysData,
-          publicKey: stubUserPublicKeyData,
+          encryptedKeys: stubKeyData.encryptedKeys,
+          publicKey: stubKeyData.publicKey,
         },
         update: {
-          encryptedKeys: stubUserEncryptedKeysData,
-          publicKey: stubUserPublicKeyData,
+          encryptedKeys: stubKeyData.encryptedKeys,
+          publicKey: stubKeyData.publicKey,
         },
         where: {
           passkeyId,
@@ -145,8 +140,8 @@ describe(endpointRoute, () => {
       const preexistingUser: User = {
         id: stubUserId,
         passkeyId,
-        encryptedKeys: stubUserEncryptedKeysData,
-        publicKey: stubUserPublicKeyData,
+        encryptedKeys: stubKeyData.encryptedKeys,
+        publicKey: stubKeyData.publicKey,
         createdAt: new Date(now),
         updatedAt: new Date(now),
       }
@@ -164,8 +159,8 @@ describe(endpointRoute, () => {
       ).user.upsert.mockResolvedValueOnce({
         id: stubUserId,
         passkeyId,
-        encryptedKeys: stubUserEncryptedKeysData,
-        publicKey: stubUserPublicKeyData,
+        encryptedKeys: stubKeyData.encryptedKeys,
+        publicKey: stubKeyData.publicKey,
         createdAt: new Date(now),
         updatedAt: new Date(now + 1000),
       })
@@ -175,8 +170,8 @@ describe(endpointRoute, () => {
         url: endpointRoute,
         body: {
           id: passkeyId,
-          encryptedKeys: stubUserEncryptedKeysData,
-          publicKey: stubUserPublicKeyData,
+          encryptedKeys: stubKeyData.encryptedKeys,
+          publicKey: stubKeyData.publicKey,
         },
         cookies: {
           sessionId: sessionResponse.cookies[0].value,
@@ -192,12 +187,12 @@ describe(endpointRoute, () => {
       ).toHaveBeenCalledWith({
         create: {
           passkeyId,
-          encryptedKeys: stubUserEncryptedKeysData,
-          publicKey: stubUserPublicKeyData,
+          encryptedKeys: stubKeyData.encryptedKeys,
+          publicKey: stubKeyData.publicKey,
         },
         update: {
-          encryptedKeys: stubUserEncryptedKeysData,
-          publicKey: stubUserPublicKeyData,
+          encryptedKeys: stubKeyData.encryptedKeys,
+          publicKey: stubKeyData.publicKey,
         },
         where: {
           id: preexistingUser.id,
@@ -213,8 +208,8 @@ describe(endpointRoute, () => {
       const preexistingUser: User = {
         id: stubUserId,
         passkeyId,
-        encryptedKeys: stubUserEncryptedKeysData,
-        publicKey: stubUserPublicKeyData,
+        encryptedKeys: stubKeyData.encryptedKeys,
+        publicKey: stubKeyData.publicKey,
         createdAt: new Date(now),
         updatedAt: new Date(now),
       }
@@ -232,8 +227,8 @@ describe(endpointRoute, () => {
       ).user.upsert.mockResolvedValueOnce({
         id: stubUserId,
         passkeyId,
-        encryptedKeys: stubUserEncryptedKeysData,
-        publicKey: stubUserPublicKeyData,
+        encryptedKeys: stubKeyData.encryptedKeys,
+        publicKey: stubKeyData.publicKey,
         createdAt: new Date(now),
         updatedAt: new Date(now + 1000),
       })
@@ -243,8 +238,8 @@ describe(endpointRoute, () => {
         url: endpointRoute,
         body: {
           id: passkeyId,
-          encryptedKeys: stubUserEncryptedKeysData,
-          publicKey: stubUserPublicKeyData,
+          encryptedKeys: stubKeyData.encryptedKeys,
+          publicKey: stubKeyData.publicKey,
         },
         cookies: {
           sessionId: sessionResponse.cookies[0].value,
@@ -261,8 +256,8 @@ describe(endpointRoute, () => {
       const preexistingUser: User = {
         id: stubUserId,
         passkeyId,
-        encryptedKeys: stubUserEncryptedKeysData,
-        publicKey: stubUserPublicKeyData,
+        encryptedKeys: stubKeyData.encryptedKeys,
+        publicKey: stubKeyData.publicKey,
         createdAt: new Date(now),
         updatedAt: new Date(now),
       }
@@ -279,8 +274,8 @@ describe(endpointRoute, () => {
         url: endpointRoute,
         body: {
           id: passkeyId,
-          encryptedKeys: stubUserEncryptedKeysData,
-          publicKey: stubUserPublicKeyData,
+          encryptedKeys: stubKeyData.encryptedKeys,
+          publicKey: stubKeyData.publicKey,
         },
       })
 

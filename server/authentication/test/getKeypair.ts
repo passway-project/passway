@@ -1,7 +1,6 @@
 import { webcrypto } from 'crypto'
 import { encryptionKeyParams } from '../src/services/Encryption'
 
-// FIXME: Replace uses of this in tests with getStubKeyData
 export const getKeypair = async ({
   algorithm = encryptionKeyParams.algorithm,
   extractable = true,

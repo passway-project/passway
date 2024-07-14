@@ -4,8 +4,6 @@ import { DeepMockProxy } from 'jest-mock-extended'
 import { getApp, testAuthenticationRoute } from '../../../../test/getApp'
 import { API_ROOT } from '../../../constants'
 import { routeName, signatureMessage } from '.'
-import { getKeypair } from '../../../../test/getKeypair'
-import { signatureKeyParams } from '../../../services/Encryption'
 import { getSignature } from '../../../../test/utils/crypto'
 import { requestSession } from '../../../../test/utils/session'
 import { StubKeyData, getStubKeyData } from '../../../../test/getStubKeyData'
@@ -136,7 +134,7 @@ describe(endpointRoute, () => {
         updatedAt: new Date(now),
       }
 
-      const differentSignatureKeys = await getKeypair(signatureKeyParams)
+      const differentSignatureKeys = await getStubKeyData('some other secret')
       const signature = await getSignature(signatureMessage, {
         privateKey: differentSignatureKeys.privateKey,
       })

@@ -8,6 +8,10 @@ import { redisClient } from '../../src/cache'
 
 const stubUserPasskeySecret = 'abc123'
 
+afterAll(async () => {
+  redisClient.disconnect()
+})
+
 describe('login and logout', () => {
   test('user can log in and log out', async () => {
     const app = await buildApp()
@@ -36,6 +40,5 @@ describe('login and logout', () => {
     // FIXME: Destroy session
 
     await app.close()
-    redisClient.disconnect()
   })
 })

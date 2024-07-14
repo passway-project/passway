@@ -19,7 +19,7 @@
     "test": "npm run auth -- npm test -- --coverage",
     "test:debug": "npm run auth -- npm run test:debug",
     "test:watch": "npm run auth -- npm test -- --watchAll",
-    "test:integration": "npm run start:integration && docker compose -p int logs && docker compose -p int exec auth npx prisma migrate dev && docker compose -p int exec auth npm run test:integration && npm run stop:integration",
+    "test:integration": "npm run start:integration && docker compose -p int exec auth npx prisma migrate dev && docker compose -p int exec auth npm run test:integration && npm run stop:integration",
     "prepare": "husky && npm run build && npm start && npm run db:migrate:dev",
     "auth": "docker compose exec auth",
     "db:migrate:dev": "npm run auth -- npx prisma migrate dev",

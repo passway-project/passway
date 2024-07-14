@@ -6,12 +6,9 @@ import { API_ROOT } from '../../../constants'
 import { routeName, signatureMessage } from '.'
 import { getKeypair } from '../../../../test/getKeypair'
 import { signatureKeyParams } from '../../../services/Encryption'
-import {
-  deriveKey,
-  getSignature,
-  importKey,
-} from '../../../../test/utils/crypto'
+import { getSignature } from '../../../../test/utils/crypto'
 import { requestSession } from '../../../../test/utils/session'
+import { getStubKeyData } from '../../../../test/getStubKeyData'
 
 const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 
@@ -30,36 +27,11 @@ const sessionCookie = {
 }
 
 beforeAll(async () => {
-  const encryptionKeys = await getKeypair()
-  const signatureKeys = await getKeypair(signatureKeyParams)
+  const stubKeyData = await getStubKeyData(stubUserPasskeySecret)
 
-  stubUserPublicKeyData = signatureKeys.publicKey
-  stubUserPrivateKeyData = signatureKeys.privateKey
-
-  const keysString = JSON.stringify({
-    encryptionKeys,
-    signatureKeys,
-  })
-
-  const encoder = new TextEncoder()
-  const salt = crypto.getRandomValues(new Uint8Array(16))
-  const iv = crypto.getRandomValues(new Uint8Array(12))
-
-  const importedKey = await importKey(stubUserPasskeySecret)
-  const derivedKey = await deriveKey(importedKey, salt)
-
-  const encryptedKeys = await crypto.subtle.encrypt(
-    {
-      name: 'AES-GCM',
-      iv,
-    },
-    derivedKey,
-    encoder.encode(keysString)
-  )
-
-  const encryptedKeysString = Buffer.from(encryptedKeys).toString('base64')
-
-  stubUserEncryptedKeysData = encryptedKeysString
+  stubUserPublicKeyData = stubKeyData.publicKey
+  stubUserPrivateKeyData = stubKeyData.privateKey
+  stubUserEncryptedKeysData = stubKeyData.encryptedKeysString
 })
 
 describe(endpointRoute, () => {
@@ -183,8 +155,6 @@ describe(endpointRoute, () => {
           'x-passway-signature': signatureHeader,
         },
       })
-
-      const bodyJson = await response.json()
 
       expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
       expect(response.cookies).not.toContainEqual(sessionCookie)

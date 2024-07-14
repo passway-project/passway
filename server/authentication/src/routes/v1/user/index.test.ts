@@ -206,6 +206,54 @@ describe(endpointRoute, () => {
       })
     })
 
+    test('rejects requests to update another user', async () => {
+      const app = getApp()
+      const now = Date.now()
+      const passkeyId = 'foo'
+      const preexistingUser: User = {
+        id: stubUserId,
+        passkeyId,
+        encryptedKeys: stubUserEncryptedKeysData,
+        publicKey: stubUserPublicKeyData,
+        createdAt: new Date(now),
+        updatedAt: new Date(now),
+      }
+
+      const sessionResponse = await requestSession(app, {
+        userId: stubUserId + 1,
+        ...stubKeyData,
+      })
+
+      ;(
+        app.prisma as DeepMockProxy<PrismaClient>
+      ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
+      ;(
+        app.prisma as DeepMockProxy<PrismaClient>
+      ).user.upsert.mockResolvedValueOnce({
+        id: stubUserId,
+        passkeyId,
+        encryptedKeys: stubUserEncryptedKeysData,
+        publicKey: stubUserPublicKeyData,
+        createdAt: new Date(now),
+        updatedAt: new Date(now + 1000),
+      })
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: endpointRoute,
+        body: {
+          id: passkeyId,
+          encryptedKeys: stubUserEncryptedKeysData,
+          publicKey: stubUserPublicKeyData,
+        },
+        cookies: {
+          sessionId: sessionResponse.cookies[0].value,
+        },
+      })
+
+      expect(response.statusCode).toEqual(StatusCodes.FORBIDDEN)
+    })
+
     test('prevents unauthorized updates', async () => {
       const app = getApp()
       const now = Date.now()

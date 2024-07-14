@@ -8,6 +8,7 @@ import { signatureKeyParams } from '../../../services/Encryption'
 declare module 'fastify' {
   interface Session {
     authenticated?: boolean
+    userId?: User['id']
   }
 }
 
@@ -124,6 +125,7 @@ export const sessionRoute: FastifyPluginAsync = async app => {
 
       if (isValid) {
         request.session.authenticated = true
+        request.session.userId = retrievedUser.id
 
         try {
           await request.session.save()

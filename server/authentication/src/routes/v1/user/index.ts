@@ -161,8 +161,11 @@ export const userRoute: FastifyPluginAsync = async app => {
 
         const isNewUser = typeof retrievedUser?.id === 'undefined'
 
-        // FIXME: Verify that the user ID matches what's in the session
-        if (!isNewUser && !request.session.authenticated) {
+        if (
+          !isNewUser &&
+          (!request.session.authenticated ||
+            request.session.userId !== retrievedUser?.id)
+        ) {
           reply.send(httpErrors.Forbidden())
           return
         }

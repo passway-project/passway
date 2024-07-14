@@ -24,6 +24,8 @@ services:
         condition: service_healthy
     volumes:
       - db-admin_data:/var/lib/pgadmin
+      - ./db-admin/servers.json:/pgadmin4/servers.json
+      - ./db-admin/preferences.json:/pgadmin4/preferences.json
 
   cache:
     environment:

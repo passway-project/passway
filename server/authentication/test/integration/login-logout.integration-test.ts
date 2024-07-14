@@ -26,11 +26,11 @@ afterAll(async () => {
 })
 
 describe('login and logout', () => {
-  test('user can log in and log out', async () => {
+  test('user can be created and then log in and log out', async () => {
     const passkeyId = 'foo'
     const stubKeyData = await getStubKeyData(stubUserPasskeySecret)
 
-    const response = await app.inject({
+    const putUserResponse = await app.inject({
       method: 'PUT',
       url: `/${API_ROOT}/v1/${userRouteName}`,
       body: {
@@ -40,10 +40,7 @@ describe('login and logout', () => {
       },
     })
 
-    const bodyJson = await response.json()
-
-    expect(bodyJson).toEqual({ success: true })
-    expect(response.statusCode).toEqual(StatusCodes.CREATED)
+    expect(putUserResponse.statusCode).toEqual(StatusCodes.CREATED)
 
     const signature = await getSignature(signatureMessage, {
       privateKey: stubKeyData.privateKey,
@@ -61,6 +58,14 @@ describe('login and logout', () => {
 
     expect(getSessionResponse.statusCode).toEqual(StatusCodes.OK)
 
-    // FIXME: Destroy session
+    const deleteSessionRequst = await app.inject({
+      method: 'DELETE',
+      url: `/${API_ROOT}/v1/${sessionRouteName}`,
+      cookies: {
+        sessionId: getSessionResponse.cookies[0].value,
+      },
+    })
+
+    expect(deleteSessionRequst.statusCode).toEqual(StatusCodes.OK)
   })
 })

@@ -17,6 +17,7 @@
     "test": "npm run auth -- npm test -- --coverage",
     "test:debug": "npm run auth -- npm run test:debug",
     "test:watch": "npm run auth -- npm test -- --watchAll",
+    "test:integration": "dotenvx run -f .env -- docker compose -f compose.yml -f compose.integration-test.yml up --detach && npm run auth -- npm run test:integration && docker compose -f compose.yml -f compose.integration-test.yml down --volumes",
     "prepare": "husky && npm run build && npm start && npm run db:migrate:dev",
     "auth": "docker compose exec auth",
     "db:migrate:dev": "npm run auth -- npx prisma migrate dev",

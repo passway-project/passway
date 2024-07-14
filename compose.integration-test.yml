@@ -1,0 +1,10 @@
+# FIXME: Ensure that the proper exit code is returned to the shell
+services:
+  auth:
+    volumes:
+      - ./server/authentication:/usr/src/app
+
+  # FIXME: Verify that volume is ephemeral and fresh
+  db:
+    volumes:
+      - /var/lib/postgresql/data

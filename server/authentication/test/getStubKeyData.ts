@@ -34,3 +34,5 @@ export const getStubKeyData = async (passkeySecret: string) => {
     encryptedKeysString,
   }
 }
+
+export type StubKeyData = Awaited<ReturnType<typeof getStubKeyData>>

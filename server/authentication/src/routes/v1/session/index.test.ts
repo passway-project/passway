@@ -8,15 +8,18 @@ import { getKeypair } from '../../../../test/getKeypair'
 import { signatureKeyParams } from '../../../services/Encryption'
 import { getSignature } from '../../../../test/utils/crypto'
 import { requestSession } from '../../../../test/utils/session'
-import { getStubKeyData } from '../../../../test/getStubKeyData'
+import { StubKeyData, getStubKeyData } from '../../../../test/getStubKeyData'
 
 const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 
 const stubUserId = 0
 const stubUserPasskeySecret = 'abc123'
-let stubUserEncryptedKeysData = ''
-let stubUserPublicKeyData = ''
-let stubUserPrivateKeyData = ''
+
+const stubKeyData: StubKeyData = {
+  publicKey: '',
+  privateKey: '',
+  encryptedKeysString: '',
+}
 
 const sessionCookie = {
   httpOnly: true,
@@ -27,11 +30,7 @@ const sessionCookie = {
 }
 
 beforeAll(async () => {
-  const stubKeyData = await getStubKeyData(stubUserPasskeySecret)
-
-  stubUserPublicKeyData = stubKeyData.publicKey
-  stubUserPrivateKeyData = stubKeyData.privateKey
-  stubUserEncryptedKeysData = stubKeyData.encryptedKeysString
+  Object.assign(stubKeyData, await getStubKeyData(stubUserPasskeySecret))
 })
 
 describe(endpointRoute, () => {
@@ -45,8 +44,9 @@ describe(endpointRoute, () => {
       ).user.findFirstOrThrow.mockRejectedValueOnce(new Error())
 
       const signature = await getSignature(signatureMessage, {
-        privateKey: stubUserPrivateKeyData,
+        privateKey: stubKeyData.privateKey,
       })
+
       const signatureHeader = Buffer.from(signature).toString('base64')
 
       const response = await app.inject({
@@ -67,10 +67,11 @@ describe(endpointRoute, () => {
 
       const sessionResponse = await requestSession(app, {
         userId: stubUserId,
-        encryptedKeys: stubUserEncryptedKeysData,
-        publicKey: stubUserPublicKeyData,
-        privateKey: stubUserPrivateKeyData,
+        encryptedKeys: stubKeyData.encryptedKeysString,
+        publicKey: stubKeyData.publicKey,
+        privateKey: stubKeyData.privateKey,
       })
+
       const bodyJson = await sessionResponse.json()
 
       expect(bodyJson).toEqual({ success: true })
@@ -95,15 +96,16 @@ describe(endpointRoute, () => {
       const preexistingUser: User = {
         id: stubUserId,
         passkeyId: idHeader,
-        encryptedKeys: stubUserEncryptedKeysData,
-        publicKey: stubUserPublicKeyData,
+        encryptedKeys: stubKeyData.encryptedKeysString,
+        publicKey: stubKeyData.publicKey,
         createdAt: new Date(now),
         updatedAt: new Date(now),
       }
 
       const signature = await getSignature('some other message', {
-        privateKey: stubUserPrivateKeyData,
+        privateKey: stubKeyData.privateKey,
       })
+
       const signatureHeader = Buffer.from(signature).toString('base64')
 
       ;(
@@ -130,8 +132,8 @@ describe(endpointRoute, () => {
       const preexistingUser: User = {
         id: stubUserId,
         passkeyId: idHeader,
-        encryptedKeys: stubUserEncryptedKeysData,
-        publicKey: stubUserPublicKeyData,
+        encryptedKeys: stubKeyData.encryptedKeysString,
+        publicKey: stubKeyData.publicKey,
         createdAt: new Date(now),
         updatedAt: new Date(now),
       }
@@ -167,9 +169,9 @@ describe(endpointRoute, () => {
 
       const sessionResponse = await requestSession(app, {
         userId: stubUserId,
-        encryptedKeys: stubUserEncryptedKeysData,
-        publicKey: stubUserPublicKeyData,
-        privateKey: stubUserPrivateKeyData,
+        encryptedKeys: stubKeyData.encryptedKeysString,
+        publicKey: stubKeyData.publicKey,
+        privateKey: stubKeyData.privateKey,
       })
 
       const response = await app.inject({

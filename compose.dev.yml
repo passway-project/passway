@@ -1,6 +1,6 @@
 services:
   auth:
-    command: 'npm run start:dev'
+    command: bash -c "npm ci && npm run start:dev"
     volumes:
       - ./server/authentication:/usr/src/app
     ports:

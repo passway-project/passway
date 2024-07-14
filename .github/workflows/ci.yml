@@ -24,4 +24,5 @@ jobs:
       - name: Run tests
         run: |
           npm test
+          npm run stop
           npm run test:integration

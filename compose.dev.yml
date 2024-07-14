@@ -22,6 +22,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - db-admin_data:/var/lib/pgadmin
 
   cache:
     environment:
@@ -45,3 +47,6 @@ services:
 
 networks:
   passway-network:
+
+volumes:
+  db-admin_data:

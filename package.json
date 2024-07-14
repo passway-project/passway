@@ -17,7 +17,7 @@
     "test": "npm run auth -- npm test -- --coverage",
     "test:debug": "npm run auth -- npm run test:debug",
     "test:watch": "npm run auth -- npm test -- --watchAll",
-    "prepare": "husky && npm run build && npm start && npm run db:migrate:dev",
+    "prepare": "husky && npm run build && npm start && sleep 5s && docker compose logs && npm run db:migrate:dev",
     "auth": "docker compose exec auth",
     "db:migrate:dev": "npm run auth -- npx prisma migrate dev",
     "db:migrate:prod": "npm run auth -- npx prisma migrate deploy",

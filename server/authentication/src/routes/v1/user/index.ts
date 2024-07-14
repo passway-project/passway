@@ -94,6 +94,7 @@ export const userRoute: FastifyPluginAsync = async app => {
     }
     Reply:
       | { success: boolean }
+      | ReturnType<typeof httpErrors.Forbidden>
       | ReturnType<typeof httpErrors.InternalServerError>
   }>(
     `/${routeName}`,
@@ -159,6 +160,12 @@ export const userRoute: FastifyPluginAsync = async app => {
         }
 
         const isNewUser = typeof retrievedUser?.id === 'undefined'
+
+        // FIXME: Verify that the user ID matches what's in the session
+        if (!isNewUser && !request.session.authenticated) {
+          reply.send(httpErrors.Forbidden())
+          return
+        }
 
         const upsertedUser = await app.prisma.user.upsert({
           create: userRecord,

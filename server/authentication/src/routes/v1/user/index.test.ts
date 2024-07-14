@@ -5,16 +5,26 @@ import { getApp } from '../../../../test/getApp'
 import { API_ROOT } from '../../../constants'
 import { routeName } from '.'
 import { getKeypair } from '../../../../test/getKeypair'
+import { StubKeyData, getStubKeyData } from '../../../../test/getStubKeyData'
+import { requestSession } from '../../../../test/utils/session'
 
 const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 
 const stubUserId = 0
 const stubUserEncryptedKeysData = 'ZW5jcnlwdGVkIGtleQo='
+const stubUserPasskeySecret = 'abc123'
 let stubUserPublicKeyData = ''
+
+const stubKeyData: StubKeyData = {
+  publicKey: '',
+  privateKey: '',
+  encryptedKeys: '',
+}
 
 beforeAll(async () => {
   const keypair = await getKeypair()
   stubUserPublicKeyData = btoa(keypair.publicKey)
+  Object.assign(stubKeyData, await getStubKeyData(stubUserPasskeySecret))
 })
 
 describe(endpointRoute, () => {
@@ -141,6 +151,11 @@ describe(endpointRoute, () => {
         updatedAt: new Date(now),
       }
 
+      const sessionResponse = await requestSession(app, {
+        userId: stubUserId,
+        ...stubKeyData,
+      })
+
       ;(
         app.prisma as DeepMockProxy<PrismaClient>
       ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
@@ -162,6 +177,9 @@ describe(endpointRoute, () => {
           id: passkeyId,
           encryptedKeys: stubUserEncryptedKeysData,
           publicKey: stubUserPublicKeyData,
+        },
+        cookies: {
+          sessionId: sessionResponse.cookies[0].value,
         },
       })
 
@@ -188,7 +206,7 @@ describe(endpointRoute, () => {
       })
     })
 
-    test('reports INTERNAL_SERVER_ERROR', async () => {
+    test('prevents unauthorized updates', async () => {
       const app = getApp()
       const now = Date.now()
       const passkeyId = 'foo'
@@ -218,7 +236,7 @@ describe(endpointRoute, () => {
         },
       })
 
-      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR)
+      expect(response.statusCode).toEqual(StatusCodes.FORBIDDEN)
     })
   })
 })

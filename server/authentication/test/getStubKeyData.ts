@@ -1,9 +1,38 @@
-import { signatureKeyParams } from '../src/services/Encryption'
-import { getKeypair } from './getKeypair'
+import { webcrypto } from 'crypto'
+import {
+  encryptionKeyParams,
+  signatureKeyParams,
+} from '../src/services/Encryption'
 import { deriveKey, importKey } from './utils/crypto'
 
+const getKeypair = async ({
+  algorithm,
+  extractable,
+  usage,
+}: {
+  algorithm: webcrypto.RsaHashedKeyGenParams | webcrypto.EcKeyGenParams
+  extractable: boolean
+  usage: webcrypto.KeyUsage[]
+}) => {
+  const keypair = await webcrypto.subtle.generateKey(
+    algorithm,
+    extractable,
+    usage
+  )
+
+  const publicKey = Buffer.from(
+    await webcrypto.subtle.exportKey('spki', keypair.publicKey)
+  ).toString('base64')
+
+  const privateKey = Buffer.from(
+    await webcrypto.subtle.exportKey('pkcs8', keypair.privateKey)
+  ).toString('base64')
+
+  return { publicKey, privateKey }
+}
+
 export const getStubKeyData = async (passkeySecret: string) => {
-  const encryptionKeys = await getKeypair()
+  const encryptionKeys = await getKeypair(encryptionKeyParams)
   const signatureKeys = await getKeypair(signatureKeyParams)
 
   const keysString = JSON.stringify({

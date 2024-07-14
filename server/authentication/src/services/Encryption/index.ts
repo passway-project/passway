@@ -3,6 +3,7 @@ import { webcrypto } from 'crypto'
 export type KeyParams = {
   algorithm: webcrypto.RsaHashedKeyGenParams | webcrypto.EcKeyGenParams
   usage: KeyUsage[]
+  extractable: boolean
 }
 
 export const encryptionKeyParams: KeyParams = {
@@ -15,6 +16,7 @@ export const encryptionKeyParams: KeyParams = {
     hash: 'SHA-256',
   },
   usage: ['encrypt', 'decrypt'],
+  extractable: true,
 }
 
 export const signatureKeyParams: KeyParams = {
@@ -27,4 +29,5 @@ export const signatureKeyParams: KeyParams = {
     hash: { name: 'SHA-256' },
   },
   usage: ['sign', 'verify'],
+  extractable: true,
 }

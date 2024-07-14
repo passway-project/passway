@@ -119,6 +119,7 @@ export const sessionRoute: FastifyPluginAsync = async app => {
           dataBuffer
         )
       } catch (e) {
+        app.log.error(`Signature verification failed: ${e}`)
         reply.send(httpErrors.BadRequest())
         return
       }

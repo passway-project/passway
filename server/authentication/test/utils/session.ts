@@ -38,7 +38,6 @@ export const requestSession = async (
   })
   const signatureHeader = Buffer.from(signature).toString('base64')
 
-  // FIXME: This can't be mocked for integration tests
   ;(
     app.prisma as DeepMockProxy<PrismaClient>
   ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)

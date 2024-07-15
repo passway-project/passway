@@ -1,5 +1,5 @@
 services:
-  auth:
+  api:
     command: bash -c "npm ci && npm run start:dev"
     volumes:
       - ./server/api:/usr/src/app

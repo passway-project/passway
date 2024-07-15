@@ -1,4 +1,5 @@
 import { webcrypto } from 'crypto'
+
 import { signatureKeyParams } from '../../src/services/Encryption'
 
 export const importKey = async (password: string) => {

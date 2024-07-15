@@ -16,6 +16,7 @@
     "restart:dev": "npm run stop:dev && npm run start:dev",
     "format": "prettier \"**/*.{ts,js,mjs}\" --write",
     "lint": "eslint . --ext .ts",
+    "lint:fix": "npm run lint -- --fix",
     "test": "npm run auth -- npm test -- --coverage",
     "test:debug": "npm run auth -- npm run test:debug",
     "test:watch": "npm run auth -- npm test -- --watchAll",

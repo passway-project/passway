@@ -1,8 +1,9 @@
 import { FastifyInstance, HTTPMethods } from 'fastify'
+import httpErrors from 'http-errors'
+
 import { routeName as userRouteName } from '../routes/v1/user'
 import { routeName as sessionRouteName } from '../routes/v1/session'
 import { API_ROOT } from '../constants'
-import httpErrors from 'http-errors'
 
 type publicEndpointRoute = `/${typeof API_ROOT}/v1/${string}`
 

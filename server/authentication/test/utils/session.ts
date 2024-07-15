@@ -1,12 +1,14 @@
 import { PrismaClient, User } from '@prisma/client'
 import { FastifyInstance } from 'fastify'
-import { getSignature } from './crypto'
+import { DeepMockProxy } from 'jest-mock-extended'
+
 import {
   routeName as sessionRouteName,
   signatureMessage,
 } from '../../src/routes/v1/session'
-import { DeepMockProxy } from 'jest-mock-extended'
 import { API_ROOT } from '../../src/constants'
+
+import { getSignature } from './crypto'
 
 export const requestSession = async (
   app: FastifyInstance,

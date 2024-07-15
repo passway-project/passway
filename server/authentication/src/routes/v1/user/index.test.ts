@@ -1,11 +1,14 @@
 import { PrismaClient, User } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
 import { DeepMockProxy } from 'jest-mock-extended'
+
 import { getApp } from '../../../../test/getApp'
 import { API_ROOT } from '../../../constants'
-import { routeName } from '.'
+
 import { StubKeyData, getStubKeyData } from '../../../../test/getStubKeyData'
 import { requestSession } from '../../../../test/utils/session'
+
+import { routeName } from '.'
 
 const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 

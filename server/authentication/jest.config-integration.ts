@@ -4,6 +4,7 @@
  */
 
 import type { Config } from 'jest'
+
 import standardConfig from './jest.config'
 
 const config: Config = {

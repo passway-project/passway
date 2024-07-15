@@ -1,8 +1,10 @@
 import { webcrypto } from 'crypto'
+
 import {
   encryptionKeyParams,
   signatureKeyParams,
 } from '../src/services/Encryption'
+
 import { deriveKey, importKey } from './utils/crypto'
 
 const getKeypair = async ({

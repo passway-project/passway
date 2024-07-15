@@ -1,10 +1,11 @@
 import { StatusCodes } from 'http-status-codes'
+import fastify, { FastifyInstance } from 'fastify'
+
 import { buildApp } from '../../src/app'
 import { API_ROOT } from '../../src/constants'
 import { routeName as userRouteName } from '../../src/routes/v1/user'
 import { getStubKeyData } from '../getStubKeyData'
 import { redisClient } from '../../src/cache'
-import fastify, { FastifyInstance } from 'fastify'
 import { getSignature } from '../utils/crypto'
 import {
   routeName as sessionRouteName,

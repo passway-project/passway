@@ -1,12 +1,15 @@
 import { PrismaClient, User } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
 import { DeepMockProxy } from 'jest-mock-extended'
+
 import { getApp, testAuthenticationRoute } from '../../../../test/getApp'
 import { API_ROOT } from '../../../constants'
-import { routeName, signatureMessage } from '.'
+
 import { getSignature } from '../../../../test/utils/crypto'
 import { requestSession } from '../../../../test/utils/session'
 import { StubKeyData, getStubKeyData } from '../../../../test/getStubKeyData'
+
+import { routeName, signatureMessage } from '.'
 
 const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 

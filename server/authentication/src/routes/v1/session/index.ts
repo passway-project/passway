@@ -1,8 +1,10 @@
+import { webcrypto } from 'crypto'
+
 import { FastifyPluginAsync } from 'fastify'
 import { User } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
-import { webcrypto } from 'crypto'
 import httpErrors from 'http-errors'
+
 import { signatureKeyParams } from '../../../services/Encryption'
 
 declare module 'fastify' {

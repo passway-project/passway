@@ -1,8 +1,9 @@
 import fastify, { FastifyInstance } from 'fastify'
-import { buildApp } from '../src/app'
 import { mockDeep } from 'jest-mock-extended'
 import { PrismaClient } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
+
+import { buildApp } from '../src/app'
 
 jest.mock('../src/sessionStore')
 

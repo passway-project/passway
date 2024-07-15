@@ -5,9 +5,11 @@ import fastifySession from '@fastify/session'
 import swaggerUi from '@fastify/swagger-ui'
 import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes'
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
+
+import prismaPlugin from '../prisma/prismaPlugin'
+
 import { API_ROOT } from './constants'
 import * as routes from './routes/index'
-import prismaPlugin from '../prisma/prismaPlugin'
 import { sessionStore } from './sessionStore'
 import { setupPrehandler } from './hooks/preHandler'
 

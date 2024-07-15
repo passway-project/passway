@@ -58,10 +58,16 @@ export const sessionRoute: FastifyPluginAsync = async app => {
           [StatusCodes.BAD_REQUEST]: {
             description: 'Signature invalid',
             type: 'object',
+            properties: {
+              message: { type: 'string' },
+            },
           },
           [StatusCodes.NOT_FOUND]: {
             description: 'User not found',
             type: 'object',
+            properties: {
+              message: { type: 'string' },
+            },
           },
         },
       },
@@ -77,7 +83,7 @@ export const sessionRoute: FastifyPluginAsync = async app => {
         })
       } catch (e) {
         app.log.info(`passkeyId ${passkeyId} not found`)
-        reply.send(httpErrors.NotFound())
+        reply.send(httpErrors.NotFound(`passkeyId ${passkeyId} not found`))
         return
       }
 
@@ -123,11 +129,11 @@ export const sessionRoute: FastifyPluginAsync = async app => {
           await request.session.save()
         } catch (e) {
           app.log.error(`Session storage failure: ${e}`)
-          reply.send(httpErrors.InternalServerError())
+          reply.send(httpErrors.InternalServerError('Session storage failure'))
           return
         }
       } else {
-        reply.send(httpErrors.BadRequest())
+        reply.send(httpErrors.BadRequest('Invalid signature'))
         return
       }
     }
@@ -148,6 +154,9 @@ export const sessionRoute: FastifyPluginAsync = async app => {
           [StatusCodes.OK]: {
             description: 'Session deletion success',
             type: 'object',
+            properties: {
+              message: { type: 'string' },
+            },
           },
         },
       },
@@ -157,7 +166,7 @@ export const sessionRoute: FastifyPluginAsync = async app => {
         await request.session.destroy()
       } catch (e) {
         app.log.error(`Session deletion failure: ${e}`)
-        reply.send(httpErrors.InternalServerError())
+        reply.send(httpErrors.InternalServerError('Session deletion failure'))
         return
       }
     }

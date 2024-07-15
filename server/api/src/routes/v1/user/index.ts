@@ -123,6 +123,7 @@ export const userRoute: FastifyPluginAsync = async app => {
             description: 'User updated',
             type: 'object',
           },
+          // FIXME: Document errors
         },
       },
     },
@@ -153,6 +154,7 @@ export const userRoute: FastifyPluginAsync = async app => {
           (!request.session.authenticated ||
             request.session.userId !== retrievedUser?.id)
         ) {
+          // FIXME: Add error messages
           reply.send(httpErrors.Forbidden())
           return
         }

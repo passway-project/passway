@@ -59,6 +59,9 @@ describe(endpointRoute, () => {
         },
       })
 
+      const bodyJson = await response.json()
+
+      expect(bodyJson).toEqual({ message: `passkeyId ${idHeader} not found` })
       expect(response.statusCode).toEqual(StatusCodes.NOT_FOUND)
       expect(response.cookies).not.toContainEqual(sessionCookie)
     })
@@ -154,6 +157,9 @@ describe(endpointRoute, () => {
         },
       })
 
+      const bodyJson = await response.json()
+
+      expect(bodyJson).toEqual({ message: 'Invalid signature' })
       expect(response.statusCode).toEqual(StatusCodes.BAD_REQUEST)
       expect(response.cookies).not.toContainEqual(sessionCookie)
     })

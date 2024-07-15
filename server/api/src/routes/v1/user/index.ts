@@ -12,7 +12,6 @@ export const userRoute: FastifyPluginAsync = async app => {
     }
     Reply:
       | {
-          success: boolean
           user?: { publicKey: User['publicKey']; keys: User['encryptedKeys'] }
         }
       | ReturnType<typeof httpErrors.NotFound>
@@ -37,7 +36,6 @@ export const userRoute: FastifyPluginAsync = async app => {
             description: 'User found',
             type: 'object',
             properties: {
-              success: { type: 'boolean' },
               user: {
                 type: 'object',
                 properties: {
@@ -54,9 +52,6 @@ export const userRoute: FastifyPluginAsync = async app => {
           [StatusCodes.NOT_FOUND]: {
             description: 'User not found',
             type: 'object',
-            properties: {
-              success: { type: 'boolean' },
-            },
           },
         },
       },
@@ -77,7 +72,6 @@ export const userRoute: FastifyPluginAsync = async app => {
       }
 
       reply.send({
-        success: true,
         user: {
           keys: retrievedUser.encryptedKeys,
           publicKey: retrievedUser.publicKey,
@@ -93,7 +87,6 @@ export const userRoute: FastifyPluginAsync = async app => {
       publicKey: User['publicKey']
     }
     Reply:
-      | { success: boolean }
       | ReturnType<typeof httpErrors.Forbidden>
       | ReturnType<typeof httpErrors.InternalServerError>
   }>(
@@ -125,16 +118,10 @@ export const userRoute: FastifyPluginAsync = async app => {
           [StatusCodes.CREATED]: {
             description: 'User created',
             type: 'object',
-            properties: {
-              success: { type: 'boolean' },
-            },
           },
           [StatusCodes.OK]: {
             description: 'User updated',
             type: 'object',
-            properties: {
-              success: { type: 'boolean' },
-            },
           },
         },
       },
@@ -201,8 +188,6 @@ ${e}`)
         reply.send(httpErrors.InternalServerError())
         return
       }
-
-      reply.send({ success: true })
     }
   )
 }

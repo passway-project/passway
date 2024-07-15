@@ -26,7 +26,7 @@ export const sessionRoute: FastifyPluginAsync = async app => {
       'x-passway-signature': string
     }
     Reply:
-      | { success: boolean; token?: string }
+      | { token?: string }
       | ReturnType<typeof httpErrors.InternalServerError>
       | ReturnType<typeof httpErrors.BadRequest>
       | ReturnType<typeof httpErrors.NotFound>
@@ -54,23 +54,14 @@ export const sessionRoute: FastifyPluginAsync = async app => {
           [StatusCodes.OK]: {
             description: 'Session created',
             type: 'object',
-            properties: {
-              success: { type: 'boolean' },
-            },
           },
           [StatusCodes.BAD_REQUEST]: {
             description: 'Signature invalid',
             type: 'object',
-            properties: {
-              success: { type: 'boolean', example: false },
-            },
           },
           [StatusCodes.NOT_FOUND]: {
             description: 'User not found',
             type: 'object',
-            properties: {
-              success: { type: 'boolean', example: false },
-            },
           },
         },
       },
@@ -122,8 +113,6 @@ export const sessionRoute: FastifyPluginAsync = async app => {
         )
       } catch (e) {
         app.log.error(`Signature verification failed: ${e}`)
-        reply.send(httpErrors.BadRequest())
-        return
       }
 
       if (isValid) {
@@ -141,8 +130,6 @@ export const sessionRoute: FastifyPluginAsync = async app => {
         reply.send(httpErrors.BadRequest())
         return
       }
-
-      reply.send({ success: true })
     }
   )
 
@@ -150,9 +137,7 @@ export const sessionRoute: FastifyPluginAsync = async app => {
     Headers: {
       sessionId: string
     }
-    Reply:
-      | { success?: boolean }
-      | ReturnType<typeof httpErrors.InternalServerError>
+    Reply: ReturnType<typeof httpErrors.InternalServerError>
   }>(
     `/${routeName}`,
     {
@@ -163,9 +148,6 @@ export const sessionRoute: FastifyPluginAsync = async app => {
           [StatusCodes.OK]: {
             description: 'Session deletion success',
             type: 'object',
-            properties: {
-              success: { type: 'boolean' },
-            },
           },
         },
       },
@@ -178,9 +160,6 @@ export const sessionRoute: FastifyPluginAsync = async app => {
         reply.send(httpErrors.InternalServerError())
         return
       }
-
-      reply.code(StatusCodes.OK)
-      reply.send({ success: true })
     }
   )
 }

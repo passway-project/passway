@@ -56,7 +56,6 @@ describe(endpointRoute, () => {
       const bodyJson = await response.json()
 
       expect(bodyJson).toEqual({
-        success: true,
         user: {
           keys: preexistingUser.encryptedKeys,
           publicKey: preexistingUser.publicKey,
@@ -114,9 +113,6 @@ describe(endpointRoute, () => {
         },
       })
 
-      const bodyJson = await response.json()
-
-      expect(bodyJson).toEqual({ success: true })
       expect(response.statusCode).toEqual(StatusCodes.CREATED)
       expect(
         (app.prisma as DeepMockProxy<PrismaClient>).user.upsert
@@ -181,9 +177,6 @@ describe(endpointRoute, () => {
         },
       })
 
-      const bodyJson = await response.json()
-
-      expect(bodyJson).toEqual({ success: true })
       expect(response.statusCode).toEqual(StatusCodes.OK)
       expect(
         (app.prisma as DeepMockProxy<PrismaClient>).user.upsert

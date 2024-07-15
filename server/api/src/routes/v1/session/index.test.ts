@@ -71,9 +71,6 @@ describe(endpointRoute, () => {
         ...stubKeyData,
       })
 
-      const bodyJson = await sessionResponse.json()
-
-      expect(bodyJson).toEqual({ success: true })
       expect(sessionResponse.statusCode).toEqual(StatusCodes.OK)
       expect(sessionResponse.cookies).toContainEqual(sessionCookie)
 
@@ -179,9 +176,6 @@ describe(endpointRoute, () => {
         },
       })
 
-      const bodyJson = await response.json()
-
-      expect(bodyJson).toEqual({ success: true })
       expect(response.statusCode).toEqual(StatusCodes.OK)
 
       const authRequest = await app.inject({

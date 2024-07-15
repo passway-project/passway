@@ -1,7 +1,7 @@
 {
   "name": "@passway/project",
   "version": "0.0.0",
-  "description": "Authentication component for Passway",
+  "description": "Secure user authentication and cloud storage",
   "scripts": {
     "build": "dotenvx run -f .env -- docker compose -f compose.yml up --build --no-start",
     "build:dev": "dotenvx run -f .env -- docker compose -f compose.yml -f compose.dev.yml up --build --no-start",

@@ -1,7 +1,7 @@
 {
-  "name": "@passway/authentication",
+  "name": "@passway/api",
   "version": "0.0.0",
-  "description": "Authentication component for Passway",
+  "description": "API component for Passway",
   "main": "src/index.ts",
   "scripts": {
     "start": "ts-node src/index.ts",

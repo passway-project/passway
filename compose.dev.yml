@@ -2,7 +2,7 @@ services:
   auth:
     command: bash -c "npm ci && npm run start:dev"
     volumes:
-      - ./server/authentication:/usr/src/app
+      - ./server/api:/usr/src/app
     ports:
       # NOTE: These ports are for debugging
       - 9229:9229

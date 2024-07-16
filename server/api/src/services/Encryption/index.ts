@@ -6,12 +6,12 @@ export type KeyParams = {
   extractable: boolean
 }
 
+// FIXME: Instead of using an RSA keypair for encrypting user content, use an AES key for encryption/decryption
 export const encryptionKeyParams: KeyParams = {
   algorithm: {
     name: 'RSA-OAEP',
-    // TODO: Determine if this needs to be configurable
+    // TODO: Make this configurable
     modulusLength: 2048,
-    // TODO: Determine if this needs to be configurable
     publicExponent: new Uint8Array([1, 0, 1]),
     hash: 'SHA-256',
   },
@@ -22,9 +22,8 @@ export const encryptionKeyParams: KeyParams = {
 export const signatureKeyParams: KeyParams = {
   algorithm: {
     name: 'RSA-PSS',
-    // TODO: Determine if this needs to be configurable
+    // TODO: Make this configurable
     modulusLength: 2048,
-    // TODO: Determine if this needs to be configurable
     publicExponent: new Uint8Array([1, 0, 1]),
     hash: { name: 'SHA-256' },
   },

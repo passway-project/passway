@@ -13,13 +13,24 @@ import { routeName, signatureMessage } from '.'
 
 const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 
+const stubPasskeyId = 'foo'
 const stubUserId = 0
-const stubUserPasskeySecret = 'abc123'
+const stubUserSecret = 'abc123'
 
 const stubKeyData: StubKeyData = {
   publicKey: '',
   privateKey: '',
   encryptedKeys: '',
+}
+
+const stubTimestamp = new Date(Date.now())
+const preexistingUser: User = {
+  id: stubUserId,
+  passkeyId: stubPasskeyId,
+  encryptedKeys: stubKeyData.encryptedKeys,
+  publicKey: stubKeyData.publicKey,
+  createdAt: stubTimestamp,
+  updatedAt: stubTimestamp,
 }
 
 const sessionCookie = {
@@ -31,14 +42,13 @@ const sessionCookie = {
 }
 
 beforeAll(async () => {
-  Object.assign(stubKeyData, await getStubKeyData(stubUserPasskeySecret))
+  Object.assign(stubKeyData, await getStubKeyData(stubUserSecret))
 })
 
 describe(endpointRoute, () => {
   describe('GET', () => {
     test('handles nonexistent user lookup', async () => {
       const app = getApp()
-      const idHeader = 'foo'
 
       ;(
         app.prisma as DeepMockProxy<PrismaClient>
@@ -54,14 +64,16 @@ describe(endpointRoute, () => {
         method: 'GET',
         url: endpointRoute,
         headers: {
-          'x-passway-id': idHeader,
+          'x-passway-id': stubPasskeyId,
           'x-passway-signature': signatureHeader,
         },
       })
 
       const bodyJson = await response.json()
 
-      expect(bodyJson).toEqual({ message: `passkeyId ${idHeader} not found` })
+      expect(bodyJson).toEqual({
+        message: `User ID ${stubPasskeyId} not found`,
+      })
       expect(response.statusCode).toEqual(StatusCodes.NOT_FOUND)
       expect(response.cookies).not.toContainEqual(sessionCookie)
     })
@@ -74,9 +86,6 @@ describe(endpointRoute, () => {
         ...stubKeyData,
       })
 
-      expect(sessionResponse.statusCode).toEqual(StatusCodes.OK)
-      expect(sessionResponse.cookies).toContainEqual(sessionCookie)
-
       const authRequest = await app.inject({
         method: 'GET',
         url: testAuthenticationRoute,
@@ -85,21 +94,13 @@ describe(endpointRoute, () => {
         },
       })
 
+      expect(sessionResponse.statusCode).toEqual(StatusCodes.OK)
+      expect(sessionResponse.cookies).toContainEqual(sessionCookie)
       expect(authRequest.statusCode).toEqual(StatusCodes.OK)
     })
 
     test('handles incorrect signature message', async () => {
       const app = getApp()
-      const idHeader = 'foo'
-      const now = Date.now()
-      const preexistingUser: User = {
-        id: stubUserId,
-        passkeyId: idHeader,
-        encryptedKeys: stubKeyData.encryptedKeys,
-        publicKey: stubKeyData.publicKey,
-        createdAt: new Date(now),
-        updatedAt: new Date(now),
-      }
 
       const signature = await getSignature('some other message', {
         privateKey: stubKeyData.privateKey,
@@ -115,7 +116,7 @@ describe(endpointRoute, () => {
         method: 'GET',
         url: endpointRoute,
         headers: {
-          'x-passway-id': idHeader,
+          'x-passway-id': stubPasskeyId,
           'x-passway-signature': signatureHeader,
         },
       })
@@ -126,16 +127,6 @@ describe(endpointRoute, () => {
 
     test('handles invalid signature', async () => {
       const app = getApp()
-      const idHeader = 'foo'
-      const now = Date.now()
-      const preexistingUser: User = {
-        id: stubUserId,
-        passkeyId: idHeader,
-        encryptedKeys: stubKeyData.encryptedKeys,
-        publicKey: stubKeyData.publicKey,
-        createdAt: new Date(now),
-        updatedAt: new Date(now),
-      }
 
       const differentSignatureKeys = await getStubKeyData('some other secret')
       const signature = await getSignature(signatureMessage, {
@@ -152,7 +143,7 @@ describe(endpointRoute, () => {
         method: 'GET',
         url: endpointRoute,
         headers: {
-          'x-passway-id': idHeader,
+          'x-passway-id': stubPasskeyId,
           'x-passway-signature': signatureHeader,
         },
       })

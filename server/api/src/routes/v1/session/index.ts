@@ -16,8 +16,7 @@ declare module 'fastify' {
 
 export const routeName = 'session'
 
-// TODO: Make this configurable via an environment variable
-export const signatureMessage = 'passway'
+export const signatureMessage = '!!Passway_Signature_Base!!'
 
 export const sessionRoute: FastifyPluginAsync = async app => {
   app.get<{
@@ -75,7 +74,7 @@ export const sessionRoute: FastifyPluginAsync = async app => {
     async (request, reply) => {
       const { 'x-passway-id': passkeyId, 'x-passway-signature': signature } =
         request.headers
-      let retrievedUser: User | undefined
+      let retrievedUser: User
 
       try {
         retrievedUser = await app.prisma.user.findFirstOrThrow({
@@ -83,7 +82,7 @@ export const sessionRoute: FastifyPluginAsync = async app => {
         })
       } catch (e) {
         app.log.info(`passkeyId ${passkeyId} not found`)
-        reply.send(httpErrors.NotFound(`passkeyId ${passkeyId} not found`))
+        reply.send(httpErrors.NotFound(`User ID ${passkeyId} not found`))
         return
       }
 
@@ -91,11 +90,11 @@ export const sessionRoute: FastifyPluginAsync = async app => {
       let isValid = false
 
       try {
-        const signatureBuffer = Buffer.from(signature, 'base64')
-        const publicKeyBuffer = Buffer.from(publicKey, 'base64')
-        const signaturePublicKeyBuffer = await webcrypto.subtle.importKey(
+        const rawSignature = Buffer.from(signature, 'base64')
+        const rawPublicKey = Buffer.from(publicKey, 'base64')
+        const importedPublicKey = await webcrypto.subtle.importKey(
           'spki',
-          publicKeyBuffer,
+          rawPublicKey,
           {
             name: signatureKeyParams.algorithm.name,
             namedCurve: 'P-256',
@@ -105,7 +104,7 @@ export const sessionRoute: FastifyPluginAsync = async app => {
           ['verify']
         )
 
-        const dataBuffer = new TextEncoder().encode(signatureMessage)
+        const encodedSignature = new TextEncoder().encode(signatureMessage)
 
         isValid = await webcrypto.subtle.verify(
           {
@@ -113,9 +112,9 @@ export const sessionRoute: FastifyPluginAsync = async app => {
             hash: 'SHA-256',
             saltLength: 32,
           },
-          signaturePublicKeyBuffer,
-          signatureBuffer,
-          dataBuffer
+          importedPublicKey,
+          rawSignature,
+          encodedSignature
         )
       } catch (e) {
         app.log.error(`Signature verification failed: ${e}`)

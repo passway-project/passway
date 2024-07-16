@@ -13,12 +13,23 @@ import { routeName } from '.'
 const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 
 const stubUserId = 0
+const stubPasskeyId = 'foo'
 const stubUserPasskeySecret = 'abc123'
 
 const stubKeyData: StubKeyData = {
   publicKey: '',
   privateKey: '',
   encryptedKeys: '',
+}
+
+const stubTimestamp = new Date(Date.now())
+const preexistingUser: User = {
+  id: stubUserId,
+  passkeyId: stubPasskeyId,
+  encryptedKeys: stubKeyData.encryptedKeys,
+  publicKey: stubKeyData.publicKey,
+  createdAt: stubTimestamp,
+  updatedAt: stubTimestamp,
 }
 
 beforeAll(async () => {
@@ -29,17 +40,6 @@ describe(endpointRoute, () => {
   describe('GET', () => {
     test('retrieves a user that exists', async () => {
       const app = getApp()
-      const now = Date.now()
-      const passkeyId = 'foo'
-
-      const preexistingUser: User = {
-        id: stubUserId,
-        passkeyId,
-        encryptedKeys: stubKeyData.encryptedKeys,
-        publicKey: stubKeyData.publicKey,
-        createdAt: new Date(now),
-        updatedAt: new Date(now),
-      }
 
       ;(
         app.prisma as DeepMockProxy<PrismaClient>
@@ -49,7 +49,7 @@ describe(endpointRoute, () => {
         method: 'GET',
         url: endpointRoute,
         headers: {
-          'x-user-id': passkeyId,
+          'x-user-id': stubUserId,
         },
       })
 
@@ -90,7 +90,6 @@ describe(endpointRoute, () => {
   describe('PUT', () => {
     test('creates a user', async () => {
       const app = getApp()
-      const passkeyId = 'foo'
 
       ;(
         app.prisma as DeepMockProxy<PrismaClient>
@@ -101,7 +100,7 @@ describe(endpointRoute, () => {
         id: stubUserId,
         encryptedKeys: stubKeyData.encryptedKeys,
         publicKey: stubKeyData.publicKey,
-        passkeyId,
+        passkeyId: stubPasskeyId,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -110,7 +109,7 @@ describe(endpointRoute, () => {
         method: 'PUT',
         url: endpointRoute,
         body: {
-          id: passkeyId,
+          id: stubPasskeyId,
           encryptedKeys: stubKeyData.encryptedKeys,
           publicKey: stubKeyData.publicKey,
         },
@@ -121,7 +120,7 @@ describe(endpointRoute, () => {
         (app.prisma as DeepMockProxy<PrismaClient>).user.upsert
       ).toHaveBeenCalledWith({
         create: {
-          passkeyId,
+          passkeyId: stubPasskeyId,
           encryptedKeys: stubKeyData.encryptedKeys,
           publicKey: stubKeyData.publicKey,
         },
@@ -130,23 +129,13 @@ describe(endpointRoute, () => {
           publicKey: stubKeyData.publicKey,
         },
         where: {
-          passkeyId,
+          passkeyId: stubPasskeyId,
         },
       })
     })
 
     test('updates a user', async () => {
       const app = getApp()
-      const now = Date.now()
-      const passkeyId = 'foo'
-      const preexistingUser: User = {
-        id: stubUserId,
-        passkeyId,
-        encryptedKeys: stubKeyData.encryptedKeys,
-        publicKey: stubKeyData.publicKey,
-        createdAt: new Date(now),
-        updatedAt: new Date(now),
-      }
 
       const sessionResponse = await requestSession(app, {
         userId: stubUserId,
@@ -160,18 +149,18 @@ describe(endpointRoute, () => {
         app.prisma as DeepMockProxy<PrismaClient>
       ).user.upsert.mockResolvedValueOnce({
         id: stubUserId,
-        passkeyId,
+        passkeyId: stubPasskeyId,
         encryptedKeys: stubKeyData.encryptedKeys,
         publicKey: stubKeyData.publicKey,
-        createdAt: new Date(now),
-        updatedAt: new Date(now + 1000),
+        createdAt: stubTimestamp,
+        updatedAt: new Date(Date.now() + 1000),
       })
 
       const response = await app.inject({
         method: 'PUT',
         url: endpointRoute,
         body: {
-          id: passkeyId,
+          id: stubPasskeyId,
           encryptedKeys: stubKeyData.encryptedKeys,
           publicKey: stubKeyData.publicKey,
         },
@@ -185,7 +174,7 @@ describe(endpointRoute, () => {
         (app.prisma as DeepMockProxy<PrismaClient>).user.upsert
       ).toHaveBeenCalledWith({
         create: {
-          passkeyId,
+          passkeyId: stubPasskeyId,
           encryptedKeys: stubKeyData.encryptedKeys,
           publicKey: stubKeyData.publicKey,
         },
@@ -195,23 +184,13 @@ describe(endpointRoute, () => {
         },
         where: {
           id: preexistingUser.id,
-          passkeyId,
+          passkeyId: stubPasskeyId,
         },
       })
     })
 
     test('rejects requests to update another user', async () => {
       const app = getApp()
-      const now = Date.now()
-      const passkeyId = 'foo'
-      const preexistingUser: User = {
-        id: stubUserId,
-        passkeyId,
-        encryptedKeys: stubKeyData.encryptedKeys,
-        publicKey: stubKeyData.publicKey,
-        createdAt: new Date(now),
-        updatedAt: new Date(now),
-      }
 
       const sessionResponse = await requestSession(app, {
         userId: stubUserId + 1,
@@ -225,18 +204,18 @@ describe(endpointRoute, () => {
         app.prisma as DeepMockProxy<PrismaClient>
       ).user.upsert.mockResolvedValueOnce({
         id: stubUserId,
-        passkeyId,
+        passkeyId: stubPasskeyId,
         encryptedKeys: stubKeyData.encryptedKeys,
         publicKey: stubKeyData.publicKey,
-        createdAt: new Date(now),
-        updatedAt: new Date(now + 1000),
+        createdAt: stubTimestamp,
+        updatedAt: new Date(Date.now() + 1000),
       })
 
       const response = await app.inject({
         method: 'PUT',
         url: endpointRoute,
         body: {
-          id: passkeyId,
+          id: stubPasskeyId,
           encryptedKeys: stubKeyData.encryptedKeys,
           publicKey: stubKeyData.publicKey,
         },
@@ -253,16 +232,6 @@ describe(endpointRoute, () => {
 
     test('prevents unauthorized updates', async () => {
       const app = getApp()
-      const now = Date.now()
-      const passkeyId = 'foo'
-      const preexistingUser: User = {
-        id: stubUserId,
-        passkeyId,
-        encryptedKeys: stubKeyData.encryptedKeys,
-        publicKey: stubKeyData.publicKey,
-        createdAt: new Date(now),
-        updatedAt: new Date(now),
-      }
 
       ;(
         app.prisma as DeepMockProxy<PrismaClient>
@@ -275,7 +244,7 @@ describe(endpointRoute, () => {
         method: 'PUT',
         url: endpointRoute,
         body: {
-          id: passkeyId,
+          id: stubPasskeyId,
           encryptedKeys: stubKeyData.encryptedKeys,
           publicKey: stubKeyData.publicKey,
         },

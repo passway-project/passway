@@ -26,7 +26,7 @@ export const userRoute: FastifyPluginAsync = async app => {
           properties: {
             'x-user-id': {
               type: 'string',
-              description: 'User ID to look up',
+              description: 'ID of user to look up',
             },
           },
           required: ['x-user-id'],

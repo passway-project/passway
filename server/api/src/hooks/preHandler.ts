@@ -1,4 +1,5 @@
-import { FastifyInstance, HTTPMethods } from 'fastify'
+import { HTTPMethods } from 'fastify'
+import fastifyPlugin from 'fastify-plugin'
 import httpErrors from 'http-errors'
 
 import { routeName as userRouteName } from '../routes/v1/user'
@@ -25,7 +26,8 @@ const rSwaggerRoutes = new RegExp(
   ].join('|')
 )
 
-const rejectUnauthorizedRequests = (app: FastifyInstance) => {
+export const preHandlers = fastifyPlugin(async app => {
+  // NOTE: Rejects unauthorized requests
   app.addHook('preHandler', async (request, reply) => {
     const { url } = request
 
@@ -44,8 +46,4 @@ const rejectUnauthorizedRequests = (app: FastifyInstance) => {
       reply.send(httpErrors.Forbidden())
     }
   })
-}
-
-export const setupPrehandler = (app: FastifyInstance) => {
-  rejectUnauthorizedRequests(app)
-}
+})

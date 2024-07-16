@@ -193,7 +193,7 @@ export const userRoute: FastifyPluginAsync = async app => {
           reply.code(StatusCodes.OK)
         }
       } catch (e) {
-        app.log.error(`user ${retrievedUser?.id} update failed: ${e}`)
+        app.log.error(`User ${retrievedUser?.id} update failed: ${e}`)
         reply.send(httpErrors.InternalServerError())
         return
       }

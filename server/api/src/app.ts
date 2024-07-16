@@ -11,7 +11,7 @@ import prismaPlugin from '../prisma/prismaPlugin'
 import { API_ROOT } from './constants'
 import * as routes from './routes/index'
 import { sessionStore } from './sessionStore'
-import { setupPrehandler } from './hooks/preHandler'
+import { preHandlers } from './hooks/preHandler'
 
 const theme = new SwaggerTheme()
 const content = theme.getBuffer(SwaggerThemeNameEnum.DARK)
@@ -52,7 +52,7 @@ export const buildApp = async (options?: FastifyServerOptions) => {
     },
   })
 
-  setupPrehandler(app)
+  await app.register(preHandlers)
 
   for (const route of Object.values(routes)) {
     await app.register(route, { prefix: `/${API_ROOT}/v1` })

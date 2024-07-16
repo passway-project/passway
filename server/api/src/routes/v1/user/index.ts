@@ -19,7 +19,7 @@ export const userRoute: FastifyPluginAsync = async app => {
     `/${routeName}`,
     {
       schema: {
-        tags: ['user'],
+        tags: ['User Management'],
         summary: 'Get a user record',
         headers: {
           type: 'object',
@@ -52,6 +52,9 @@ export const userRoute: FastifyPluginAsync = async app => {
           [StatusCodes.NOT_FOUND]: {
             description: 'User not found',
             type: 'object',
+            properties: {
+              message: { type: 'string' },
+            },
           },
         },
       },
@@ -67,7 +70,7 @@ export const userRoute: FastifyPluginAsync = async app => {
         })
       } catch (e) {
         app.log.info(`passkeyId ${passkeyId} not found`)
-        reply.send(httpErrors.NotFound())
+        reply.send(httpErrors.NotFound(`User ID ${passkeyId} not found`))
         return
       }
 
@@ -93,7 +96,7 @@ export const userRoute: FastifyPluginAsync = async app => {
     `/${routeName}`,
     {
       schema: {
-        tags: ['user'],
+        tags: ['User Management'],
         summary: 'Create or update a user record',
         body: {
           type: 'object',
@@ -123,7 +126,13 @@ export const userRoute: FastifyPluginAsync = async app => {
             description: 'User updated',
             type: 'object',
           },
-          // FIXME: Document errors
+          [StatusCodes.FORBIDDEN]: {
+            description: 'User not found',
+            type: 'object',
+            properties: {
+              message: { type: 'string' },
+            },
+          },
         },
       },
     },
@@ -154,8 +163,7 @@ export const userRoute: FastifyPluginAsync = async app => {
           (!request.session.authenticated ||
             request.session.userId !== retrievedUser?.id)
         ) {
-          // FIXME: Add error messages
-          reply.send(httpErrors.Forbidden())
+          reply.send(httpErrors.Forbidden('Permission denied'))
           return
         }
 
@@ -185,8 +193,7 @@ export const userRoute: FastifyPluginAsync = async app => {
           reply.code(StatusCodes.OK)
         }
       } catch (e) {
-        app.log.error(`user ${retrievedUser?.id} update failed:
-${e}`)
+        app.log.error(`user ${retrievedUser?.id} update failed: ${e}`)
         reply.send(httpErrors.InternalServerError())
         return
       }

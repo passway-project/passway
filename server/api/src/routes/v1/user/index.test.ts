@@ -80,6 +80,9 @@ describe(endpointRoute, () => {
         },
       })
 
+      const bodyJson = await response.json()
+
+      expect(bodyJson).toEqual({ message: `User ID ${passkeyId} not found` })
       expect(response.statusCode).toEqual(StatusCodes.NOT_FOUND)
     })
   })
@@ -242,6 +245,9 @@ describe(endpointRoute, () => {
         },
       })
 
+      const bodyJson = await response.json()
+
+      expect(bodyJson).toEqual({ message: 'Permission denied' })
       expect(response.statusCode).toEqual(StatusCodes.FORBIDDEN)
     })
 
@@ -275,6 +281,9 @@ describe(endpointRoute, () => {
         },
       })
 
+      const bodyJson = await response.json()
+
+      expect(bodyJson).toEqual({ message: 'Permission denied' })
       expect(response.statusCode).toEqual(StatusCodes.FORBIDDEN)
     })
   })

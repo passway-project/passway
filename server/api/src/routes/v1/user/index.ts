@@ -3,19 +3,30 @@ import { User } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
 import httpErrors from 'http-errors'
 
+export type UserGetSuccessResponse = {
+  user: {
+    publicKey: User['publicKey']
+    keys: User['encryptedKeys']
+  }
+}
+
+export interface UserGetApi {
+  Headers: {
+    'x-user-id': User['passkeyId']
+  }
+  Reply: UserGetSuccessResponse | ReturnType<typeof httpErrors.NotFound>
+}
+
+export const isUserGetSuccessResponse = (
+  reply: UserGetApi['Reply']
+): reply is UserGetSuccessResponse => {
+  return 'user' in reply
+}
+
 export const routeName = 'user'
 
 export const userRoute: FastifyPluginAsync = async app => {
-  app.get<{
-    Headers: {
-      'x-user-id': User['passkeyId']
-    }
-    Reply:
-      | {
-          user?: { publicKey: User['publicKey']; keys: User['encryptedKeys'] }
-        }
-      | ReturnType<typeof httpErrors.NotFound>
-  }>(
+  app.get<UserGetApi>(
     `/${routeName}`,
     {
       schema: {

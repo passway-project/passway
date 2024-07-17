@@ -49,7 +49,7 @@ export const sessionRoute: FastifyPluginAsync = async app => {
             },
             'x-passway-signature': {
               type: 'string',
-              description: `Signed, base 64 version of the string "${signatureMessage}" to validate`,
+              description: `Signed, base 64 version of the string \`"${signatureMessage}"\` to validate`,
             },
           },
           required: ['x-passway-id', 'x-passway-signature'],

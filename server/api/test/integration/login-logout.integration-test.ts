@@ -3,7 +3,11 @@ import fastify, { FastifyInstance } from 'fastify'
 
 import { buildApp } from '../../src/app'
 import { API_ROOT } from '../../src/constants'
-import { routeName as userRouteName } from '../../src/routes/v1/user'
+import {
+  UserGetApi,
+  isUserGetSuccessResponse,
+  routeName as userRouteName,
+} from '../../src/routes/v1/user'
 import { getStubKeyData } from '../getStubKeyData'
 import { redisClient } from '../../src/cache'
 import { getSignature } from '../utils/crypto'
@@ -42,9 +46,27 @@ describe('login and logout', () => {
 
     expect(putUserResponse.statusCode).toEqual(StatusCodes.CREATED)
 
+    const getUserResponse = await app.inject({
+      method: 'GET',
+      url: `/${API_ROOT}/v1/${userRouteName}`,
+      headers: {
+        'x-user-id': passkeyId,
+      },
+    })
+
+    expect(getUserResponse.statusCode).toEqual(StatusCodes.OK)
+
+    const bodyJson: UserGetApi['Reply'] = await getUserResponse.json()
+
+    if (!isUserGetSuccessResponse(bodyJson)) {
+      throw new Error()
+    }
+
+    // FIXME: Derive the private key from bodyJson
     const signature = await getSignature(signatureMessage, {
       privateKey: stubKeyData.privateKey,
     })
+
     const signatureHeader = Buffer.from(signature).toString('base64')
 
     const getSessionResponse = await app.inject({

@@ -63,8 +63,10 @@ describe('login and logout', () => {
     }
 
     // FIXME: Derive the private key from bodyJson
+    const { privateKey } = stubKeyData
+
     const signature = await getSignature(signatureMessage, {
-      privateKey: stubKeyData.privateKey,
+      privateKey: privateKey,
     })
 
     const signatureHeader = Buffer.from(signature).toString('base64')

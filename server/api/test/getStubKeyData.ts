@@ -50,14 +50,18 @@ export const getStubKeyData = async (passkeySecret: string) => {
   const signatureKeys = await getSignatureKeys()
   const encryptionKey = await getEncryptionKey()
 
+  const iv = crypto.getRandomValues(new Uint8Array(12))
+
+  const ivString = Buffer.from(iv).toString('base64')
+
   const keysString = JSON.stringify({
     encryptionKey,
     signatureKeys,
+    iv: ivString,
   })
 
   const encoder = new TextEncoder()
   const salt = crypto.getRandomValues(new Uint8Array(16))
-  const iv = crypto.getRandomValues(new Uint8Array(12))
 
   const importedKey = await importKey(passkeySecret)
   const derivedKey = await deriveKey(importedKey, salt)

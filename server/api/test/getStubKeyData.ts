@@ -1,12 +1,18 @@
 import { webcrypto } from 'crypto'
 
+import {
+  contentEncryptionAlgorithmName,
+  signatureKeyAlgoritmName,
+  signatureKeyNamedCurve,
+} from '../src/constants'
+
 import { deriveKey, importKey } from './utils/crypto'
 
 const getEncryptionKey = async () => {
   const encryptionKey = await webcrypto.subtle.generateKey(
     {
-      name: 'AES-GCM',
-      length: 256, // Can be 128, 192, or 256 bits
+      name: contentEncryptionAlgorithmName,
+      length: 256,
     },
     true,
     ['encrypt', 'decrypt']
@@ -22,8 +28,8 @@ const getEncryptionKey = async () => {
 const getSignatureKeys = async () => {
   const keypair = await webcrypto.subtle.generateKey(
     {
-      name: 'ECDSA',
-      namedCurve: 'P-256', // You can also use P-384 or P-521 for stronger security
+      name: signatureKeyAlgoritmName,
+      namedCurve: signatureKeyNamedCurve,
     },
     true,
     ['sign', 'verify']
@@ -58,7 +64,7 @@ export const getStubKeyData = async (passkeySecret: string) => {
 
   const encryptedKeysBuffer = await crypto.subtle.encrypt(
     {
-      name: 'AES-GCM',
+      name: contentEncryptionAlgorithmName,
       iv,
     },
     derivedKey,

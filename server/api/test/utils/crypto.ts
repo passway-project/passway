@@ -1,5 +1,13 @@
 import { webcrypto } from 'crypto'
 
+import {
+  contentEncryptionAlgorithmName,
+  hashingAlgorithm,
+  signatureKeyAlgoritmName,
+  signatureKeyNamedCurve,
+  signatureKeySaltLength,
+} from '../../src/constants'
+
 export const importKey = async (password: string) => {
   const encoder = new TextEncoder()
 
@@ -18,10 +26,10 @@ export const deriveKey = async (keyMaterial: CryptoKey, salt: BufferSource) => {
       name: 'PBKDF2',
       salt,
       iterations: 100000,
-      hash: 'SHA-256',
+      hash: hashingAlgorithm,
     },
     keyMaterial,
-    { name: 'AES-GCM', length: 256 },
+    { name: contentEncryptionAlgorithmName, length: 256 },
     false,
     ['encrypt', 'decrypt']
   )
@@ -36,9 +44,8 @@ export const getSignature = async (
     'pkcs8',
     privateKeyBuffer,
     {
-      name: 'ECDSA',
-      namedCurve: 'P-256',
-      hash: 'SHA-256',
+      name: signatureKeyAlgoritmName,
+      namedCurve: signatureKeyNamedCurve,
     },
     true,
     ['sign']
@@ -47,9 +54,9 @@ export const getSignature = async (
   const dataBuffer = new TextEncoder().encode(message)
   const signature = await webcrypto.subtle.sign(
     {
-      name: 'ECDSA',
-      hash: 'SHA-256',
-      saltLength: 32,
+      name: signatureKeyAlgoritmName,
+      hash: hashingAlgorithm,
+      saltLength: signatureKeySaltLength,
     },
     signaturePrivateKey,
     dataBuffer

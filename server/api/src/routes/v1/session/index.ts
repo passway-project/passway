@@ -1,9 +1,16 @@
 import { webcrypto } from 'crypto'
 
+import httpErrors from 'http-errors'
+import { StatusCodes } from 'http-status-codes'
 import { FastifyPluginAsync } from 'fastify'
 import { User } from '@prisma/client'
-import { StatusCodes } from 'http-status-codes'
-import httpErrors from 'http-errors'
+
+import {
+  hashingAlgorithm,
+  signatureKeyAlgoritmName,
+  signatureKeyNamedCurve,
+  signatureKeySaltLength,
+} from '../../../constants'
 
 declare module 'fastify' {
   interface Session {
@@ -94,9 +101,9 @@ export const sessionRoute: FastifyPluginAsync = async app => {
           'spki',
           rawPublicKey,
           {
-            name: 'ECDSA',
-            namedCurve: 'P-256',
-            hash: 'SHA-256',
+            name: signatureKeyAlgoritmName,
+            namedCurve: signatureKeyNamedCurve,
+            hash: hashingAlgorithm,
           },
           true,
           ['verify']
@@ -106,9 +113,9 @@ export const sessionRoute: FastifyPluginAsync = async app => {
 
         isValid = await webcrypto.subtle.verify(
           {
-            name: 'ECDSA',
-            hash: 'SHA-256',
-            saltLength: 32,
+            name: signatureKeyAlgoritmName,
+            hash: hashingAlgorithm,
+            saltLength: signatureKeySaltLength,
           },
           importedPublicKey,
           rawSignature,

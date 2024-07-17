@@ -5,8 +5,6 @@ import { User } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
 import httpErrors from 'http-errors'
 
-import { signatureKeyParams } from '../../../services/Encryption'
-
 declare module 'fastify' {
   interface Session {
     authenticated?: boolean
@@ -96,7 +94,7 @@ export const sessionRoute: FastifyPluginAsync = async app => {
           'spki',
           rawPublicKey,
           {
-            name: signatureKeyParams.algorithm.name,
+            name: 'ECDSA',
             namedCurve: 'P-256',
             hash: 'SHA-256',
           },
@@ -108,7 +106,7 @@ export const sessionRoute: FastifyPluginAsync = async app => {
 
         isValid = await webcrypto.subtle.verify(
           {
-            name: signatureKeyParams.algorithm.name,
+            name: 'ECDSA',
             hash: 'SHA-256',
             saltLength: 32,
           },

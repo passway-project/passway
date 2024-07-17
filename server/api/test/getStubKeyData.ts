@@ -1,25 +1,32 @@
 import { webcrypto } from 'crypto'
 
-import {
-  encryptionKeyParams,
-  signatureKeyParams,
-} from '../src/services/Encryption'
-
 import { deriveKey, importKey } from './utils/crypto'
 
-const getKeypair = async ({
-  algorithm,
-  extractable,
-  usage,
-}: {
-  algorithm: webcrypto.RsaHashedKeyGenParams | webcrypto.EcKeyGenParams
-  extractable: boolean
-  usage: webcrypto.KeyUsage[]
-}) => {
+const getEncryptionKey = async () => {
+  const encryptionKey = await webcrypto.subtle.generateKey(
+    {
+      name: 'AES-GCM',
+      length: 256, // Can be 128, 192, or 256 bits
+    },
+    true,
+    ['encrypt', 'decrypt']
+  )
+
+  const encryptionKeyString = Buffer.from(
+    await webcrypto.subtle.exportKey('raw', encryptionKey)
+  ).toString('base64')
+
+  return { encryptionKey: encryptionKeyString }
+}
+
+const getSignatureKeys = async () => {
   const keypair = await webcrypto.subtle.generateKey(
-    algorithm,
-    extractable,
-    usage
+    {
+      name: 'ECDSA',
+      namedCurve: 'P-256', // You can also use P-384 or P-521 for stronger security
+    },
+    true,
+    ['sign', 'verify']
   )
 
   const publicKey = Buffer.from(
@@ -34,11 +41,11 @@ const getKeypair = async ({
 }
 
 export const getStubKeyData = async (passkeySecret: string) => {
-  const encryptionKeys = await getKeypair(encryptionKeyParams)
-  const signatureKeys = await getKeypair(signatureKeyParams)
+  const signatureKeys = await getSignatureKeys()
+  const encryptionKey = await getEncryptionKey()
 
   const keysString = JSON.stringify({
-    encryptionKeys,
+    encryptionKey,
     signatureKeys,
   })
 

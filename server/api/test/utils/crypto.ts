@@ -1,7 +1,5 @@
 import { webcrypto } from 'crypto'
 
-import { signatureKeyParams } from '../../src/services/Encryption'
-
 export const importKey = async (password: string) => {
   const encoder = new TextEncoder()
 
@@ -34,11 +32,11 @@ export const getSignature = async (
   { privateKey }: { privateKey: string }
 ) => {
   const privateKeyBuffer = Buffer.from(privateKey, 'base64')
-  const signaturePrivateKeyBuffer = await webcrypto.subtle.importKey(
+  const signaturePrivateKey = await webcrypto.subtle.importKey(
     'pkcs8',
     privateKeyBuffer,
     {
-      name: signatureKeyParams.algorithm.name,
+      name: 'ECDSA',
       namedCurve: 'P-256',
       hash: 'SHA-256',
     },
@@ -49,11 +47,11 @@ export const getSignature = async (
   const dataBuffer = new TextEncoder().encode(message)
   const signature = await webcrypto.subtle.sign(
     {
-      name: signatureKeyParams.algorithm.name,
+      name: 'ECDSA',
       hash: 'SHA-256',
       saltLength: 32,
     },
-    signaturePrivateKeyBuffer,
+    signaturePrivateKey,
     dataBuffer
   )
 

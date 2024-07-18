@@ -4,6 +4,8 @@ CREATE TABLE "User" (
     "passkeyId" TEXT NOT NULL,
     "encryptedKeys" TEXT NOT NULL,
     "publicKey" TEXT NOT NULL,
+    "salt" TEXT NOT NULL,
+    "iv" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

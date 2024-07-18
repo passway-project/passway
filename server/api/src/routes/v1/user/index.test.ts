@@ -27,6 +27,9 @@ const preexistingUser: User = {
   id: stubUserId,
   passkeyId: stubPasskeyId,
   encryptedKeys: stubKeyData.encryptedKeys,
+  // FIXME:
+  iv: 'FIXME',
+  salt: 'FIXME',
   publicKey: stubKeyData.publicKey,
   createdAt: stubTimestamp,
   updatedAt: stubTimestamp,
@@ -100,6 +103,9 @@ describe(endpointRoute, () => {
         id: stubUserId,
         encryptedKeys: stubKeyData.encryptedKeys,
         publicKey: stubKeyData.publicKey,
+        // FIXME:
+        iv: 'FIXME',
+        salt: 'FIXME',
         passkeyId: stubPasskeyId,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -123,6 +129,9 @@ describe(endpointRoute, () => {
           passkeyId: stubPasskeyId,
           encryptedKeys: stubKeyData.encryptedKeys,
           publicKey: stubKeyData.publicKey,
+          // FIXME:
+          iv: 'FIXME',
+          salt: 'FIXME',
         },
         update: {
           encryptedKeys: stubKeyData.encryptedKeys,
@@ -152,6 +161,9 @@ describe(endpointRoute, () => {
         passkeyId: stubPasskeyId,
         encryptedKeys: stubKeyData.encryptedKeys,
         publicKey: stubKeyData.publicKey,
+        // FIXME:
+        iv: 'FIXME',
+        salt: 'FIXME',
         createdAt: stubTimestamp,
         updatedAt: new Date(Date.now() + 1000),
       })
@@ -177,6 +189,9 @@ describe(endpointRoute, () => {
           passkeyId: stubPasskeyId,
           encryptedKeys: stubKeyData.encryptedKeys,
           publicKey: stubKeyData.publicKey,
+          // FIXME:
+          iv: 'FIXME',
+          salt: 'FIXME',
         },
         update: {
           encryptedKeys: stubKeyData.encryptedKeys,
@@ -207,6 +222,9 @@ describe(endpointRoute, () => {
         passkeyId: stubPasskeyId,
         encryptedKeys: stubKeyData.encryptedKeys,
         publicKey: stubKeyData.publicKey,
+        // FIXME:
+        iv: 'FIXME',
+        salt: 'FIXME',
         createdAt: stubTimestamp,
         updatedAt: new Date(Date.now() + 1000),
       })

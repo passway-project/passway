@@ -29,6 +29,9 @@ const preexistingUser: User = {
   passkeyId: stubPasskeyId,
   encryptedKeys: stubKeyData.encryptedKeys,
   publicKey: stubKeyData.publicKey,
+  // FIXME:
+  iv: 'FIXME',
+  salt: 'FIXME',
   createdAt: stubTimestamp,
   updatedAt: stubTimestamp,
 }

@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from 'fastify'
-import { User } from '@prisma/client'
+import { User, Prisma } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
 import httpErrors from 'http-errors'
 
@@ -161,10 +161,13 @@ export const userRoute: FastifyPluginAsync = async app => {
       }
 
       try {
-        const userRecord = {
+        const userRecord: Prisma.UserUpsertArgs['create'] = {
           passkeyId,
           encryptedKeys,
           publicKey,
+          // FIXME:
+          iv: 'FIXME',
+          salt: 'FIXME',
         }
 
         const isNewUser = typeof retrievedUser?.id === 'undefined'

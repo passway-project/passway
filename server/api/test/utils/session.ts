@@ -31,6 +31,9 @@ export const requestSession = async (
     passkeyId,
     encryptedKeys,
     publicKey,
+    // FIXME:
+    iv: 'FIXME',
+    salt: 'FIXME',
     createdAt: new Date(now),
     updatedAt: new Date(now),
   }

@@ -18,6 +18,12 @@ model User {
   passkeyId     String   @unique
   encryptedKeys String
   publicKey     String
+  // Salt for client-side key generation
+  // https://en.wikipedia.org/wiki/Salt_(cryptography)
+  salt          String
+  // Initialization vector for client-side key generation
+  // https://en.wikipedia.org/wiki/Initialization_vector
+  iv            String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

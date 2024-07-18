@@ -25,15 +25,16 @@ export const requestSession = async (
   }
 ) => {
   const passkeyId = 'foo'
+  const stubUserIv = 'some random IV'
+  const stubUserSalt = 'some random salt'
   const now = Date.now()
   const preexistingUser: User = {
     id: userId,
     passkeyId,
     encryptedKeys,
     publicKey,
-    // FIXME:
-    iv: 'FIXME',
-    salt: 'FIXME',
+    iv: stubUserIv,
+    salt: stubUserSalt,
     createdAt: new Date(now),
     updatedAt: new Date(now),
   }

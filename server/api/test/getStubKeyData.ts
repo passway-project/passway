@@ -50,6 +50,7 @@ export const getStubKeyData = async (passkeySecret: string) => {
   const signatureKeys = await getSignatureKeys()
   const encryptionKey = await getEncryptionKey()
 
+  // FIXME: Require and use iv and salt arguments instead of generating them here
   const iv = crypto.getRandomValues(new Uint8Array(12))
   const salt = crypto.getRandomValues(new Uint8Array(16))
 

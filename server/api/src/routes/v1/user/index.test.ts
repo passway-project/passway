@@ -15,6 +15,8 @@ const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 const stubUserId = 0
 const stubPasskeyId = 'foo'
 const stubUserPasskeySecret = 'abc123'
+const stubUserIv = 'some random IV'
+const stubUserSalt = 'some random salt'
 
 const stubKeyData: StubKeyData = {
   publicKey: '',
@@ -27,9 +29,8 @@ const preexistingUser: User = {
   id: stubUserId,
   passkeyId: stubPasskeyId,
   encryptedKeys: stubKeyData.encryptedKeys,
-  // FIXME:
-  iv: 'FIXME',
-  salt: 'FIXME',
+  iv: stubUserIv,
+  salt: stubUserSalt,
   publicKey: stubKeyData.publicKey,
   createdAt: stubTimestamp,
   updatedAt: stubTimestamp,
@@ -103,9 +104,8 @@ describe(endpointRoute, () => {
         id: stubUserId,
         encryptedKeys: stubKeyData.encryptedKeys,
         publicKey: stubKeyData.publicKey,
-        // FIXME:
-        iv: 'FIXME',
-        salt: 'FIXME',
+        iv: stubUserIv,
+        salt: stubUserSalt,
         passkeyId: stubPasskeyId,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -129,9 +129,8 @@ describe(endpointRoute, () => {
           passkeyId: stubPasskeyId,
           encryptedKeys: stubKeyData.encryptedKeys,
           publicKey: stubKeyData.publicKey,
-          // FIXME:
-          iv: 'FIXME',
-          salt: 'FIXME',
+          iv: expect.any(String),
+          salt: expect.any(String),
         },
         update: {
           encryptedKeys: stubKeyData.encryptedKeys,
@@ -161,9 +160,8 @@ describe(endpointRoute, () => {
         passkeyId: stubPasskeyId,
         encryptedKeys: stubKeyData.encryptedKeys,
         publicKey: stubKeyData.publicKey,
-        // FIXME:
-        iv: 'FIXME',
-        salt: 'FIXME',
+        iv: stubUserIv,
+        salt: stubUserSalt,
         createdAt: stubTimestamp,
         updatedAt: new Date(Date.now() + 1000),
       })
@@ -189,9 +187,8 @@ describe(endpointRoute, () => {
           passkeyId: stubPasskeyId,
           encryptedKeys: stubKeyData.encryptedKeys,
           publicKey: stubKeyData.publicKey,
-          // FIXME:
-          iv: 'FIXME',
-          salt: 'FIXME',
+          iv: expect.any(String),
+          salt: expect.any(String),
         },
         update: {
           encryptedKeys: stubKeyData.encryptedKeys,
@@ -222,9 +219,8 @@ describe(endpointRoute, () => {
         passkeyId: stubPasskeyId,
         encryptedKeys: stubKeyData.encryptedKeys,
         publicKey: stubKeyData.publicKey,
-        // FIXME:
-        iv: 'FIXME',
-        salt: 'FIXME',
+        iv: stubUserIv,
+        salt: stubUserSalt,
         createdAt: stubTimestamp,
         updatedAt: new Date(Date.now() + 1000),
       })

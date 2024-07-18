@@ -16,6 +16,8 @@ const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 const stubPasskeyId = 'foo'
 const stubUserId = 0
 const stubUserSecret = 'abc123'
+const stubUserIv = 'some random IV'
+const stubUserSalt = 'some random salt'
 
 const stubKeyData: StubKeyData = {
   publicKey: '',
@@ -29,9 +31,8 @@ const preexistingUser: User = {
   passkeyId: stubPasskeyId,
   encryptedKeys: stubKeyData.encryptedKeys,
   publicKey: stubKeyData.publicKey,
-  // FIXME:
-  iv: 'FIXME',
-  salt: 'FIXME',
+  iv: stubUserIv,
+  salt: stubUserSalt,
   createdAt: stubTimestamp,
   updatedAt: stubTimestamp,
 }

@@ -160,14 +160,18 @@ export const userRoute: FastifyPluginAsync = async app => {
         app.log.info(`passkeyId ${passkeyId} not found`)
       }
 
+      const rawIv = crypto.getRandomValues(new Uint8Array(12))
+      const iv = Buffer.from(rawIv).toString('base64')
+      const rawSalt = crypto.getRandomValues(new Uint8Array(16))
+      const salt = Buffer.from(rawSalt).toString('base64')
+
       try {
         const userRecord: Prisma.UserUpsertArgs['create'] = {
           passkeyId,
           encryptedKeys,
           publicKey,
-          // FIXME:
-          iv: 'FIXME',
-          salt: 'FIXME',
+          iv,
+          salt,
         }
 
         const isNewUser = typeof retrievedUser?.id === 'undefined'

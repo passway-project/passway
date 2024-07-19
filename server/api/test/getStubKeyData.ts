@@ -86,4 +86,35 @@ export const getStubKeyData = async (
   }
 }
 
+export const decryptStubKeyData = async (
+  encryptedKeys: string,
+  passkeySecret: string,
+  ivString: string,
+  saltString: string
+  // FIXME: Define the return type
+) => {
+  const iv = Buffer.from(ivString, 'base64')
+  const salt = Buffer.from(saltString, 'base64')
+  const decoder = new TextDecoder()
+
+  const importedKey = await importKey(passkeySecret)
+  const derivedKey = await deriveKey(importedKey, salt)
+
+  const encryptedKeysBuffer = Buffer.from(encryptedKeys, 'base64')
+
+  const decryptedKeysBuffer = await crypto.subtle.decrypt(
+    {
+      name: contentEncryptionAlgorithmName,
+      iv,
+    },
+    derivedKey,
+    encryptedKeysBuffer
+  )
+
+  const decryptedKeysString = decoder.decode(decryptedKeysBuffer)
+  const decryptedKeys = JSON.parse(decryptedKeysString)
+
+  return decryptedKeys
+}
+
 export type StubKeyData = Awaited<ReturnType<typeof getStubKeyData>>

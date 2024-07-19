@@ -66,8 +66,10 @@ describe(endpointRoute, () => {
 
       expect(bodyJson).toEqual({
         user: {
+          iv: preexistingUser.iv,
           keys: preexistingUser.encryptedKeys,
           publicKey: preexistingUser.publicKey,
+          salt: preexistingUser.salt,
         },
       })
       expect(response.statusCode).toEqual(StatusCodes.OK)

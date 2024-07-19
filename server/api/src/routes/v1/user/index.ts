@@ -5,8 +5,10 @@ import httpErrors from 'http-errors'
 
 export type UserGetSuccessResponse = {
   user: {
-    publicKey: User['publicKey']
+    iv: User['iv']
     keys: User['encryptedKeys']
+    publicKey: User['publicKey']
+    salt: User['salt']
   }
 }
 
@@ -50,10 +52,16 @@ export const userRoute: FastifyPluginAsync = async app => {
               user: {
                 type: 'object',
                 properties: {
-                  publicKey: {
+                  iv: {
                     type: 'string',
                   },
                   keys: {
+                    type: 'string',
+                  },
+                  publicKey: {
+                    type: 'string',
+                  },
+                  salt: {
                     type: 'string',
                   },
                 },
@@ -87,8 +95,10 @@ export const userRoute: FastifyPluginAsync = async app => {
 
       reply.send({
         user: {
+          iv: retrievedUser.iv,
           keys: retrievedUser.encryptedKeys,
           publicKey: retrievedUser.publicKey,
+          salt: retrievedUser.salt,
         },
       })
     }

@@ -46,13 +46,13 @@ const getSignatureKeys = async () => {
   return { publicKey, privateKey }
 }
 
-export const getStubKeyData = async (passkeySecret: string) => {
+export const getStubKeyData = async (
+  passkeySecret: string,
+  iv: Uint8Array,
+  salt: Uint8Array
+) => {
   const signatureKeys = await getSignatureKeys()
   const encryptionKey = await getEncryptionKey()
-
-  // FIXME: Require and use iv and salt arguments instead of generating them here
-  const iv = crypto.getRandomValues(new Uint8Array(12))
-  const salt = crypto.getRandomValues(new Uint8Array(16))
 
   const ivString = Buffer.from(iv).toString('base64')
   const saltString = Buffer.from(salt).toString('base64')

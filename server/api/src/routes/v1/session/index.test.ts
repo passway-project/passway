@@ -16,8 +16,10 @@ const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 const stubPasskeyId = 'foo'
 const stubUserId = 0
 const stubUserSecret = 'abc123'
-const stubUserIv = 'some random IV'
-const stubUserSalt = 'some random salt'
+const stubIv = crypto.getRandomValues(new Uint8Array(12))
+const stubSalt = crypto.getRandomValues(new Uint8Array(16))
+const stubUserIvString = Buffer.from(stubIv).toString('base64')
+const stubUserSaltString = Buffer.from(stubSalt).toString('base64')
 
 const stubKeyData: StubKeyData = {
   publicKey: '',
@@ -31,8 +33,8 @@ const preexistingUser: User = {
   passkeyId: stubPasskeyId,
   encryptedKeys: stubKeyData.encryptedKeys,
   publicKey: stubKeyData.publicKey,
-  iv: stubUserIv,
-  salt: stubUserSalt,
+  iv: stubUserIvString,
+  salt: stubUserSaltString,
   createdAt: stubTimestamp,
   updatedAt: stubTimestamp,
 }
@@ -46,7 +48,10 @@ const sessionCookie = {
 }
 
 beforeAll(async () => {
-  Object.assign(stubKeyData, await getStubKeyData(stubUserSecret))
+  Object.assign(
+    stubKeyData,
+    await getStubKeyData(stubUserSecret, stubIv, stubSalt)
+  )
 })
 
 describe(endpointRoute, () => {
@@ -132,7 +137,12 @@ describe(endpointRoute, () => {
     test('handles invalid signature', async () => {
       const app = getApp()
 
-      const differentSignatureKeys = await getStubKeyData('some other secret')
+      const differentSignatureKeys = await getStubKeyData(
+        'some other secret',
+        stubIv,
+        stubSalt
+      )
+
       const signature = await getSignature(signatureMessage, {
         privateKey: differentSignatureKeys.privateKey,
       })

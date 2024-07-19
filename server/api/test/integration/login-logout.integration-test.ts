@@ -32,7 +32,13 @@ afterAll(async () => {
 describe('login and logout', () => {
   test('user can be created and then log in and log out', async () => {
     const passkeyId = 'foo'
-    const stubKeyData = await getStubKeyData(stubUserPasskeySecret)
+    const stubIv = crypto.getRandomValues(new Uint8Array(12))
+    const stubSalt = crypto.getRandomValues(new Uint8Array(16))
+    const stubKeyData = await getStubKeyData(
+      stubUserPasskeySecret,
+      stubIv,
+      stubSalt
+    )
 
     const putUserResponse = await app.inject({
       method: 'PUT',

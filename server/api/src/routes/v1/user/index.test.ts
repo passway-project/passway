@@ -15,8 +15,10 @@ const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 const stubUserId = 0
 const stubPasskeyId = 'foo'
 const stubUserPasskeySecret = 'abc123'
-const stubUserIv = 'some random IV'
-const stubUserSalt = 'some random salt'
+const stubIv = crypto.getRandomValues(new Uint8Array(12))
+const stubSalt = crypto.getRandomValues(new Uint8Array(16))
+const stubUserIvString = Buffer.from(stubIv).toString('base64')
+const stubUserSaltString = Buffer.from(stubSalt).toString('base64')
 
 const stubKeyData: StubKeyData = {
   publicKey: '',
@@ -29,15 +31,18 @@ const preexistingUser: User = {
   id: stubUserId,
   passkeyId: stubPasskeyId,
   encryptedKeys: stubKeyData.encryptedKeys,
-  iv: stubUserIv,
-  salt: stubUserSalt,
+  iv: stubUserIvString,
+  salt: stubUserSaltString,
   publicKey: stubKeyData.publicKey,
   createdAt: stubTimestamp,
   updatedAt: stubTimestamp,
 }
 
 beforeAll(async () => {
-  Object.assign(stubKeyData, await getStubKeyData(stubUserPasskeySecret))
+  Object.assign(
+    stubKeyData,
+    await getStubKeyData(stubUserPasskeySecret, stubIv, stubSalt)
+  )
 })
 
 describe(endpointRoute, () => {
@@ -104,8 +109,8 @@ describe(endpointRoute, () => {
         id: stubUserId,
         encryptedKeys: stubKeyData.encryptedKeys,
         publicKey: stubKeyData.publicKey,
-        iv: stubUserIv,
-        salt: stubUserSalt,
+        iv: stubUserIvString,
+        salt: stubUserSaltString,
         passkeyId: stubPasskeyId,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -160,8 +165,8 @@ describe(endpointRoute, () => {
         passkeyId: stubPasskeyId,
         encryptedKeys: stubKeyData.encryptedKeys,
         publicKey: stubKeyData.publicKey,
-        iv: stubUserIv,
-        salt: stubUserSalt,
+        iv: stubUserIvString,
+        salt: stubUserSaltString,
         createdAt: stubTimestamp,
         updatedAt: new Date(Date.now() + 1000),
       })
@@ -219,8 +224,8 @@ describe(endpointRoute, () => {
         passkeyId: stubPasskeyId,
         encryptedKeys: stubKeyData.encryptedKeys,
         publicKey: stubKeyData.publicKey,
-        iv: stubUserIv,
-        salt: stubUserSalt,
+        iv: stubUserIvString,
+        salt: stubUserSaltString,
         createdAt: stubTimestamp,
         updatedAt: new Date(Date.now() + 1000),
       })

@@ -8,7 +8,7 @@ import { API_ROOT } from '../../../constants'
 import { StubKeyData, getStubKeyData } from '../../../../test/getStubKeyData'
 import { requestSession } from '../../../../test/utils/session'
 
-import { routeName } from '.'
+import { UserGetApi, routeName } from '.'
 
 const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 
@@ -43,6 +43,9 @@ beforeAll(async () => {
     stubKeyData,
     await getStubKeyData(stubUserPasskeySecret, stubIv, stubSalt)
   )
+
+  preexistingUser.publicKey = stubKeyData.publicKey
+  preexistingUser.encryptedKeys = stubKeyData.encryptedKeys
 })
 
 describe(endpointRoute, () => {
@@ -62,7 +65,7 @@ describe(endpointRoute, () => {
         },
       })
 
-      const bodyJson = await response.json()
+      const bodyJson: UserGetApi['Reply'] = await response.json()
 
       expect(bodyJson).toEqual({
         user: {

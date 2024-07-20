@@ -6,6 +6,50 @@ import {
   signatureKeyNamedCurve,
 } from '../src/constants'
 
+type SerializedSignatureKeys = {
+  publicKey: string
+  privateKey: string
+}
+
+type SerializedKeys = {
+  encryptionKey: string
+  signatureKeys: SerializedSignatureKeys
+  iv: string
+  salt: string
+}
+
+const isSerializedSignatureKeys = (
+  obj: unknown
+): obj is SerializedSignatureKeys => {
+  if (typeof obj !== 'object' || obj === null) {
+    return false
+  }
+
+  return (
+    'publicKey' in obj &&
+    typeof obj.publicKey === 'string' &&
+    'privateKey' in obj &&
+    typeof obj.privateKey === 'string'
+  )
+}
+
+const isSerializedKeys = (obj: unknown): obj is SerializedKeys => {
+  if (typeof obj !== 'object' || obj === null) {
+    return false
+  }
+
+  return (
+    'encryptionKey' in obj &&
+    typeof obj.encryptionKey === 'string' &&
+    'signatureKeys' in obj &&
+    isSerializedSignatureKeys(obj.signatureKeys) &&
+    'iv' in obj &&
+    typeof obj.iv === 'string' &&
+    'salt' in obj &&
+    typeof obj.salt === 'string'
+  )
+}
+
 import { deriveKey, importKey } from './utils/crypto'
 
 const getEncryptionKey = async () => {
@@ -22,7 +66,7 @@ const getEncryptionKey = async () => {
     await webcrypto.subtle.exportKey('raw', encryptionKey)
   ).toString('base64')
 
-  return { encryptionKey: encryptionKeyString }
+  return encryptionKeyString
 }
 
 const getSignatureKeys = async () => {
@@ -57,12 +101,13 @@ export const getStubKeyData = async (
   const ivString = Buffer.from(iv).toString('base64')
   const saltString = Buffer.from(salt).toString('base64')
 
-  const keysString = JSON.stringify({
+  const keys: SerializedKeys = {
     encryptionKey,
     signatureKeys,
     iv: ivString,
     salt: saltString,
-  })
+  }
+  const keysString = JSON.stringify(keys)
 
   const encoder = new TextEncoder()
 
@@ -91,7 +136,6 @@ export const decryptStubKeyData = async (
   passkeySecret: string,
   ivString: string,
   saltString: string
-  // FIXME: Define the return type
 ) => {
   const iv = Buffer.from(ivString, 'base64')
   const salt = Buffer.from(saltString, 'base64')
@@ -113,6 +157,10 @@ export const decryptStubKeyData = async (
 
   const decryptedKeysString = decoder.decode(decryptedKeysBuffer)
   const decryptedKeys = JSON.parse(decryptedKeysString)
+
+  if (!isSerializedKeys(decryptedKeys)) {
+    throw new Error()
+  }
 
   return decryptedKeys
 }

@@ -7,6 +7,7 @@ import { User } from '@prisma/client'
 
 import {
   hashingAlgorithm,
+  sessionKeyName,
   signatureKeyAlgoritmName,
   signatureKeyNamedCurve,
   signatureKeySaltLength,
@@ -145,7 +146,7 @@ export const sessionRoute: FastifyPluginAsync = async app => {
 
   app.delete<{
     Headers: {
-      sessionId: string
+      [sessionKeyName]: string
     }
     Reply: ReturnType<typeof httpErrors.InternalServerError>
   }>(

@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes'
 import { DeepMockProxy } from 'jest-mock-extended'
 
 import { getApp } from '../../../../test/getApp'
-import { API_ROOT } from '../../../constants'
+import { API_ROOT, sessionKeyName } from '../../../constants'
 
 import { StubKeyData, getStubKeyData } from '../../../../test/getStubKeyData'
 import { requestSession } from '../../../../test/utils/session'
@@ -189,7 +189,7 @@ describe(endpointRoute, () => {
           salt: stubUserSaltString,
         },
         cookies: {
-          sessionId: sessionResponse.cookies[0].value,
+          [sessionKeyName]: sessionResponse.cookies[0].value,
         },
       })
 
@@ -250,7 +250,7 @@ describe(endpointRoute, () => {
           salt: stubUserSaltString,
         },
         cookies: {
-          sessionId: sessionResponse.cookies[0].value,
+          [sessionKeyName]: sessionResponse.cookies[0].value,
         },
       })
 

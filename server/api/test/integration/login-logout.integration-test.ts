@@ -2,7 +2,7 @@ import { StatusCodes } from 'http-status-codes'
 import fastify, { FastifyInstance } from 'fastify'
 
 import { buildApp } from '../../src/app'
-import { API_ROOT } from '../../src/constants'
+import { API_ROOT, sessionKeyName } from '../../src/constants'
 import {
   UserGetApi,
   isUserGetSuccessResponse,
@@ -15,8 +15,6 @@ import {
   routeName as sessionRouteName,
   signatureMessage,
 } from '../../src/routes/v1/session'
-
-const stubUserPasskeySecret = 'abc123'
 
 let app: FastifyInstance = fastify()
 
@@ -32,13 +30,13 @@ afterAll(async () => {
 describe('login and logout', () => {
   test('user can be created and then log in and log out', async () => {
     const passkeyId = 'foo'
+    const passkeySecret = 'abc123'
+
+    // NOTE: These stub values MUST only be used for test setup here and NOT
+    // decryption in order for this integration test to be valid.
     const stubIv = crypto.getRandomValues(new Uint8Array(12))
     const stubSalt = crypto.getRandomValues(new Uint8Array(16))
-    const stubKeyData = await getStubKeyData(
-      stubUserPasskeySecret,
-      stubIv,
-      stubSalt
-    )
+    const stubKeyData = await getStubKeyData(passkeySecret, stubIv, stubSalt)
 
     const putUserResponse = await app.inject({
       method: 'PUT',
@@ -51,6 +49,8 @@ describe('login and logout', () => {
         publicKey: stubKeyData.publicKey,
       },
     })
+
+    // NOTE:: Stub values MUST NOT be used after this point in the test.
 
     expect(putUserResponse.statusCode).toEqual(StatusCodes.CREATED)
 
@@ -76,7 +76,7 @@ describe('login and logout', () => {
 
     const serializedKeys = await decryptSerializedKeys(
       keys,
-      stubUserPasskeySecret,
+      passkeySecret,
       iv,
       salt
     )
@@ -102,7 +102,7 @@ describe('login and logout', () => {
       method: 'DELETE',
       url: `/${API_ROOT}/v1/${sessionRouteName}`,
       cookies: {
-        sessionId: getSessionResponse.cookies[0].value,
+        [sessionKeyName]: getSessionResponse.cookies[0].value,
       },
     })
 

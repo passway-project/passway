@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes'
 import { DeepMockProxy } from 'jest-mock-extended'
 
 import { getApp, testAuthenticationRoute } from '../../../../test/getApp'
-import { API_ROOT } from '../../../constants'
+import { API_ROOT, sessionKeyName } from '../../../constants'
 
 import { getSignature } from '../../../../test/utils/crypto'
 import { requestSession } from '../../../../test/utils/session'
@@ -41,7 +41,7 @@ const preexistingUser: User = {
 
 const sessionCookie = {
   httpOnly: true,
-  name: 'sessionId',
+  name: sessionKeyName,
   path: '/',
   secure: true,
   value: expect.any(String),
@@ -99,7 +99,7 @@ describe(endpointRoute, () => {
         method: 'GET',
         url: testAuthenticationRoute,
         cookies: {
-          sessionId: sessionResponse.cookies[0].value,
+          [sessionKeyName]: sessionResponse.cookies[0].value,
         },
       })
 
@@ -183,7 +183,7 @@ describe(endpointRoute, () => {
         method: 'DELETE',
         url: endpointRoute,
         cookies: {
-          sessionId: sessionResponse.cookies[0].value,
+          [sessionKeyName]: sessionResponse.cookies[0].value,
         },
       })
 
@@ -193,7 +193,7 @@ describe(endpointRoute, () => {
         method: 'GET',
         url: testAuthenticationRoute,
         cookies: {
-          sessionId: sessionResponse.cookies[0].value,
+          [sessionKeyName]: sessionResponse.cookies[0].value,
         },
       })
 
@@ -207,7 +207,7 @@ describe(endpointRoute, () => {
         method: 'DELETE',
         url: endpointRoute,
         cookies: {
-          sessionId: 'some invalid session',
+          [sessionKeyName]: 'some invalid session',
         },
       })
 

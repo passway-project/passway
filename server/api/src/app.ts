@@ -8,7 +8,7 @@ import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 
 import prismaPlugin from '../prisma/prismaPlugin'
 
-import { API_ROOT } from './constants'
+import { API_ROOT, sessionKeyName } from './constants'
 import * as routes from './routes/index'
 import { sessionStore } from './sessionStore'
 import { preHandlers } from './hooks/preHandler'
@@ -37,6 +37,7 @@ export const buildApp = async (options?: FastifyServerOptions) => {
   await app.register(fastifySession, {
     secret: process.env.AUTH_SESSION_SECRET ?? '',
     store: sessionStore,
+    cookieName: sessionKeyName,
   })
 
   await app.register(swaggerUi, {

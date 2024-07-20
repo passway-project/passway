@@ -8,9 +8,9 @@ import {
   isUserGetSuccessResponse,
   routeName as userRouteName,
 } from '../../src/routes/v1/user'
-import { decryptStubKeyData, getStubKeyData } from '../getStubKeyData'
+import { getStubKeyData } from '../getStubKeyData'
 import { redisClient } from '../../src/cache'
-import { getSignature } from '../utils/crypto'
+import { decryptSerializedKeys, getSignature } from '../utils/crypto'
 import {
   routeName as sessionRouteName,
   signatureMessage,
@@ -74,7 +74,7 @@ describe('login and logout', () => {
       user: { iv, keys, salt },
     } = bodyJson
 
-    const decryptedKeyData = await decryptStubKeyData(
+    const serializedKeys = await decryptSerializedKeys(
       keys,
       stubUserPasskeySecret,
       iv,
@@ -82,7 +82,7 @@ describe('login and logout', () => {
     )
 
     const signature = await getSignature(signatureMessage, {
-      privateKey: decryptedKeyData.signatureKeys.privateKey,
+      privateKey: serializedKeys.signatureKeys.privateKey,
     })
 
     const signatureHeader = Buffer.from(signature).toString('base64')

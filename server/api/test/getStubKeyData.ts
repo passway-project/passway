@@ -6,51 +6,7 @@ import {
   signatureKeyNamedCurve,
 } from '../src/constants'
 
-type SerializedSignatureKeys = {
-  publicKey: string
-  privateKey: string
-}
-
-type SerializedKeys = {
-  encryptionKey: string
-  signatureKeys: SerializedSignatureKeys
-  iv: string
-  salt: string
-}
-
-const isSerializedSignatureKeys = (
-  obj: unknown
-): obj is SerializedSignatureKeys => {
-  if (typeof obj !== 'object' || obj === null) {
-    return false
-  }
-
-  return (
-    'publicKey' in obj &&
-    typeof obj.publicKey === 'string' &&
-    'privateKey' in obj &&
-    typeof obj.privateKey === 'string'
-  )
-}
-
-const isSerializedKeys = (obj: unknown): obj is SerializedKeys => {
-  if (typeof obj !== 'object' || obj === null) {
-    return false
-  }
-
-  return (
-    'encryptionKey' in obj &&
-    typeof obj.encryptionKey === 'string' &&
-    'signatureKeys' in obj &&
-    isSerializedSignatureKeys(obj.signatureKeys) &&
-    'iv' in obj &&
-    typeof obj.iv === 'string' &&
-    'salt' in obj &&
-    typeof obj.salt === 'string'
-  )
-}
-
-import { deriveKey, importKey } from './utils/crypto'
+import { SerializedKeys, deriveKey, importKey } from './utils/crypto'
 
 const getEncryptionKey = async () => {
   const encryptionKey = await webcrypto.subtle.generateKey(
@@ -129,40 +85,6 @@ export const getStubKeyData = async (
     ...signatureKeys,
     encryptedKeys,
   }
-}
-
-export const decryptStubKeyData = async (
-  encryptedKeys: string,
-  passkeySecret: string,
-  ivString: string,
-  saltString: string
-) => {
-  const iv = Buffer.from(ivString, 'base64')
-  const salt = Buffer.from(saltString, 'base64')
-  const decoder = new TextDecoder()
-
-  const importedKey = await importKey(passkeySecret)
-  const derivedKey = await deriveKey(importedKey, salt)
-
-  const encryptedKeysBuffer = Buffer.from(encryptedKeys, 'base64')
-
-  const decryptedKeysBuffer = await crypto.subtle.decrypt(
-    {
-      name: contentEncryptionAlgorithmName,
-      iv,
-    },
-    derivedKey,
-    encryptedKeysBuffer
-  )
-
-  const decryptedKeysString = decoder.decode(decryptedKeysBuffer)
-  const decryptedKeys = JSON.parse(decryptedKeysString)
-
-  if (!isSerializedKeys(decryptedKeys)) {
-    throw new Error()
-  }
-
-  return decryptedKeys
 }
 
 export type StubKeyData = Awaited<ReturnType<typeof getStubKeyData>>

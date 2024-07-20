@@ -125,9 +125,11 @@ describe(endpointRoute, () => {
         method: 'PUT',
         url: endpointRoute,
         body: {
-          id: stubPasskeyId,
           encryptedKeys: stubKeyData.encryptedKeys,
+          id: stubPasskeyId,
+          iv: stubUserIvString,
           publicKey: stubKeyData.publicKey,
+          salt: stubUserSaltString,
         },
       })
 
@@ -180,9 +182,11 @@ describe(endpointRoute, () => {
         method: 'PUT',
         url: endpointRoute,
         body: {
-          id: stubPasskeyId,
           encryptedKeys: stubKeyData.encryptedKeys,
+          id: stubPasskeyId,
+          iv: stubUserIvString,
           publicKey: stubKeyData.publicKey,
+          salt: stubUserSaltString,
         },
         cookies: {
           sessionId: sessionResponse.cookies[0].value,
@@ -239,9 +243,11 @@ describe(endpointRoute, () => {
         method: 'PUT',
         url: endpointRoute,
         body: {
-          id: stubPasskeyId,
           encryptedKeys: stubKeyData.encryptedKeys,
+          id: stubPasskeyId,
+          iv: stubUserIvString,
           publicKey: stubKeyData.publicKey,
+          salt: stubUserSaltString,
         },
         cookies: {
           sessionId: sessionResponse.cookies[0].value,
@@ -268,9 +274,11 @@ describe(endpointRoute, () => {
         method: 'PUT',
         url: endpointRoute,
         body: {
-          id: stubPasskeyId,
           encryptedKeys: stubKeyData.encryptedKeys,
+          id: stubPasskeyId,
+          iv: stubUserIvString,
           publicKey: stubKeyData.publicKey,
+          salt: stubUserSaltString,
         },
       })
 

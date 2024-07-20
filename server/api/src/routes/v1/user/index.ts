@@ -106,9 +106,11 @@ export const userRoute: FastifyPluginAsync = async app => {
 
   app.put<{
     Body: {
-      id: User['passkeyId']
       encryptedKeys: User['encryptedKeys']
+      id: User['passkeyId']
+      iv: User['iv']
       publicKey: User['publicKey']
+      salt: User['salt']
     }
     Reply:
       | ReturnType<typeof httpErrors.Forbidden>
@@ -122,21 +124,31 @@ export const userRoute: FastifyPluginAsync = async app => {
         body: {
           type: 'object',
           properties: {
-            id: {
-              type: 'string',
-              description: 'User ID',
-            },
             encryptedKeys: {
               type: 'string',
               description:
                 'Base 64 encoded, encrypted, public/private key pair. DO NOT provide unencrypted data.',
             },
+            id: {
+              type: 'string',
+              description: 'User ID',
+            },
+            iv: {
+              type: 'string',
+              description:
+                'Base 64 encoded [initialization vector](https://en.wikipedia.org/wiki/Initialization_vector) that `encryptedKeys` was created with.',
+            },
             publicKey: {
               type: 'string',
               description: 'Base 64 encoded, unencrypted, public key.',
             },
+            salt: {
+              type: 'string',
+              description:
+                'Base 64 encoded [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)) string that `encryptedKeys` was created with.',
+            },
           },
-          required: ['id', 'encryptedKeys', 'publicKey'],
+          required: ['encryptedKeys', 'id', 'iv', 'publicKey', 'salt'],
         },
         response: {
           [StatusCodes.CREATED]: {
@@ -159,7 +171,7 @@ export const userRoute: FastifyPluginAsync = async app => {
     },
     async (request, reply) => {
       const requestBody = request.body
-      const { id: passkeyId, encryptedKeys, publicKey } = requestBody
+      const { id: passkeyId, encryptedKeys, publicKey, iv, salt } = requestBody
       let retrievedUser: User | undefined
 
       try {
@@ -169,11 +181,6 @@ export const userRoute: FastifyPluginAsync = async app => {
       } catch (e) {
         app.log.info(`passkeyId ${passkeyId} not found`)
       }
-
-      const rawIv = crypto.getRandomValues(new Uint8Array(12))
-      const iv = Buffer.from(rawIv).toString('base64')
-      const rawSalt = crypto.getRandomValues(new Uint8Array(16))
-      const salt = Buffer.from(rawSalt).toString('base64')
 
       try {
         const userRecord: Prisma.UserUpsertArgs['create'] = {

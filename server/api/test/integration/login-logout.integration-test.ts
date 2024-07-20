@@ -8,7 +8,7 @@ import {
   isUserGetSuccessResponse,
   routeName as userRouteName,
 } from '../../src/routes/v1/user'
-import { getStubKeyData } from '../getStubKeyData'
+import { decryptStubKeyData, getStubKeyData } from '../getStubKeyData'
 import { redisClient } from '../../src/cache'
 import { getSignature } from '../utils/crypto'
 import {
@@ -45,6 +45,8 @@ describe('login and logout', () => {
       url: `/${API_ROOT}/v1/${userRouteName}`,
       body: {
         id: passkeyId,
+        iv: Buffer.from(stubIv).toString('base64'),
+        salt: Buffer.from(stubSalt).toString('base64'),
         encryptedKeys: stubKeyData.encryptedKeys,
         publicKey: stubKeyData.publicKey,
       },
@@ -68,11 +70,19 @@ describe('login and logout', () => {
       throw new Error()
     }
 
-    // FIXME: Derive the private key from bodyJson
-    const { privateKey } = stubKeyData
+    const {
+      user: { iv, keys, salt },
+    } = bodyJson
+
+    const decryptedKeyData = await decryptStubKeyData(
+      keys,
+      stubUserPasskeySecret,
+      iv,
+      salt
+    )
 
     const signature = await getSignature(signatureMessage, {
-      privateKey: privateKey,
+      privateKey: decryptedKeyData.signatureKeys.privateKey,
     })
 
     const signatureHeader = Buffer.from(signature).toString('base64')

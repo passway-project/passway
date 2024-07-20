@@ -38,6 +38,7 @@ describe('login and logout', () => {
     const stubSalt = crypto.getRandomValues(new Uint8Array(16))
     const stubKeyData = await getStubKeyData(passkeySecret, stubIv, stubSalt)
 
+    // STEP 1: Create user.
     const putUserResponse = await app.inject({
       method: 'PUT',
       url: `/${API_ROOT}/v1/${userRouteName}`,
@@ -54,6 +55,8 @@ describe('login and logout', () => {
 
     expect(putUserResponse.statusCode).toEqual(StatusCodes.CREATED)
 
+    // STEP 2: Assuming a subsequent user session, request user metadata with
+    // just the client-side passkey ID available.
     const getUserResponse = await app.inject({
       method: 'GET',
       url: `/${API_ROOT}/v1/${userRouteName}`,
@@ -66,6 +69,7 @@ describe('login and logout', () => {
 
     const bodyJson: UserGetApi['Reply'] = await getUserResponse.json()
 
+    // NOTE: This is just enabling accurate type inference below.
     if (!isUserGetSuccessResponse(bodyJson)) {
       throw new Error()
     }
@@ -74,6 +78,8 @@ describe('login and logout', () => {
       user: { iv, keys, salt },
     } = bodyJson
 
+    // STEP 3: With the client-owned passkey secret and server-owned user
+    // metadata now with the client, combine them to reveal private keys.
     const serializedKeys = await decryptSerializedKeys(
       keys,
       passkeySecret,
@@ -81,23 +87,24 @@ describe('login and logout', () => {
       salt
     )
 
+    // STEP 4: Produce signature data to identify the user with.
     const signature = await getSignature(signatureMessage, {
       privateKey: serializedKeys.signatureKeys.privateKey,
     })
 
-    const signatureHeader = Buffer.from(signature).toString('base64')
-
+    // STEP 5: Exchange the signature with the server for a session token.
     const getSessionResponse = await app.inject({
       method: 'GET',
       url: `/${API_ROOT}/v1/${sessionRouteName}`,
       headers: {
         'x-passway-id': passkeyId,
-        'x-passway-signature': signatureHeader,
+        'x-passway-signature': Buffer.from(signature).toString('base64'),
       },
     })
 
     expect(getSessionResponse.statusCode).toEqual(StatusCodes.OK)
 
+    // STEP 6: Now that an authenticated session has been created, destroy it.
     const deleteSessionRequst = await app.inject({
       method: 'DELETE',
       url: `/${API_ROOT}/v1/${sessionRouteName}`,

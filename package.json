@@ -14,7 +14,7 @@
     "destroy": "docker compose down --volumes",
     "restart": "npm run stop && npm start",
     "restart:dev": "npm run stop:dev && npm run start:dev",
-    "format": "prettier \"**/*.{ts,js,mjs}\" --write",
+    "format": "prettier \"**/*.{ts,js,mjs}\" --write && npm run lint -- --fix",
     "lint": "eslint . --ext .ts",
     "lint:fix": "npm run lint -- --fix",
     "test": "npm run api -- npm test -- --coverage",

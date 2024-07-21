@@ -32,11 +32,11 @@ describe('login and logout', () => {
     const passkeyId = 'foo'
     const passkeySecret = 'abc123'
 
-    // NOTE: These stub values MUST only be used for test setup here and NOT
+    // NOTE: These seed values MUST only be used for test setup here and NOT
     // decryption in order for this integration test to be valid.
-    const stubIv = crypto.getRandomValues(new Uint8Array(12))
-    const stubSalt = crypto.getRandomValues(new Uint8Array(16))
-    const stubKeyData = await getStubKeyData(passkeySecret, stubIv, stubSalt)
+    const seedIv = crypto.getRandomValues(new Uint8Array(12))
+    const seedSalt = crypto.getRandomValues(new Uint8Array(16))
+    const seedKeyData = await getStubKeyData(passkeySecret, seedIv, seedSalt)
 
     // STEP 1: Create user.
     const putUserResponse = await app.inject({
@@ -44,14 +44,14 @@ describe('login and logout', () => {
       url: `/${API_ROOT}/v1/${userRouteName}`,
       body: {
         id: passkeyId,
-        iv: Buffer.from(stubIv).toString('base64'),
-        salt: Buffer.from(stubSalt).toString('base64'),
-        encryptedKeys: stubKeyData.encryptedKeys,
-        publicKey: stubKeyData.publicKey,
+        iv: Buffer.from(seedIv).toString('base64'),
+        salt: Buffer.from(seedSalt).toString('base64'),
+        encryptedKeys: seedKeyData.encryptedKeys,
+        publicKey: seedKeyData.publicKey,
       },
     })
 
-    // NOTE:: Stub values MUST NOT be used after this point in the test.
+    // NOTE:: Seed values MUST NOT be used after this point in the test.
 
     expect(putUserResponse.statusCode).toEqual(StatusCodes.CREATED)
 

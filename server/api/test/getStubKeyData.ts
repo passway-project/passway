@@ -1,8 +1,8 @@
 import { webcrypto } from 'crypto'
 
 import {
-  contentEncryptionAlgorithmName,
-  signatureKeyAlgoritmName,
+  contentEncryptionKeyAlgorithmName,
+  signatureKeyAlgorithmName,
   signatureKeyNamedCurve,
 } from '../src/constants'
 
@@ -11,7 +11,7 @@ import { SerializedKeys, deriveKey, importKey } from './utils/crypto'
 const getEncryptionKey = async () => {
   const encryptionKey = await webcrypto.subtle.generateKey(
     {
-      name: contentEncryptionAlgorithmName,
+      name: contentEncryptionKeyAlgorithmName,
       length: 256,
     },
     true,
@@ -28,7 +28,7 @@ const getEncryptionKey = async () => {
 const getSignatureKeys = async () => {
   const keypair = await webcrypto.subtle.generateKey(
     {
-      name: signatureKeyAlgoritmName,
+      name: signatureKeyAlgorithmName,
       namedCurve: signatureKeyNamedCurve,
     },
     true,
@@ -72,7 +72,7 @@ export const getStubKeyData = async (
 
   const encryptedKeysBuffer = await crypto.subtle.encrypt(
     {
-      name: contentEncryptionAlgorithmName,
+      name: contentEncryptionKeyAlgorithmName,
       iv,
     },
     derivedKey,

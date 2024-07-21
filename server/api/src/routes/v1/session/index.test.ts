@@ -6,7 +6,7 @@ import { getApp, testAuthenticationRoute } from '../../../../test/getApp'
 import { API_ROOT, sessionKeyName } from '../../../constants'
 
 import { getSignature } from '../../../../test/utils/crypto'
-import { requestSession } from '../../../../test/utils/session'
+import { requestAuthenticatedSession } from '../../../../test/utils/session'
 import { StubKeyData, getStubKeyData } from '../../../../test/getStubKeyData'
 
 import { routeName, signatureMessage } from '.'
@@ -90,7 +90,7 @@ describe(endpointRoute, () => {
     test('creates session for valid user authentication request', async () => {
       const app = getApp()
 
-      const sessionResponse = await requestSession(app, {
+      const sessionResponse = await requestAuthenticatedSession(app, {
         userId: stubUserId,
         ...stubKeyData,
       })
@@ -174,7 +174,7 @@ describe(endpointRoute, () => {
     test('deletes a session', async () => {
       const app = getApp()
 
-      const sessionResponse = await requestSession(app, {
+      const sessionResponse = await requestAuthenticatedSession(app, {
         userId: stubUserId,
         ...stubKeyData,
       })

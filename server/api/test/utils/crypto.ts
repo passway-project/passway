@@ -1,9 +1,9 @@
 import { webcrypto } from 'crypto'
 
 import {
-  contentEncryptionAlgorithmName,
-  hashingAlgorithm,
-  signatureKeyAlgoritmName,
+  contentEncryptionKeyAlgorithmName,
+  signatureKeyHashingAlgorithm,
+  signatureKeyAlgorithmName,
   signatureKeyNamedCurve,
   signatureKeySaltLength,
 } from '../../src/constants'
@@ -70,10 +70,10 @@ export const deriveKey = async (keyMaterial: CryptoKey, salt: BufferSource) => {
       name: 'PBKDF2',
       salt,
       iterations: 100000,
-      hash: hashingAlgorithm,
+      hash: signatureKeyHashingAlgorithm,
     },
     keyMaterial,
-    { name: contentEncryptionAlgorithmName, length: 256 },
+    { name: contentEncryptionKeyAlgorithmName, length: 256 },
     false,
     ['encrypt', 'decrypt']
   )
@@ -88,7 +88,7 @@ export const getSignature = async (
     'pkcs8',
     privateKeyBuffer,
     {
-      name: signatureKeyAlgoritmName,
+      name: signatureKeyAlgorithmName,
       namedCurve: signatureKeyNamedCurve,
     },
     true,
@@ -98,8 +98,8 @@ export const getSignature = async (
   const dataBuffer = new TextEncoder().encode(message)
   const signature = await webcrypto.subtle.sign(
     {
-      name: signatureKeyAlgoritmName,
-      hash: hashingAlgorithm,
+      name: signatureKeyAlgorithmName,
+      hash: signatureKeyHashingAlgorithm,
       saltLength: signatureKeySaltLength,
     },
     signaturePrivateKey,
@@ -126,7 +126,7 @@ export const decryptSerializedKeys = async (
 
   const decryptedKeysBuffer = await crypto.subtle.decrypt(
     {
-      name: contentEncryptionAlgorithmName,
+      name: contentEncryptionKeyAlgorithmName,
       iv,
     },
     derivedKey,

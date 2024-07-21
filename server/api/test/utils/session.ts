@@ -10,7 +10,7 @@ import { API_ROOT } from '../../src/constants'
 
 import { getSignature } from './crypto'
 
-export const requestSession = async (
+export const requestAuthenticatedSession = async (
   app: FastifyInstance,
   {
     userId,

@@ -6,7 +6,7 @@ import { getApp } from '../../../../test/getApp'
 import { API_ROOT, sessionKeyName } from '../../../constants'
 
 import { StubKeyData, getStubKeyData } from '../../../../test/getStubKeyData'
-import { requestSession } from '../../../../test/utils/session'
+import { requestAuthenticatedSession } from '../../../../test/utils/session'
 
 import { UserGetApi, routeName } from '.'
 
@@ -138,11 +138,11 @@ describe(endpointRoute, () => {
         (app.prisma as DeepMockProxy<PrismaClient>).user.upsert
       ).toHaveBeenCalledWith({
         create: {
-          passkeyId: stubPasskeyId,
           encryptedKeys: stubKeyData.encryptedKeys,
+          iv: stubUserIvString,
+          passkeyId: stubPasskeyId,
           publicKey: stubKeyData.publicKey,
-          iv: expect.any(String),
-          salt: expect.any(String),
+          salt: stubUserSaltString,
         },
         update: {
           encryptedKeys: stubKeyData.encryptedKeys,
@@ -157,7 +157,7 @@ describe(endpointRoute, () => {
     test('updates a user', async () => {
       const app = getApp()
 
-      const sessionResponse = await requestSession(app, {
+      const sessionResponse = await requestAuthenticatedSession(app, {
         userId: stubUserId,
         ...stubKeyData,
       })
@@ -198,11 +198,11 @@ describe(endpointRoute, () => {
         (app.prisma as DeepMockProxy<PrismaClient>).user.upsert
       ).toHaveBeenCalledWith({
         create: {
-          passkeyId: stubPasskeyId,
           encryptedKeys: stubKeyData.encryptedKeys,
+          iv: stubUserIvString,
+          passkeyId: stubPasskeyId,
           publicKey: stubKeyData.publicKey,
-          iv: expect.any(String),
-          salt: expect.any(String),
+          salt: stubUserSaltString,
         },
         update: {
           encryptedKeys: stubKeyData.encryptedKeys,
@@ -215,10 +215,10 @@ describe(endpointRoute, () => {
       })
     })
 
-    test('rejects requests to update another user', async () => {
+    test('rejects requests to update the wrong user', async () => {
       const app = getApp()
 
-      const sessionResponse = await requestSession(app, {
+      const sessionResponse = await requestAuthenticatedSession(app, {
         userId: stubUserId + 1,
         ...stubKeyData,
       })

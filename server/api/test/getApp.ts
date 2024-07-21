@@ -15,7 +15,7 @@ beforeAll(async () => {
   app = await buildApp({ logger: false })
   app.prisma = mockDeep<PrismaClient>()
 
-  // NOTE: Test route to validate authentication status
+  // NOTE: This is a test route to validate authentication status
   app.get(testAuthenticationRoute, async (req, res) => {
     if (req.session.authenticated) {
       res.code(StatusCodes.OK)

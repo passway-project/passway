@@ -9,7 +9,7 @@ import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 import prismaPlugin from '../prisma/prismaPlugin'
 
 import { API_ROOT, sessionKeyName } from './constants'
-import * as routes from './routes/index'
+import * as routes from './routes'
 import { sessionStore } from './sessionStore'
 import { preHandlers } from './hooks/preHandler'
 

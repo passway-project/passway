@@ -6,9 +6,9 @@ import { FastifyPluginAsync } from 'fastify'
 import { User } from '@prisma/client'
 
 import {
-  hashingAlgorithm,
+  signatureKeyHashingAlgorithm,
   sessionKeyName,
-  signatureKeyAlgoritmName,
+  signatureKeyAlgorithmName,
   signatureKeyNamedCurve,
   signatureKeySaltLength,
 } from '../../../constants'
@@ -22,6 +22,7 @@ declare module 'fastify' {
 
 export const routeName = 'session'
 
+// TODO: Rather than use a hardcoded signature base, make it dynamic per-session
 export const signatureMessage = '!!Passway_Signature_Base!!'
 
 export const sessionRoute: FastifyPluginAsync = async app => {
@@ -102,9 +103,9 @@ export const sessionRoute: FastifyPluginAsync = async app => {
           'spki',
           rawPublicKey,
           {
-            name: signatureKeyAlgoritmName,
+            name: signatureKeyAlgorithmName,
             namedCurve: signatureKeyNamedCurve,
-            hash: hashingAlgorithm,
+            hash: signatureKeyHashingAlgorithm,
           },
           true,
           ['verify']
@@ -114,8 +115,8 @@ export const sessionRoute: FastifyPluginAsync = async app => {
 
         isValid = await webcrypto.subtle.verify(
           {
-            name: signatureKeyAlgoritmName,
-            hash: hashingAlgorithm,
+            name: signatureKeyAlgorithmName,
+            hash: signatureKeyHashingAlgorithm,
             saltLength: signatureKeySaltLength,
           },
           importedPublicKey,

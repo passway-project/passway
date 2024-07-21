@@ -81,7 +81,7 @@ export const userRoute: FastifyPluginAsync = async app => {
     async (request, reply) => {
       const requestHeaders = request.headers
       const { 'x-user-id': passkeyId } = requestHeaders
-      let retrievedUser: User | undefined
+      let retrievedUser: User
 
       try {
         retrievedUser = await app.prisma.user.findFirstOrThrow({

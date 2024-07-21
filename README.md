@@ -7,7 +7,7 @@ Passway enables anonymous and secure user authentication and cloud storage. It i
 1. Docker
 2. NodeJS 20+
 
-## Usage
+## Production usage
 
 ### Installation
 
@@ -18,7 +18,11 @@ Passway enables anonymous and secure user authentication and cloud storage. It i
 npm ci
 ```
 
-Once installed, Passway can be started.
+### Configuration
+
+Once installed, Passway can be configured. Examine `.env` to see what environment variables you can configure. **DO NOT** use default values for sensitive credentials such as passwords and secrets.
+
+Once configured, Passway can be started.
 
 ### Start Passway
 

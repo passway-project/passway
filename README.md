@@ -53,7 +53,7 @@ npm run build
 If you'd like to make changes to Passway or debug it, you can run it in development mode (assuming it's not already running in Production mode as above):
 
 ```sh
-npm start:dev
+npm run start:dev
 ```
 
 This will run the same stack as Production, but with a few modifications:
@@ -68,6 +68,12 @@ And a few additions:
 
 - [pgAdmin](https://www.pgadmin.org/) can be accessed at http://localhost:3124
 - [Redis Commander](https://joeferner.github.io/redis-commander/) can be accessed at http://localhost:3125
+
+To tear down the development stack, run:
+
+```sh
+npm run stop:dev
+```
 
 #### Tests
 
@@ -90,3 +96,11 @@ npm run test:integration
 ```
 
 This will spin up ephemeral infrastructure (such as a database and cache), run integrations tests (denoted by having the `.integration-test.ts` file suffix), and then tear down the infrastructure that was used.
+
+#### Data modeling
+
+Data modeling is done with [Prisma](https://www.prisma.io/), and data models are defined at `server/api/prisma/schema.prisma`. To apply changes made to this file, you can run:
+
+```sh
+npm run db:migrate:dev
+```

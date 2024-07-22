@@ -25,7 +25,6 @@
     "api": "docker compose exec api",
     "db:migrate:dev": "npm run api -- npx prisma migrate dev",
     "db:migrate:prod": "npm run api -- npx prisma migrate deploy",
-    "db:generate:artifacts": "npm run api -- npx prisma generate",
     "enter:api": "npm run api -- /bin/sh"
   },
   "repository": {

@@ -20,7 +20,7 @@
     "test": "npm run api -- npm test -- --coverage",
     "test:debug": "npm run api -- npm run test:debug",
     "test:watch": "npm run api -- npm test -- --watchAll",
-    "test:integration": "npm run start:integration && docker compose -p int exec api npx prisma migrate dev && docker compose -p int exec api npm run test:integration && npm run stop:integration",
+    "test:integration": "npm run start:integration && docker compose -p int exec api npx prisma migrate dev && docker compose -p int exec api npm run test:integration; exit_code=$? && npm run stop:integration && exit $exit_code",
     "prepare": "husky && npm run build && npm start && npm run db:migrate:dev",
     "api": "docker compose exec api",
     "db:migrate:dev": "npm run api -- npx prisma migrate dev",

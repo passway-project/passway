@@ -104,3 +104,7 @@ Data modeling is done with [Prisma](https://www.prisma.io/), and data models are
 ```sh
 npm run db:migrate:dev
 ```
+
+## License
+
+[FSL-1.1-MIT](https://fsl.software/FSL-1.1-MIT.template.md)

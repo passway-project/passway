@@ -71,7 +71,6 @@ describe(endpointRoute, () => {
         user: {
           iv: preexistingUser.iv,
           keys: preexistingUser.encryptedKeys,
-          publicKey: preexistingUser.publicKey,
           salt: preexistingUser.salt,
         },
       })

@@ -7,7 +7,6 @@ export type UserGetSuccessResponse = {
   user: {
     iv: User['iv']
     keys: User['encryptedKeys']
-    publicKey: User['publicKey']
     salt: User['salt']
   }
 }
@@ -58,9 +57,6 @@ export const userRoute: FastifyPluginAsync = async app => {
                   keys: {
                     type: 'string',
                   },
-                  publicKey: {
-                    type: 'string',
-                  },
                   salt: {
                     type: 'string',
                   },
@@ -97,7 +93,6 @@ export const userRoute: FastifyPluginAsync = async app => {
         user: {
           iv: retrievedUser.iv,
           keys: retrievedUser.encryptedKeys,
-          publicKey: retrievedUser.publicKey,
           salt: retrievedUser.salt,
         },
       })

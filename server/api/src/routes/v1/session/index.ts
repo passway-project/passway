@@ -32,7 +32,6 @@ export const sessionRoute: FastifyPluginAsync = async app => {
       'x-passway-signature': string
     }
     Reply:
-      | { token?: string }
       | ReturnType<typeof httpErrors.InternalServerError>
       | ReturnType<typeof httpErrors.BadRequest>
       | ReturnType<typeof httpErrors.NotFound>
@@ -41,7 +40,7 @@ export const sessionRoute: FastifyPluginAsync = async app => {
     {
       schema: {
         tags: ['Session management'],
-        summary: 'Retrieve a session token',
+        summary: 'Create a session',
         headers: {
           type: 'object',
           properties: {
@@ -58,7 +57,7 @@ export const sessionRoute: FastifyPluginAsync = async app => {
         },
         response: {
           [StatusCodes.OK]: {
-            description: 'Session created',
+            description: `Session created. This response returns a session cookie called \`${sessionKeyName}\`.`,
             type: 'object',
           },
           [StatusCodes.BAD_REQUEST]: {

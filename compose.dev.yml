@@ -49,6 +49,11 @@ services:
       cache:
         condition: service_healthy
 
+  sdk:
+    command: bash -c "npm ci && npm run start"
+    volumes:
+      - ./sdk:/usr/src/app
+
 networks:
   passway-network:
 

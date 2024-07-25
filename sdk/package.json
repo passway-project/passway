@@ -1,0 +1,24 @@
+{
+  "name": "@passway/sdk",
+  "version": "0.0.0",
+  "description": "Client SDK for Passway",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "vite --port 3000 --host 0.0.0.0 ./src",
+    "test": "vitest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/passway-project/passway.git"
+  },
+  "author": "",
+  "license": "FSL-1.1-MIT",
+  "bugs": {
+    "url": "https://github.com/passway-project/passway/issues"
+  },
+  "homepage": "https://github.com/passway-project/passway#readme",
+  "dependencies": {
+    "vite": "^5.3.4",
+    "vitest": "^2.0.4"
+  }
+}

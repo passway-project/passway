@@ -55,6 +55,14 @@ services:
       timeout: 5s
       retries: 5
 
+  sdk:
+    build:
+      context: ./sdk
+    ports:
+      - '${SDK_PORT}:3000'
+    networks:
+      - passway-network
+
 networks:
   passway-network:
 

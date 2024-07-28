@@ -4,7 +4,8 @@
   "description": "Client SDK for Passway",
   "main": "src/index.ts",
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && npm run build:docs",
+    "build:docs": "typedoc src/index.ts",
     "start": "vite --port 3000 --host 0.0.0.0 ./src",
     "test": "vitest",
     "prepare": "npm run build"
@@ -22,5 +23,8 @@
   "dependencies": {
     "vite": "^5.3.4",
     "vitest": "^2.0.4"
+  },
+  "devDependencies": {
+    "typedoc": "^0.26.5"
   }
 }

@@ -60,6 +60,7 @@ services:
       context: ./sdk
     ports:
       - '${SDK_PORT}:3000'
+      - '${SDK_DOCS_PORT}:3001'
     networks:
       - passway-network
 

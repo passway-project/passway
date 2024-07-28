@@ -6,11 +6,13 @@
   "scripts": {
     "build": "vite build && npm run build:docs",
     "build:docs": "typedoc src/index.ts",
-    "start": "run-p start:app start:docs",
-    "start:app": "vite --port 3000 --host 0.0.0.0 ./src",
+    "start": "run-p start:storybook start:docs",
+    "start:storybook": "storybook dev -p 3000 --no-open",
     "start:docs": "serve -p 3001 dist/doc",
     "test": "vitest",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "repository": {
     "type": "git",
@@ -27,8 +29,17 @@
     "vitest": "^2.0.4"
   },
   "devDependencies": {
+    "@chromatic-com/storybook": "^1.6.1",
+    "@storybook/addon-essentials": "^8.2.6",
+    "@storybook/addon-interactions": "^8.2.6",
+    "@storybook/addon-links": "^8.2.6",
+    "@storybook/blocks": "^8.2.6",
+    "@storybook/html": "^8.2.6",
+    "@storybook/html-vite": "^8.2.6",
+    "@storybook/test": "^8.2.6",
     "npm-run-all": "^4.1.5",
     "serve": "^14.2.3",
+    "storybook": "^8.2.6",
     "typedoc": "^0.26.5"
   }
 }

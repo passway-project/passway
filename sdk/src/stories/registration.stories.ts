@@ -7,6 +7,18 @@ class RegistrationStory extends HTMLElement {
     super()
     console.log(this.client)
   }
+
+  connectedCallback() {
+    const shadow = this.attachShadow({ mode: 'open' })
+
+    const registrationButton = document.createElement('button')
+    registrationButton.innerHTML = `<code>initiateRegistration()</code>`
+    registrationButton.addEventListener('click', async () => {
+      await this.client.initiateRegistration()
+    })
+
+    shadow.appendChild(registrationButton)
+  }
 }
 
 window.customElements.define('story-registration', RegistrationStory)

@@ -2,3 +2,5 @@ node_modules
 Session.vim
 coverage
 dist
+sdk/localhost.crt
+sdk/localhost.key

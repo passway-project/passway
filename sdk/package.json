@@ -6,9 +6,9 @@
   "scripts": {
     "build": "vite build && npm run build:docs",
     "build:docs": "typedoc src/index.ts",
-    "generate:dev-cert": "openssl req -x509 -sha256 -nodes -newkey rsa:2048 -days 365 -keyout localhost.key -out localhost.crt -subj \"/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=localhost\"",
+    "generate:dev-cert": "openssl req -x509 -sha256 -nodes -newkey rsa:2048 -days 365 -keyout localhost.key -out localhost.crt -subj \"/CN=localhost\"",
     "start": "run-p start:storybook start:docs",
-    "start:storybook": "storybook dev -p 3000 --no-open",
+    "start:storybook": "storybook dev -p 3000 --no-open --https --ssl-cert localhost.crt --ssl-key localhost.key",
     "start:docs": "serve -p 3001 dist/doc",
     "test": "vitest",
     "prepare": "npm run build && npm run generate:dev-cert",

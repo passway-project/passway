@@ -61,6 +61,7 @@ services:
     ports:
       - '${SDK_PORT}:3000'
       - '${SDK_DOCS_PORT}:3001'
+      - '443:443'
     networks:
       - passway-network
 

@@ -14,7 +14,11 @@ class RegistrationStory extends HTMLElement {
     const registrationButton = document.createElement('button')
     registrationButton.innerHTML = `<code>initiateRegistration()</code>`
     registrationButton.addEventListener('click', async () => {
-      await this.client.initiateRegistration()
+      await this.client.initiateRegistration({
+        appName: 'Passway Demo',
+        userName: 'example-user',
+        userDisplayName: 'Example User',
+      })
     })
 
     shadow.appendChild(registrationButton)

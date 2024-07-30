@@ -3,8 +3,11 @@ services:
     image: nginx:latest
     ports:
       - '${AUTHENTICATION_APP_PORT}:80'
+      - '443:443'
     volumes:
       - ./server/proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./server/proxy/localhost.crt:/etc/ssl/certs/localhost.crt:ro
+      - ./server/proxy/localhost.key:/etc/ssl/certs/localhost.key:ro
     depends_on:
       - api
     networks:

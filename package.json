@@ -21,14 +21,15 @@
     "test:debug": "npm run api -- npm run test:debug",
     "test:watch": "npm run api -- npm test -- --watchAll",
     "test:integration": "npm run start:integration && docker compose -p int exec api npx prisma migrate dev && docker compose -p int exec api npm run test:integration; exit_code=$? && npm run stop:integration && exit $exit_code",
-    "prepare": "husky && npm run build && npm start && npm run db:migrate:dev",
+    "prepare": "husky && npm run build && npm start && npm run db:migrate:dev && npm run generate:dev-cert",
     "api": "docker compose exec api",
     "sdk": "docker compose exec sdk",
     "db:migrate:dev": "npm run api -- npx prisma migrate dev",
     "db:migrate:prod": "npm run api -- npx prisma migrate deploy",
     "enter:api": "npm run api -- /bin/sh",
     "enter:sdk": "npm run sdk -- /bin/sh",
-    "fix:permissions": "sudo chown -R $USER:$(id -g -n $USER) ./"
+    "fix:permissions": "sudo chown -R $USER:$(id -g -n $USER) ./",
+    "generate:dev-cert": "openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout server/proxy/localhost.key -out server/proxy/localhost.crt -subj \"/CN=localhost\""
   },
   "repository": {
     "type": "git",

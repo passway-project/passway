@@ -14,9 +14,10 @@ class RegistrationStory extends HTMLElement {
     const shadow = this.attachShadow({ mode: 'open' })
 
     const registrationButton = document.createElement('button')
-    registrationButton.innerHTML = `<code>initiateRegistration()</code>`
+    registrationButton.style.display = 'block'
+    registrationButton.innerHTML = `<code>register()</code>`
     registrationButton.addEventListener('click', async () => {
-      await this.client.initiateRegistration({
+      await this.client.register({
         appName: this.getAttribute('app-name') ?? '',
         userName: this.getAttribute('user-name') ?? '',
         userDisplayName: this.getAttribute('user-display-name') ?? '',
@@ -24,6 +25,15 @@ class RegistrationStory extends HTMLElement {
     })
 
     shadow.appendChild(registrationButton)
+
+    const loginButton = document.createElement('button')
+    loginButton.style.display = 'block'
+    loginButton.innerHTML = `<code>login()</code>`
+    loginButton.addEventListener('click', async () => {
+      await this.client.login()
+    })
+
+    shadow.appendChild(loginButton)
   }
 }
 

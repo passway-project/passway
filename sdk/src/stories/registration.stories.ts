@@ -32,7 +32,7 @@ class RegistrationStory extends HTMLElement {
     loginButton.innerHTML = `<code>createUser()</code>`
     loginButton.addEventListener('click', async () => {
       await this.client.createUser({
-        apiRoot: 'https://localhost/api',
+        apiRoot: 'http://localhost:3123/api',
       })
     })
 

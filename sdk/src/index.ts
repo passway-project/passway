@@ -57,8 +57,7 @@ export class PasswayClient {
         signatureBase64,
       })
 
-      // FIXME: This isn't working due to CORS
-      const putUserResponse = await fetch(apiRoot, {
+      const putUserResponse = await fetch(`${apiRoot}/user`, {
         method: 'PUT',
         body: JSON.stringify({
           // FIXME: Add missing parameters

@@ -1,3 +1,4 @@
+export * from './types'
 import { RegistrationConfig } from './types'
 import { LoginError, RegistrationError } from './errors'
 import { dataGenerator } from './services/DataGenerator'

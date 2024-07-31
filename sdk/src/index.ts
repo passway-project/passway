@@ -30,7 +30,31 @@ export class PasswayClient {
         publicKey,
       })
 
-      console.log({ retrievedCredential })
+      if (!(retrievedCredential instanceof PublicKeyCredential)) {
+        throw new TypeError()
+      }
+
+      const { response } = retrievedCredential
+
+      if (!(response instanceof AuthenticatorAssertionResponse)) {
+        throw new TypeError()
+      }
+
+      const { userHandle, signature } = response
+
+      if (userHandle === null) {
+        throw new TypeError()
+      }
+
+      const userHandleBase64 = dataTransform.bufferToBase64(userHandle)
+      const signatureBase64 = dataTransform.bufferToBase64(signature)
+
+      // FIXME: Remove this
+      console.log({
+        retrievedCredential,
+        userHandleString: userHandleBase64,
+        signatureString: signatureBase64,
+      })
     } catch (e) {
       console.error(e)
       throw new LoginError()

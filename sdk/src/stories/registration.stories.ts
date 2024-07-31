@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/html'
 
-import { RegistrationConfig, passwayClient } from '..'
+import { passwayClient } from '..'
+import { RegistrationConfig } from '../RegistrationConfig'
 
 class RegistrationStory extends HTMLElement {
   private client = passwayClient

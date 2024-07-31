@@ -1,4 +1,4 @@
-import { RegistrationConfig } from '../../types'
+import { PasskeyConfig } from '../../types'
 
 export class DataGeneratorService {
   getRandomUint8Array = (length: number) => {
@@ -11,14 +11,14 @@ export class DataGeneratorService {
     appName,
     userName,
     userDisplayName,
-  }: RegistrationConfig) => {
+  }: PasskeyConfig) => {
     const registrationOptions: CredentialCreationOptions['publicKey'] = {
-      challenge: dataGenerator.getRandomUint8Array(64),
+      challenge: this.getRandomUint8Array(64),
       rp: {
         name: appName,
       },
       user: {
-        id: dataGenerator.getRandomUint8Array(64),
+        id: this.getRandomUint8Array(64),
         name: userName,
         displayName: userDisplayName,
       },

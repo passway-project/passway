@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/html'
 
 import { passwayClient } from '..'
-import { RegistrationConfig } from '../types'
+import { PasskeyConfig } from '../types'
 
 class RegistrationStory extends HTMLElement {
   private client = passwayClient
@@ -16,9 +16,9 @@ class RegistrationStory extends HTMLElement {
 
     const registrationButton = document.createElement('button')
     registrationButton.style.display = 'block'
-    registrationButton.innerHTML = `<code>register()</code>`
+    registrationButton.innerHTML = `<code>createPasskey()</code>`
     registrationButton.addEventListener('click', async () => {
-      await this.client.register({
+      await this.client.createPasskey({
         appName: this.getAttribute('app-name') ?? '',
         userName: this.getAttribute('user-name') ?? '',
         userDisplayName: this.getAttribute('user-display-name') ?? '',
@@ -29,9 +29,11 @@ class RegistrationStory extends HTMLElement {
 
     const loginButton = document.createElement('button')
     loginButton.style.display = 'block'
-    loginButton.innerHTML = `<code>login()</code>`
+    loginButton.innerHTML = `<code>createUser()</code>`
     loginButton.addEventListener('click', async () => {
-      await this.client.login()
+      await this.client.createUser({
+        apiRoot: 'https://localhost/api',
+      })
     })
 
     shadow.appendChild(loginButton)
@@ -65,8 +67,8 @@ export default {
       type: 'string',
     },
   },
-} satisfies Meta<RegistrationConfig>
+} satisfies Meta<PasskeyConfig>
 
-export const Primary: StoryObj<RegistrationConfig> = {
+export const Primary: StoryObj<PasskeyConfig> = {
   args: {},
 }

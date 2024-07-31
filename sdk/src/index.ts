@@ -1,5 +1,5 @@
 export * from './types'
-import { RegistrationConfig } from './types'
+import { LoginConfig, PasskeyConfig } from './types'
 import { LoginError, RegistrationError } from './errors'
 import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
@@ -7,7 +7,7 @@ import { dataTransform } from './services/DataTransform'
 export class PasswayClient {
   private static staticChallenge = '410fcb33-c3d8-470e-968f-7072d1572deb'
 
-  register = async (registrationConfig: RegistrationConfig) => {
+  createPasskey = async (registrationConfig: PasskeyConfig) => {
     try {
       await navigator.credentials.create({
         publicKey: dataGenerator.getRegistrationOptions(registrationConfig),
@@ -20,7 +20,7 @@ export class PasswayClient {
     return true
   }
 
-  login = async () => {
+  createUser = async ({ apiRoot }: LoginConfig) => {
     const publicKey: PublicKeyCredentialRequestOptions = {
       challenge: dataTransform.stringToUintArray(PasswayClient.staticChallenge),
       timeout: 60000,
@@ -53,9 +53,22 @@ export class PasswayClient {
       // FIXME: Remove this
       console.log({
         retrievedCredential,
-        userHandleString: userHandleBase64,
-        signatureString: signatureBase64,
+        userHandleBase64,
+        signatureBase64,
       })
+
+      // FIXME: This isn't working due to CORS
+      const putUserResponse = await fetch(apiRoot, {
+        method: 'PUT',
+        body: JSON.stringify({
+          // FIXME: Add missing parameters
+          id: signatureBase64,
+        }),
+      })
+
+      const body = await putUserResponse.json()
+
+      console.log({ body })
     } catch (e) {
       console.error(e)
       throw new LoginError()

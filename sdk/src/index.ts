@@ -74,9 +74,12 @@ export class PasswayClient {
         publicKey,
       }
 
-      const putUserResponse = await fetch(`${apiRoot}/user`, {
+      const putUserResponse = await fetch(`${apiRoot}/v1/user`, {
         method: 'PUT',
         body: JSON.stringify(putUserBody),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       })
 
       const body = await putUserResponse.json()

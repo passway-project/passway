@@ -59,7 +59,13 @@ button {
   }
 }
 
-window.customElements.define('story-registration', RegistrationStory)
+// NOTE: This is a workaround for Storybook's lack of hot module reload support for Storybook
+try {
+  window.customElements.define('story-registration', RegistrationStory)
+} catch (e) {
+  window.location.reload()
+  console.error(e)
+}
 
 export default {
   title: 'Registration',

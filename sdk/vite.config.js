@@ -1,6 +1,7 @@
 import { resolve } from 'path'
 
 import { defineConfig } from 'vite'
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 export default defineConfig({
   root: __dirname,
@@ -11,4 +12,11 @@ export default defineConfig({
       fileName: 'passway-client',
     },
   },
+  plugins: [
+    nodePolyfills({
+      globals: {
+        Buffer: true,
+      },
+    }),
+  ],
 })

@@ -27,6 +27,7 @@
   "homepage": "https://github.com/passway-project/passway#readme",
   "dependencies": {
     "vite": "^5.3.4",
+    "vite-plugin-node-polyfills": "^0.22.0",
     "vitest": "^2.0.4"
   },
   "devDependencies": {

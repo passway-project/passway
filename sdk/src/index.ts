@@ -1,8 +1,9 @@
 export * from './types'
-import { LoginConfig, PasskeyConfig } from './types'
+import { LoginConfig, PasskeyConfig, PutUserBody } from './types'
 import { LoginError, RegistrationError } from './errors'
 import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
+import { crypto } from './services/Crypto'
 
 export class PasswayClient {
   private static staticChallenge = '410fcb33-c3d8-470e-968f-7072d1572deb'
@@ -21,14 +22,17 @@ export class PasswayClient {
   }
 
   createUser = async ({ apiRoot }: LoginConfig) => {
-    const publicKey: PublicKeyCredentialRequestOptions = {
-      challenge: dataTransform.stringToUintArray(PasswayClient.staticChallenge),
-      timeout: 60000,
-    }
+    const publicKeyCredentialRequestOptions: PublicKeyCredentialRequestOptions =
+      {
+        challenge: dataTransform.stringToUintArray(
+          PasswayClient.staticChallenge
+        ),
+        timeout: 60000,
+      }
 
     try {
       const retrievedCredential = await navigator.credentials.get({
-        publicKey,
+        publicKey: publicKeyCredentialRequestOptions,
       })
 
       if (!(retrievedCredential instanceof PublicKeyCredential)) {
@@ -50,19 +54,29 @@ export class PasswayClient {
       const userHandleBase64 = dataTransform.bufferToBase64(userHandle)
       const signatureBase64 = dataTransform.bufferToBase64(signature)
 
-      // FIXME: Remove this
-      console.log({
-        retrievedCredential,
+      const iv = window.crypto.getRandomValues(new Uint8Array(12))
+      const ivBase64 = dataTransform.bufferToBase64(iv)
+
+      const salt = window.crypto.getRandomValues(new Uint8Array(16))
+      const saltBase64 = dataTransform.bufferToBase64(salt)
+
+      const { encryptedKeys, publicKey } = await crypto.generateKeyData(
         userHandleBase64,
-        signatureBase64,
-      })
+        iv,
+        salt
+      )
+
+      const putUserBody: PutUserBody = {
+        id: signatureBase64,
+        salt: saltBase64,
+        iv: ivBase64,
+        encryptedKeys,
+        publicKey,
+      }
 
       const putUserResponse = await fetch(`${apiRoot}/user`, {
         method: 'PUT',
-        body: JSON.stringify({
-          // FIXME: Add missing parameters
-          id: signatureBase64,
-        }),
+        body: JSON.stringify(putUserBody),
       })
 
       const body = await putUserResponse.json()

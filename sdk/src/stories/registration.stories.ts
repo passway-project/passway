@@ -6,21 +6,31 @@ import { PasskeyConfig } from '../types'
 class RegistrationStory extends HTMLElement {
   private client = passwayClient
 
-  constructor() {
-    super()
-    console.log(this.client)
-  }
+  private templateHTML = `
+<style>
+button {
+  display: block;
+  margin: 1rem;
+  font-size: 1rem;
+}
+</style>
+
+<h1>Passway Registration</h1>
+<button class="create-passkey"><code>createPasskey()</code></button>
+<button class="create-user"><code>createUser()</code></button>
+`
 
   connectedCallback() {
-    const shadow = this.attachShadow({ mode: 'open' })
-
-    const template = document.getElementById('passway-template')
+    const template = document.createElement('template')
+    template.innerHTML = this.templateHTML
 
     if (!(template instanceof HTMLTemplateElement)) {
       throw new TypeError()
     }
 
+    const shadow = this.attachShadow({ mode: 'open' })
     shadow.appendChild(template.content.cloneNode(true))
+
     const createPasskeyButton = shadow.querySelector('button.create-passkey')
 
     if (!(createPasskeyButton instanceof HTMLButtonElement)) {
@@ -55,23 +65,7 @@ export default {
   title: 'Registration',
   tags: ['autodocs'],
   render: ({ appName, userDisplayName, userName }) => {
-    return `
-<h1>Passway Registration</h1>
-
-<story-registration app-name="${appName}" user-display-name="${userDisplayName}" user-name="${userName}"/>
-<template id="passway-template">
-  <style>
-  button {
-    display: block;
-    margin: 1rem;
-    font-size: 1rem;
-  }
-  </style>
-
-  <button class="create-passkey"><code>createPasskey()</code></button>
-  <button class="create-user"><code>createUser()</code></button>
-</template>
-`
+    return `<story-registration app-name="${appName}" user-display-name="${userDisplayName}" user-name="${userName}"/>`
   },
   args: {
     appName: 'Passway Demo',

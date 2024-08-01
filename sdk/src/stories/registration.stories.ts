@@ -14,10 +14,20 @@ class RegistrationStory extends HTMLElement {
   connectedCallback() {
     const shadow = this.attachShadow({ mode: 'open' })
 
-    const registrationButton = document.createElement('button')
-    registrationButton.style.display = 'block'
-    registrationButton.innerHTML = `<code>createPasskey()</code>`
-    registrationButton.addEventListener('click', async () => {
+    const template = document.getElementById('passway-template')
+
+    if (!(template instanceof HTMLTemplateElement)) {
+      throw new TypeError()
+    }
+
+    shadow.appendChild(template.content.cloneNode(true))
+    const createPasskeyButton = shadow.querySelector('button.create-passkey')
+
+    if (!(createPasskeyButton instanceof HTMLButtonElement)) {
+      throw TypeError()
+    }
+
+    createPasskeyButton.addEventListener('click', async () => {
       await this.client.createPasskey({
         appName: this.getAttribute('app-name') ?? '',
         userName: this.getAttribute('user-name') ?? '',
@@ -25,18 +35,17 @@ class RegistrationStory extends HTMLElement {
       })
     })
 
-    shadow.appendChild(registrationButton)
+    const createUserButton = shadow.querySelector('button.create-user')
 
-    const loginButton = document.createElement('button')
-    loginButton.style.display = 'block'
-    loginButton.innerHTML = `<code>createUser()</code>`
-    loginButton.addEventListener('click', async () => {
+    if (!(createUserButton instanceof HTMLButtonElement)) {
+      throw TypeError()
+    }
+
+    createUserButton.addEventListener('click', async () => {
       await this.client.createUser({
         apiRoot: 'http://localhost:3123/api',
       })
     })
-
-    shadow.appendChild(loginButton)
   }
 }
 
@@ -48,7 +57,20 @@ export default {
   render: ({ appName, userDisplayName, userName }) => {
     return `
 <h1>Passway Registration</h1>
+
 <story-registration app-name="${appName}" user-display-name="${userDisplayName}" user-name="${userName}"/>
+<template id="passway-template">
+  <style>
+  button {
+    display: block;
+    margin: 1rem;
+    font-size: 1rem;
+  }
+  </style>
+
+  <button class="create-passkey"><code>createPasskey()</code></button>
+  <button class="create-user"><code>createUser()</code></button>
+</template>
 `
   },
   args: {

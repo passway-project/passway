@@ -39,20 +39,19 @@ export class PasswayClient {
         throw new TypeError()
       }
 
-      const { response } = retrievedCredential
+      const { response, id } = retrievedCredential
 
       if (!(response instanceof AuthenticatorAssertionResponse)) {
         throw new TypeError()
       }
 
-      const { userHandle, signature } = response
+      const { userHandle } = response
 
       if (userHandle === null) {
         throw new TypeError()
       }
 
       const userHandleBase64 = dataTransform.bufferToBase64(userHandle)
-      const signatureBase64 = dataTransform.bufferToBase64(signature)
 
       const iv = window.crypto.getRandomValues(new Uint8Array(12))
       const ivBase64 = dataTransform.bufferToBase64(iv)
@@ -67,7 +66,7 @@ export class PasswayClient {
       )
 
       const putUserBody: PutUserBody = {
-        id: signatureBase64,
+        id,
         salt: saltBase64,
         iv: ivBase64,
         encryptedKeys,

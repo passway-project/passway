@@ -1,5 +1,5 @@
 export * from './types'
-import { PasskeyConfig, PutUserBody } from './types'
+import { PasskeyConfig, PutUserBody, isGetUserResponse } from './types'
 import { LoginError, RegistrationError } from './errors'
 import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
@@ -135,9 +135,22 @@ export class PasswayClient {
       })
 
       const { status } = getUserResponse
+
+      if (status !== 200) {
+        throw new Error(
+          `Received error from ${this.apiRoot}/v1/user: ${status}`
+        )
+      }
+
       const bodyJson = await getUserResponse.json()
 
-      // FIXME: Create sessionn
+      if (!isGetUserResponse(bodyJson)) {
+        throw new TypeError(
+          `Unexpected response from ${this.apiRoot}/v1/user: ${JSON.stringify(bodyJson)}`
+        )
+      }
+
+      // FIXME: Create session
       console.log({ status, bodyJson })
     } catch (e) {
       console.error(e)

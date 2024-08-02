@@ -1,4 +1,4 @@
-import { SerializedKeys } from '../../types'
+import { SerializedKeys, isSerializedKeys } from '../../types'
 
 export const signatureKeyAlgorithmName = 'ECDSA'
 export const signatureKeyNamedCurve = 'P-521'
@@ -111,6 +111,40 @@ export class CryptoService {
       ...signatureKeys,
       encryptedKeys,
     }
+  }
+
+  decryptSerializedKeys = async (
+    encryptedKeys: string,
+    passkeySecret: string,
+    ivString: string,
+    saltString: string
+  ) => {
+    const iv = Buffer.from(ivString, 'base64')
+    const salt = Buffer.from(saltString, 'base64')
+    const decoder = new TextDecoder()
+
+    const importedKey = await this.importKey(passkeySecret)
+    const derivedKey = await this.deriveKey(importedKey, salt)
+
+    const encryptedKeysBuffer = Buffer.from(encryptedKeys, 'base64')
+
+    const decryptedKeysBuffer = await window.crypto.subtle.decrypt(
+      {
+        name: contentEncryptionKeyAlgorithmName,
+        iv,
+      },
+      derivedKey,
+      encryptedKeysBuffer
+    )
+
+    const decryptedKeysString = decoder.decode(decryptedKeysBuffer)
+    const decryptedKeys = JSON.parse(decryptedKeysString)
+
+    if (!isSerializedKeys(decryptedKeys)) {
+      throw new Error()
+    }
+
+    return decryptedKeys
   }
 }
 

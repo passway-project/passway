@@ -124,7 +124,7 @@ export class PasswayClient {
         throw new TypeError()
       }
 
-      //const userHandleBase64 = dataTransform.bufferToBase64(userHandle)
+      const userHandleBase64 = dataTransform.bufferToBase64(userHandle)
 
       const getUserResponse = await fetch(`${this.apiRoot}/v1/user`, {
         method: 'GET',
@@ -150,8 +150,19 @@ export class PasswayClient {
         )
       }
 
+      const {
+        user: { keys, salt, iv },
+      } = bodyJson
+
+      const serializedKeys = await crypto.decryptSerializedKeys(
+        keys,
+        userHandleBase64,
+        iv,
+        salt
+      )
+
       // FIXME: Create session
-      console.log({ status, bodyJson })
+      console.log({ status, bodyJson, serializedKeys })
     } catch (e) {
       console.error(e)
       throw new LoginError()

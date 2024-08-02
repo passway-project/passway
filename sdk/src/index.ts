@@ -95,4 +95,53 @@ export class PasswayClient {
       throw new LoginError()
     }
   }
+
+  createSession = async () => {
+    const publicKeyCredentialRequestOptions: PublicKeyCredentialRequestOptions =
+      {
+        challenge: dataGenerator.getRandomUint8Array(64),
+        timeout: 60000,
+      }
+
+    try {
+      const retrievedCredential = await navigator.credentials.get({
+        publicKey: publicKeyCredentialRequestOptions,
+      })
+
+      if (!(retrievedCredential instanceof PublicKeyCredential)) {
+        throw new TypeError()
+      }
+
+      const { response, id } = retrievedCredential
+
+      if (!(response instanceof AuthenticatorAssertionResponse)) {
+        throw new TypeError()
+      }
+
+      const { userHandle } = response
+
+      if (userHandle === null) {
+        throw new TypeError()
+      }
+
+      //const userHandleBase64 = dataTransform.bufferToBase64(userHandle)
+
+      const getUserResponse = await fetch(`${this.apiRoot}/v1/user`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': id,
+        },
+      })
+
+      const { status } = getUserResponse
+      const bodyJson = await getUserResponse.json()
+
+      // FIXME: Create sessionn
+      console.log({ status, bodyJson })
+    } catch (e) {
+      console.error(e)
+      throw new LoginError()
+    }
+  }
 }

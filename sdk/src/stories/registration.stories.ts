@@ -20,6 +20,7 @@ button {
 <h1>Passway Registration</h1>
 <button class="create-passkey"><code>createPasskey()</code></button>
 <button class="create-user"><code>createUser()</code></button>
+<button class="create-session"><code>createSession()</code></button>
 `
 
   connectedCallback() {
@@ -55,6 +56,16 @@ button {
 
     createUserButton.addEventListener('click', async () => {
       await this.client.createUser()
+    })
+
+    const createSessionButton = shadow.querySelector('button.create-session')
+
+    if (!(createSessionButton instanceof HTMLButtonElement)) {
+      throw TypeError()
+    }
+
+    createSessionButton.addEventListener('click', async () => {
+      await this.client.createSession()
     })
   }
 }

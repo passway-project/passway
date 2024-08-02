@@ -1,10 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/html'
 
-import { passwayClient } from '..'
+import { PasswayClient } from '..'
 import { PasskeyConfig } from '../types'
 
 class RegistrationStory extends HTMLElement {
-  private client = passwayClient
+  private client = new PasswayClient({
+    apiRoot: 'http://localhost:3123/api',
+  })
 
   private templateHTML = `
 <style>
@@ -52,9 +54,7 @@ button {
     }
 
     createUserButton.addEventListener('click', async () => {
-      await this.client.createUser({
-        apiRoot: 'http://localhost:3123/api',
-      })
+      await this.client.createUser()
     })
   }
 }

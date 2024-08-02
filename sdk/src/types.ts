@@ -4,10 +4,6 @@ export interface PasskeyConfig {
   userDisplayName: string
 }
 
-export interface LoginConfig {
-  apiRoot: string
-}
-
 export interface PutUserBody {
   encryptedKeys: string
   id: string

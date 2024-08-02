@@ -1,11 +1,21 @@
 export * from './types'
-import { LoginConfig, PasskeyConfig, PutUserBody } from './types'
+import { PasskeyConfig, PutUserBody } from './types'
 import { LoginError, RegistrationError } from './errors'
 import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
 import { crypto } from './services/Crypto'
 
+interface PasswayClientConfig {
+  apiRoot: string
+}
+
 export class PasswayClient {
+  readonly apiRoot: string
+
+  constructor({ apiRoot }: PasswayClientConfig) {
+    this.apiRoot = apiRoot
+  }
+
   createPasskey = async (registrationConfig: PasskeyConfig) => {
     try {
       await navigator.credentials.create({
@@ -19,7 +29,7 @@ export class PasswayClient {
     return true
   }
 
-  createUser = async ({ apiRoot }: LoginConfig) => {
+  createUser = async () => {
     const publicKeyCredentialRequestOptions: PublicKeyCredentialRequestOptions =
       {
         challenge: dataGenerator.getRandomUint8Array(64),
@@ -69,7 +79,7 @@ export class PasswayClient {
         publicKey,
       }
 
-      const putUserResponse = await fetch(`${apiRoot}/v1/user`, {
+      const putUserResponse = await fetch(`${this.apiRoot}/v1/user`, {
         method: 'PUT',
         body: JSON.stringify(putUserBody),
         headers: {
@@ -86,5 +96,3 @@ export class PasswayClient {
     }
   }
 }
-
-export const passwayClient = new PasswayClient()

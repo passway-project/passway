@@ -6,8 +6,6 @@ import { dataTransform } from './services/DataTransform'
 import { crypto } from './services/Crypto'
 
 export class PasswayClient {
-  private static staticChallenge = '410fcb33-c3d8-470e-968f-7072d1572deb'
-
   createPasskey = async (registrationConfig: PasskeyConfig) => {
     try {
       await navigator.credentials.create({
@@ -24,9 +22,7 @@ export class PasswayClient {
   createUser = async ({ apiRoot }: LoginConfig) => {
     const publicKeyCredentialRequestOptions: PublicKeyCredentialRequestOptions =
       {
-        challenge: dataTransform.stringToUintArray(
-          PasswayClient.staticChallenge
-        ),
+        challenge: dataGenerator.getRandomUint8Array(64),
         timeout: 60000,
       }
 
@@ -81,9 +77,9 @@ export class PasswayClient {
         },
       })
 
-      const body = await putUserResponse.json()
+      const { status } = putUserResponse
 
-      console.log({ body })
+      console.log({ status })
     } catch (e) {
       console.error(e)
       throw new LoginError()

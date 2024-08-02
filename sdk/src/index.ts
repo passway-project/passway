@@ -4,6 +4,7 @@ import { LoginError, RegistrationError } from './errors'
 import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
 import { crypto } from './services/Crypto'
+import { signatureMessage } from './constants'
 
 interface PasswayClientConfig {
   apiRoot: string
@@ -134,25 +135,25 @@ export class PasswayClient {
         },
       })
 
-      const { status } = getUserResponse
+      const { status: getUserResponseStatus } = getUserResponse
 
-      if (status !== 200) {
+      if (getUserResponseStatus !== 200) {
         throw new Error(
-          `Received error from ${this.apiRoot}/v1/user: ${status}`
+          `Received error from ${this.apiRoot}/v1/user: ${getUserResponseStatus}`
         )
       }
 
-      const bodyJson = await getUserResponse.json()
+      const getUserResponseBodyJson = await getUserResponse.json()
 
-      if (!isGetUserResponse(bodyJson)) {
+      if (!isGetUserResponse(getUserResponseBodyJson)) {
         throw new TypeError(
-          `Unexpected response from ${this.apiRoot}/v1/user: ${JSON.stringify(bodyJson)}`
+          `Unexpected response from ${this.apiRoot}/v1/user: ${JSON.stringify(getUserResponseBodyJson)}`
         )
       }
 
       const {
         user: { keys, salt, iv },
-      } = bodyJson
+      } = getUserResponseBodyJson
 
       const serializedKeys = await crypto.decryptSerializedKeys(
         keys,
@@ -161,8 +162,28 @@ export class PasswayClient {
         salt
       )
 
-      // FIXME: Create session
-      console.log({ status, bodyJson, serializedKeys })
+      const signature = await crypto.getSignature(signatureMessage, {
+        privateKey: serializedKeys.signatureKeys.privateKey,
+      })
+
+      const getSessionResponse = await fetch(`${this.apiRoot}/v1/session`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-passway-id': id,
+          'x-passway-signature': Buffer.from(signature).toString('base64'),
+        },
+      })
+
+      const { status: getSessionResponseStatus } = getSessionResponse
+
+      if (getSessionResponseStatus !== 200) {
+        throw new Error(
+          `Received error from ${this.apiRoot}/v1/session: ${getSessionResponseStatus}`
+        )
+      }
+
+      return true
     } catch (e) {
       console.error(e)
       throw new LoginError()

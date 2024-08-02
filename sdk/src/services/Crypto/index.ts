@@ -113,6 +113,7 @@ export class CryptoService {
     }
   }
 
+  // FIXME: The semantics of this function and related types need to be improved (the keys aren't serialized here)
   decryptSerializedKeys = async (
     encryptedKeys: string,
     passkeySecret: string,
@@ -145,6 +146,36 @@ export class CryptoService {
     }
 
     return decryptedKeys
+  }
+
+  getSignature = async (
+    message: string,
+    { privateKey }: { privateKey: string }
+  ) => {
+    const privateKeyBuffer = Buffer.from(privateKey, 'base64')
+    const signaturePrivateKey = await window.crypto.subtle.importKey(
+      'pkcs8',
+      privateKeyBuffer,
+      {
+        name: signatureKeyAlgorithmName,
+        namedCurve: signatureKeyNamedCurve,
+      },
+      true,
+      ['sign']
+    )
+
+    const dataBuffer = new TextEncoder().encode(message)
+    const signature = await window.crypto.subtle.sign(
+      {
+        name: signatureKeyAlgorithmName,
+        hash: signatureKeyHashingAlgorithm,
+        saltLength: signatureKeySaltLength,
+      },
+      signaturePrivateKey,
+      dataBuffer
+    )
+
+    return signature
   }
 }
 

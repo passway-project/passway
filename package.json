@@ -14,7 +14,7 @@
     "destroy": "docker compose down --volumes",
     "restart": "npm run stop && npm start",
     "restart:dev": "npm run stop:dev && npm run start:dev",
-    "format": "prettier \"**/*.{ts,js,mjs}\" --write && npm run lint -- --fix",
+    "format": "prettier \"**/*.{ts,js,mjs}\" --write && npm run lint:fix",
     "lint": "eslint . --ext .ts",
     "lint:fix": "npm run lint -- --fix",
     "test": "npm run api -- npm test -- --coverage",
@@ -26,7 +26,7 @@
     "sdk": "docker compose exec sdk",
     "db:migrate:dev": "npm run api -- npx prisma migrate dev",
     "db:migrate:prod": "npm run api -- npx prisma migrate deploy",
-    "check:types": "npm run sdk -- npm run generate:types && npm run sdk -- npm run check:types",
+    "check:types": "npm run api -- npm run check:types && npm run sdk -- npm run generate:types && npm run sdk -- npm run check:types && npm run lint:fix",
     "enter:api": "npm run api -- /bin/sh",
     "enter:sdk": "npm run sdk -- /bin/sh",
     "fix:permissions": "sudo chown -R $USER:$(id -g -n $USER) ./"

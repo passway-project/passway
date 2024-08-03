@@ -1,4 +1,5 @@
 export * from './types'
+import { paths } from './schema'
 import { PasskeyConfig, PutUserBody, isGetUserResponse } from './types'
 import { LoginError, RegistrationError } from './errors'
 import { dataGenerator } from './services/DataGenerator'
@@ -127,12 +128,14 @@ export class PasswayClient {
 
       const userHandleBase64 = dataTransform.bufferToBase64(userHandle)
 
+      const getUserHeaders: paths['/api/v1/user']['get']['parameters']['header'] =
+        {
+          'x-user-id': id,
+        }
+
       const getUserResponse = await fetch(`${this.apiRoot}/v1/user`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-id': id,
-        },
+        headers: getUserHeaders,
       })
 
       const { status: getUserResponseStatus } = getUserResponse
@@ -151,9 +154,8 @@ export class PasswayClient {
         )
       }
 
-      const {
-        user: { keys, salt, iv },
-      } = getUserResponseBodyJson
+      const { user: { keys = '', salt = '', iv = '' } = {} } =
+        getUserResponseBodyJson
 
       const serializedKeys = await crypto.decryptSerializedKeys(
         keys,
@@ -166,13 +168,15 @@ export class PasswayClient {
         privateKey: serializedKeys.signatureKeys.privateKey,
       })
 
-      const getSessionResponse = await fetch(`${this.apiRoot}/v1/session`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
+      const getSessionHeaders: paths['/api/v1/session']['get']['parameters']['header'] =
+        {
           'x-passway-id': id,
           'x-passway-signature': Buffer.from(signature).toString('base64'),
-        },
+        }
+
+      const getSessionResponse = await fetch(`${this.apiRoot}/v1/session`, {
+        method: 'GET',
+        headers: getSessionHeaders,
       })
 
       const { status: getSessionResponseStatus } = getSessionResponse

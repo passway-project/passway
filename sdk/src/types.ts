@@ -1,16 +1,13 @@
+import type { paths } from './schema'
+
 export interface PasskeyConfig {
   appName: string
   userName: string
   userDisplayName: string
 }
 
-export interface PutUserBody {
-  encryptedKeys: string
-  id: string
-  iv: string
-  publicKey: string
-  salt: string
-}
+export type PutUserBody =
+  paths['/api/v1/user']['put']['requestBody']['content']['application/json']
 
 export interface SerializedSignatureKeys {
   publicKey: string
@@ -56,13 +53,8 @@ export const isSerializedKeys = (obj: unknown): obj is SerializedKeys => {
   )
 }
 
-export interface GetUserResponse {
-  user: {
-    iv: string
-    keys: string
-    salt: string
-  }
-}
+export type GetUserResponse =
+  paths['/api/v1/user']['get']['responses']['200']['content']['application/json']
 
 export const isGetUserResponse = (
   response: unknown

@@ -31,7 +31,11 @@ export const buildApp = async (options?: FastifyServerOptions) => {
     ...options,
   }).withTypeProvider<TypeBoxTypeProvider>()
 
-  await app.register(swagger)
+  await app.register(swagger, {
+    openapi: {
+      openapi: '3.0.0',
+    },
+  })
   await app.register(prismaPlugin)
   await app.register(fastifyCookie)
   await app.register(fastifySession, {

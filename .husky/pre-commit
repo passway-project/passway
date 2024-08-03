@@ -1,3 +1,5 @@
+npm run check:types
 npm test
-npm run lint
+npm run lint:fix
+git add sdk/src/schema.d.ts
 npx pretty-quick --staged

@@ -4,3 +4,4 @@ coverage
 dist
 sdk/localhost.crt
 sdk/localhost.key
+sdk/src/schema.d.ts

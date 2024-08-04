@@ -26,7 +26,7 @@
     "sdk": "docker compose exec sdk",
     "db:migrate:dev": "npm run api -- npx prisma migrate dev",
     "db:migrate:prod": "npm run api -- npx prisma migrate deploy",
-    "check:types": "npm run api -- npm run check:types && npm run sdk -- npm run generate:types && npm run sdk -- npm run check:types && npm run lint:fix",
+    "check:types": "npm run api -- npm run check:types && npm run sdk -- npm run generate:types && npm run sdk -- npm run check:types",
     "enter:api": "npm run api -- /bin/sh",
     "enter:sdk": "npm run sdk -- /bin/sh",
     "fix:permissions": "sudo chown -R $USER:$(id -g -n $USER) ./"

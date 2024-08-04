@@ -9,10 +9,10 @@
     "generate:dev-cert": "openssl req -x509 -sha256 -nodes -newkey rsa:2048 -days 365 -keyout localhost.key -out localhost.crt -subj \"/CN=localhost\"",
     "generate:types": "openapi-typescript http://api:3000/api/json -o ./src/schema.d.ts",
     "start": "run-p start:storybook start:docs",
+    "start:dev": "npm run generate:types && npm run build && npm run generate:dev-cert && npm start",
     "start:storybook": "storybook dev -p 3000 --no-open --https --ssl-cert localhost.crt --ssl-key localhost.key",
     "start:docs": "serve -p 3001 dist/doc",
     "test": "vitest",
-    "prepare": "npm run build && npm run generate:dev-cert",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "check:types": "tsc --noEmit"

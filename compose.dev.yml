@@ -1,0 +1,56 @@
+services:
+  api:
+    command: bash -c "npm ci && npm run start:dev"
+    volumes:
+      - ./server/api:/usr/src/app
+    ports:
+      # NOTE: These ports are for debugging
+      - 9229:9229
+      - 9230:9230
+
+  db-admin:
+    image: dpage/pgadmin4
+    ports:
+      - '${DB_ADMIN_PORT}:80'
+    links:
+      - db:postgres
+    environment:
+      PGADMIN_DEFAULT_EMAIL: user@domain.com
+      PGADMIN_DEFAULT_PASSWORD: password
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    networks:
+      - passway-network
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - db-admin_data:/var/lib/pgadmin
+      - ./db-admin/servers.json:/pgadmin4/servers.json
+      - ./db-admin/preferences.json:/pgadmin4/preferences.json
+
+  cache:
+    environment:
+      VALKEY_PASSWORD:
+      ALLOW_EMPTY_PASSWORD: yes
+
+  cache-admin:
+    hostname: redis-commander
+    image: ghcr.io/joeferner/redis-commander:latest
+    restart: always
+    environment:
+      REDIS_HOSTS: 'local:cache:${CACHE_PORT}'
+      REDIS_DATABASE: ${CACHE_NAME}
+    ports:
+      - '${CACHE_ADMIN_PORT}:8081'
+    networks:
+      - passway-network
+    depends_on:
+      cache:
+        condition: service_healthy
+
+networks:
+  passway-network:
+
+volumes:
+  db-admin_data:

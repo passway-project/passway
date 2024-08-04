@@ -1,0 +1,21 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended"
+  ],
+  "plugins": ["@typescript-eslint", "prettier", "eslint-plugin-import"],
+  "rules": {
+    "prettier/prettier": "error",
+    "import/order": [
+      "error",
+      { "newlines-between": "always-and-inside-groups" }
+    ]
+  },
+  "env": {
+    "browser": false,
+    "node": true,
+    "es6": true
+  }
+}

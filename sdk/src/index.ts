@@ -212,7 +212,6 @@ export class PasswayClient {
   }
 
   destroySession = async () => {
-    // FIXME: The cookie isn't being destroyed properly
     await fetch(`${this.apiRoot}/v1/session`, {
       method: 'DELETE',
       credentials: 'include',

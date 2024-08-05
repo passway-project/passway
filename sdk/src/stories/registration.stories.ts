@@ -21,6 +21,7 @@ button {
 <button class="create-passkey"><code>createPasskey()</code></button>
 <button class="create-user"><code>createUser()</code></button>
 <button class="create-session"><code>createSession()</code></button>
+<button class="destroy-session"><code>destroySession()</code></button>
 `
 
   connectedCallback() {
@@ -66,6 +67,16 @@ button {
 
     createSessionButton.addEventListener('click', async () => {
       await this.client.createSession()
+    })
+
+    const destroySessionButton = shadow.querySelector('button.destroy-session')
+
+    if (!(destroySessionButton instanceof HTMLButtonElement)) {
+      throw TypeError()
+    }
+
+    destroySessionButton.addEventListener('click', async () => {
+      await this.client.destroySession()
     })
   }
 }

@@ -190,13 +190,10 @@ export class PasswayClient {
           'x-passway-signature': Buffer.from(signature).toString('base64'),
         }
 
-      // FIXME: This isn't setting the cookie properly.
-      // See:
-      //   - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
-      //   - https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#including_credentials
       const getSessionResponse = await fetch(`${this.apiRoot}/v1/session`, {
         method: 'GET',
         headers: getSessionHeaders,
+        credentials: 'include',
       })
 
       const { status: getSessionResponseStatus } = getSessionResponse
@@ -215,10 +212,10 @@ export class PasswayClient {
   }
 
   destroySession = async () => {
-    const deleteSessionResponse = await fetch(`${this.apiRoot}/v1/session`, {
+    // FIXME: The cookie isn't being destroyed properly
+    await fetch(`${this.apiRoot}/v1/session`, {
       method: 'DELETE',
+      credentials: 'include',
     })
-
-    console.log({ deleteSessionResponse })
   }
 }

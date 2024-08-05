@@ -168,6 +168,14 @@ export const sessionRoute: FastifyPluginAsync = async app => {
     },
     async (request, reply) => {
       try {
+        // FIXME: Test this
+        // NOTE: This deletes the session cookie on the client
+        reply.cookie(sessionKeyName, request.session.encryptedSessionId, {
+          expires: new Date(0),
+          path: '/',
+          httpOnly: true,
+          secure: true,
+        })
         await request.session.destroy()
       } catch (e) {
         app.log.error(`Session deletion failure: ${e}`)

@@ -20,5 +20,10 @@ services:
     networks:
       - passway-int-network
 
+  sdk:
+    ports: !reset []
+    networks:
+      - passway-int-network
+
 networks:
   passway-int-network:

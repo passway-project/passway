@@ -14,6 +14,9 @@ interface PasswayClientConfig {
 export class PasswayClient {
   readonly apiRoot: string
 
+  private passkeyId: string | null = null
+  private userHandle: ArrayBuffer | null = null
+
   constructor({ apiRoot }: PasswayClientConfig) {
     this.apiRoot = apiRoot
   }
@@ -47,7 +50,7 @@ export class PasswayClient {
         throw new TypeError()
       }
 
-      const { response, id } = retrievedCredential
+      const { response, id: passkeyId } = retrievedCredential
 
       if (!(response instanceof AuthenticatorAssertionResponse)) {
         throw new TypeError()
@@ -58,6 +61,9 @@ export class PasswayClient {
       if (userHandle === null) {
         throw new TypeError()
       }
+
+      this.passkeyId = passkeyId
+      this.userHandle = userHandle
 
       const userHandleBase64 = dataTransform.bufferToBase64(userHandle)
 
@@ -74,7 +80,7 @@ export class PasswayClient {
       )
 
       const putUserBody: PutUserBody = {
-        id,
+        id: passkeyId,
         salt: saltBase64,
         iv: ivBase64,
         encryptedKeys,
@@ -106,31 +112,41 @@ export class PasswayClient {
       }
 
     try {
-      const retrievedCredential = await navigator.credentials.get({
-        publicKey: publicKeyCredentialRequestOptions,
-      })
+      let { passkeyId, userHandle } = this
 
-      if (!(retrievedCredential instanceof PublicKeyCredential)) {
-        throw new TypeError()
-      }
+      if (passkeyId === null || userHandle === null) {
+        const retrievedCredential = await navigator.credentials.get({
+          publicKey: publicKeyCredentialRequestOptions,
+        })
 
-      const { response, id } = retrievedCredential
+        if (!(retrievedCredential instanceof PublicKeyCredential)) {
+          throw new TypeError()
+        }
 
-      if (!(response instanceof AuthenticatorAssertionResponse)) {
-        throw new TypeError()
-      }
+        const { response, id } = retrievedCredential
 
-      const { userHandle } = response
+        if (!(response instanceof AuthenticatorAssertionResponse)) {
+          throw new TypeError()
+        }
 
-      if (userHandle === null) {
-        throw new TypeError()
+        const { userHandle: responseUserHandle } = response
+
+        if (responseUserHandle === null) {
+          throw new TypeError()
+        }
+
+        this.passkeyId = id
+        this.userHandle = responseUserHandle
+
+        passkeyId = id
+        userHandle = responseUserHandle
       }
 
       const userHandleBase64 = dataTransform.bufferToBase64(userHandle)
 
       const getUserHeaders: paths['/api/v1/user']['get']['parameters']['header'] =
         {
-          'x-user-id': id,
+          'x-user-id': passkeyId,
         }
 
       const getUserResponse = await fetch(`${this.apiRoot}/v1/user`, {
@@ -170,7 +186,7 @@ export class PasswayClient {
 
       const getSessionHeaders: paths['/api/v1/session']['get']['parameters']['header'] =
         {
-          'x-passway-id': id,
+          'x-passway-id': passkeyId,
           'x-passway-signature': Buffer.from(signature).toString('base64'),
         }
 

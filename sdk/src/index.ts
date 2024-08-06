@@ -87,21 +87,19 @@ export class PasswayClient {
         publicKey,
       }
 
-      const putUserResponse = await fetch(`${this.apiRoot}/v1/user`, {
+      await window.fetch(`${this.apiRoot}/v1/user`, {
         method: 'PUT',
         body: JSON.stringify(putUserBody),
         headers: {
           'Content-Type': 'application/json',
         },
       })
-
-      const { status } = putUserResponse
-
-      console.log({ status })
     } catch (e) {
       console.error(e)
       throw new LoginError()
     }
+
+    return true
   }
 
   createSession = async () => {
@@ -149,7 +147,7 @@ export class PasswayClient {
           'x-user-id': passkeyId,
         }
 
-      const getUserResponse = await fetch(`${this.apiRoot}/v1/user`, {
+      const getUserResponse = await window.fetch(`${this.apiRoot}/v1/user`, {
         method: 'GET',
         headers: getUserHeaders,
       })
@@ -190,11 +188,14 @@ export class PasswayClient {
           'x-passway-signature': Buffer.from(signature).toString('base64'),
         }
 
-      const getSessionResponse = await fetch(`${this.apiRoot}/v1/session`, {
-        method: 'GET',
-        headers: getSessionHeaders,
-        credentials: 'include',
-      })
+      const getSessionResponse = await window.fetch(
+        `${this.apiRoot}/v1/session`,
+        {
+          method: 'GET',
+          headers: getSessionHeaders,
+          credentials: 'include',
+        }
+      )
 
       const { status: getSessionResponseStatus } = getSessionResponse
 
@@ -212,7 +213,7 @@ export class PasswayClient {
   }
 
   destroySession = async () => {
-    await fetch(`${this.apiRoot}/v1/session`, {
+    await window.fetch(`${this.apiRoot}/v1/session`, {
       method: 'DELETE',
       credentials: 'include',
     })

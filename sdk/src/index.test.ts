@@ -82,6 +82,7 @@ describe('PasswayClient', () => {
         }
       )
 
+      const passkeyId = 'abc123'
       const mockPublicKeyCredential = Object.assign(
         new window.PublicKeyCredential(),
         {
@@ -89,7 +90,7 @@ describe('PasswayClient', () => {
           getClientExtensionResults: () => {
             throw new Error()
           },
-          id: '',
+          id: passkeyId,
           rawId: dataGenerator.getRandomUint8Array(1),
           response: mockAuthenticatorAssertionResponse,
           type: '',
@@ -111,10 +112,23 @@ describe('PasswayClient', () => {
 
       await passwayClient.createUser()
 
-      // FIXME: Validate what fetch responsded with
-      expect(fetchSpy).toHaveResolved()
+      expect(fetchSpy).toHaveBeenCalledWith(`/v1/user`, {
+        method: 'PUT',
+        body: expect.any(String),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
 
-      // FIXME: Validate the rest of the operation
+      const body = String(fetchSpy.mock.calls[0][1]?.body)
+
+      expect(JSON.parse(body)).toEqual({
+        id: passkeyId,
+        salt: expect.any(String),
+        iv: expect.any(String),
+        encryptedKeys: expect.any(String),
+        publicKey: expect.any(String),
+      })
     })
   })
 

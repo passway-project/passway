@@ -1,18 +1,18 @@
+import { RegistrationError } from './errors'
+
 import { PasswayClient } from '.'
 
 let passwayClient = new PasswayClient({ apiRoot: '' })
 
 beforeAll(() => {
-  // @ts-expect-error navigator isn't defined in the test environment, so it is
-  // mocked out here
-  navigator = {
+  Object.assign(navigator, {
     credentials: {
       create: vi.fn(),
       get: vi.fn(),
       preventSilentAccess: vi.fn(),
       store: vi.fn(),
     },
-  }
+  })
 })
 
 beforeEach(() => {
@@ -21,7 +21,7 @@ beforeEach(() => {
 
 describe('PasswayClient', () => {
   describe('createPasskey', async () => {
-    test('creates a passkey', () => {
+    test('creates a passkey', async () => {
       const createSpy = vitest
         .spyOn(navigator.credentials, 'create')
         .mockResolvedValueOnce({
@@ -35,7 +35,7 @@ describe('PasswayClient', () => {
         userName: 'user-name',
       }
 
-      passwayClient.createPasskey(stubRegistrationConfig)
+      await passwayClient.createPasskey(stubRegistrationConfig)
 
       expect(createSpy).toHaveBeenCalledWith({
         publicKey: {
@@ -64,8 +64,18 @@ describe('PasswayClient', () => {
       })
     })
 
-    test.skip('handles passkey creation error', () => {
-      // FIXME: Implement this
+    test('handles passkey creation error', async () => {
+      vitest.spyOn(navigator.credentials, 'create').mockRejectedValueOnce({})
+
+      const stubRegistrationConfig = {
+        appName: 'appName',
+        userDisplayName: 'User',
+        userName: 'user-name',
+      }
+
+      await expect(async () => {
+        await passwayClient.createPasskey(stubRegistrationConfig)
+      }).rejects.toThrowError(RegistrationError)
     })
   })
 

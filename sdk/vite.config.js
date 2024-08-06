@@ -22,5 +22,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    silent: true,
+    mockReset: true,
+    restoreMocks: true,
   },
 })

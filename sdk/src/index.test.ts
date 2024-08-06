@@ -6,17 +6,6 @@ import { PasswayClient } from '.'
 
 let passwayClient = new PasswayClient({ apiRoot: '' })
 
-beforeAll(() => {
-  Object.assign(navigator, {
-    credentials: {
-      create: vi.fn(),
-      get: vi.fn(),
-      preventSilentAccess: vi.fn(),
-      store: vi.fn(),
-    },
-  })
-})
-
 beforeEach(() => {
   passwayClient = new PasswayClient({ apiRoot: '' })
 })
@@ -83,11 +72,8 @@ describe('PasswayClient', () => {
 
   describe('createUser', async () => {
     test('creates user', async () => {
-      // @ts-expect-error This object is not defined in the test environment
-      window.AuthenticatorAssertionResponse = class {}
-
       const mockAuthenticatorAssertionResponse = Object.assign(
-        new AuthenticatorAssertionResponse(),
+        new window.AuthenticatorAssertionResponse(),
         {
           authenticatorData: dataGenerator.getRandomUint8Array(1),
           clientDataJSON: dataGenerator.getRandomUint8Array(1),
@@ -96,19 +82,19 @@ describe('PasswayClient', () => {
         }
       )
 
-      // @ts-expect-error This object is not defined in the test environment
-      window.PublicKeyCredential = class {}
-
-      const mockPublicKeyCredential = Object.assign(new PublicKeyCredential(), {
-        authenticatorAttachment: '',
-        getClientExtensionResults: () => {
-          throw new Error()
-        },
-        id: '',
-        rawId: dataGenerator.getRandomUint8Array(1),
-        response: mockAuthenticatorAssertionResponse,
-        type: '',
-      })
+      const mockPublicKeyCredential = Object.assign(
+        new window.PublicKeyCredential(),
+        {
+          authenticatorAttachment: '',
+          getClientExtensionResults: () => {
+            throw new Error()
+          },
+          id: '',
+          rawId: dataGenerator.getRandomUint8Array(1),
+          response: mockAuthenticatorAssertionResponse,
+          type: '',
+        }
+      )
 
       vitest
         .spyOn(navigator.credentials, 'get')

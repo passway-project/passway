@@ -25,5 +25,6 @@ export default defineConfig({
     silent: true,
     mockReset: true,
     restoreMocks: true,
+    setupFiles: ['src/test-setup.ts'],
   },
 })

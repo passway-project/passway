@@ -46,13 +46,13 @@ export class PasswayClient {
         publicKey: publicKeyCredentialRequestOptions,
       })
 
-      if (!(retrievedCredential instanceof PublicKeyCredential)) {
+      if (!(retrievedCredential instanceof window.PublicKeyCredential)) {
         throw new TypeError()
       }
 
       const { response, id: passkeyId } = retrievedCredential
 
-      if (!(response instanceof AuthenticatorAssertionResponse)) {
+      if (!(response instanceof window.AuthenticatorAssertionResponse)) {
         throw new TypeError()
       }
 
@@ -117,13 +117,13 @@ export class PasswayClient {
           publicKey: publicKeyCredentialRequestOptions,
         })
 
-        if (!(retrievedCredential instanceof PublicKeyCredential)) {
+        if (!(retrievedCredential instanceof window.PublicKeyCredential)) {
           throw new TypeError()
         }
 
         const { response, id } = retrievedCredential
 
-        if (!(response instanceof AuthenticatorAssertionResponse)) {
+        if (!(response instanceof window.AuthenticatorAssertionResponse)) {
           throw new TypeError()
         }
 

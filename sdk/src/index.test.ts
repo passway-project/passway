@@ -2,6 +2,8 @@ import { RegistrationError } from './errors'
 
 import { dataGenerator } from './services/DataGenerator'
 
+import { dataTransform } from './services/DataTransform'
+
 import { PasswayClient } from '.'
 
 let passwayClient = new PasswayClient({ apiRoot: '' })
@@ -97,6 +99,12 @@ describe('PasswayClient', () => {
         }
       )
 
+      const mockIv = new Uint8Array(12)
+      vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
+
+      const mockSalt = new Uint8Array(16)
+      vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
+
       vitest
         .spyOn(navigator.credentials, 'get')
         .mockResolvedValueOnce(mockPublicKeyCredential)
@@ -124,8 +132,8 @@ describe('PasswayClient', () => {
 
       expect(JSON.parse(body)).toEqual({
         id: passkeyId,
-        salt: expect.any(String),
-        iv: expect.any(String),
+        salt: dataTransform.bufferToBase64(mockSalt),
+        iv: dataTransform.bufferToBase64(mockIv),
         encryptedKeys: expect.any(String),
         publicKey: expect.any(String),
       })

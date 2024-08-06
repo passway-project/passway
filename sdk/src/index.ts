@@ -67,10 +67,10 @@ export class PasswayClient {
 
       const userHandleBase64 = dataTransform.bufferToBase64(userHandle)
 
-      const iv = window.crypto.getRandomValues(new Uint8Array(12))
+      const iv = await dataGenerator.getIv()
       const ivBase64 = dataTransform.bufferToBase64(iv)
 
-      const salt = window.crypto.getRandomValues(new Uint8Array(16))
+      const salt = await dataGenerator.getSalt()
       const saltBase64 = dataTransform.bufferToBase64(salt)
 
       const { encryptedKeys, publicKey } = await crypto.generateKeyData(

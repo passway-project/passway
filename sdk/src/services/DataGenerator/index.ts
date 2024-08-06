@@ -38,6 +38,14 @@ export class DataGeneratorService {
     }
     return registrationOptions
   }
+
+  getIv = async () => {
+    return window.crypto.getRandomValues(new Uint8Array(12))
+  }
+
+  getSalt = async () => {
+    return window.crypto.getRandomValues(new Uint8Array(16))
+  }
 }
 
 export const dataGenerator = new DataGeneratorService()

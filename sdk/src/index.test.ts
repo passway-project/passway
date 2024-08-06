@@ -1,8 +1,7 @@
 import { RegistrationError } from './errors'
-
 import { dataGenerator } from './services/DataGenerator'
-
 import { dataTransform } from './services/DataTransform'
+import { crypto } from './services/Crypto'
 
 import { PasswayClient } from '.'
 
@@ -74,13 +73,14 @@ describe('PasswayClient', () => {
 
   describe('createUser', async () => {
     test('creates user', async () => {
+      const mockUserHandle = dataGenerator.getRandomUint8Array(1)
       const mockAuthenticatorAssertionResponse = Object.assign(
         new window.AuthenticatorAssertionResponse(),
         {
           authenticatorData: dataGenerator.getRandomUint8Array(1),
           clientDataJSON: dataGenerator.getRandomUint8Array(1),
           signature: dataGenerator.getRandomUint8Array(1),
-          userHandle: dataGenerator.getRandomUint8Array(1),
+          userHandle: mockUserHandle,
         }
       )
 
@@ -105,6 +105,16 @@ describe('PasswayClient', () => {
       const mockSalt = new Uint8Array(16)
       vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
 
+      const mockEncryptedKeys = 'encrypted keys'
+      const mockPrivateKey = 'private key'
+      const mockPublicKey = 'public key'
+
+      vitest.spyOn(crypto, 'generateKeyData').mockResolvedValueOnce({
+        encryptedKeys: mockEncryptedKeys,
+        privateKey: mockPrivateKey,
+        publicKey: mockPublicKey,
+      })
+
       vitest
         .spyOn(navigator.credentials, 'get')
         .mockResolvedValueOnce(mockPublicKeyCredential)
@@ -114,14 +124,12 @@ describe('PasswayClient', () => {
         .mockReturnValueOnce(
           Promise.resolve({ ...new Response(), status: 200 })
         )
-        .mockReturnValueOnce(
-          Promise.resolve({ ...new Response(), status: 200 })
-        )
 
       await passwayClient.createUser()
 
       expect(fetchSpy).toHaveBeenCalledWith(`/v1/user`, {
         method: 'PUT',
+        // NOTE: This is validated below
         body: expect.any(String),
         headers: {
           'Content-Type': 'application/json',
@@ -134,8 +142,8 @@ describe('PasswayClient', () => {
         id: passkeyId,
         salt: dataTransform.bufferToBase64(mockSalt),
         iv: dataTransform.bufferToBase64(mockIv),
-        encryptedKeys: expect.any(String),
-        publicKey: expect.any(String),
+        encryptedKeys: mockEncryptedKeys,
+        publicKey: mockPublicKey,
       })
     })
   })

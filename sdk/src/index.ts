@@ -108,6 +108,9 @@ export class PasswayClient {
 
   // TODO: Add method for updating a user
 
+  // TODO: Explore methods to optionally store credentials in local storage so
+  // that the user does not have to be prompted for credentials in each
+  // session.
   createSession = async () => {
     const publicKeyCredentialRequestOptions: PublicKeyCredentialRequestOptions =
       {

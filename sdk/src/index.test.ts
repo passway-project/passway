@@ -320,7 +320,92 @@ describe('PasswayClient', () => {
       })
     })
 
-    test('creates session with reused credentials', async () => {})
+    test('creates session with reused credentials', async () => {
+      const getSpy = vitest.spyOn(navigator.credentials, 'get')
+      const fetchSpy = vitest.spyOn(window, 'fetch')
+
+      for (let i = 0; i < 2; i++) {
+        vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
+        vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
+
+        vitest.spyOn(crypto, 'generateKeyData').mockResolvedValueOnce({
+          encryptedKeys: mockEncryptedKeys,
+          privateKey: mockPrivateKey,
+          publicKey: mockPublicKey,
+        })
+
+        getSpy.mockResolvedValueOnce(mockPublicKeyCredential)
+
+        vitest
+          .spyOn(crypto, 'decryptSerializedKeys')
+          .mockResolvedValueOnce(mockSerializedKeys)
+
+        vitest
+          .spyOn(crypto, 'getSignature')
+          .mockResolvedValueOnce(mockSignature)
+
+        fetchSpy
+          .mockReturnValueOnce(
+            Promise.resolve({
+              ...new Response(),
+              status: 200,
+              json: async () => {
+                return {
+                  user: {
+                    keys: mockEncryptedKeys,
+                    salt: dataTransform.bufferToBase64(mockSalt),
+                    iv: dataTransform.bufferToBase64(mockIv),
+                  },
+                }
+              },
+            })
+          )
+          .mockReturnValueOnce(
+            Promise.resolve({
+              ...new Response(),
+              status: 200,
+            })
+          )
+      }
+
+      const result1 = await passwayClient.createSession()
+      expect(result1).toEqual(true)
+
+      const result2 = await passwayClient.createSession()
+      expect(result2).toEqual(true)
+
+      expect(fetchSpy).toHaveBeenNthCalledWith(1, '/v1/user', {
+        headers: { 'x-user-id': passkeyId },
+        method: 'GET',
+      })
+
+      expect(fetchSpy).toHaveBeenNthCalledWith(2, '/v1/session', {
+        credentials: 'include',
+        headers: {
+          'x-passway-id': passkeyId,
+          'x-passway-signature': dataTransform.bufferToBase64(mockSignature),
+        },
+        method: 'GET',
+      })
+
+      expect(fetchSpy).toHaveBeenNthCalledWith(3, '/v1/user', {
+        headers: { 'x-user-id': passkeyId },
+        method: 'GET',
+      })
+
+      expect(fetchSpy).toHaveBeenNthCalledWith(4, '/v1/session', {
+        credentials: 'include',
+        headers: {
+          'x-passway-id': passkeyId,
+          'x-passway-signature': dataTransform.bufferToBase64(mockSignature),
+        },
+        method: 'GET',
+      })
+
+      // NOTE: This indicates that credentials were only requested from the
+      // user once.
+      expect(getSpy).toHaveBeenCalledTimes(1)
+    })
 
     test.skip('handles session creation failure due to failure response', async () => {})
 

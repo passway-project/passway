@@ -158,6 +158,8 @@ describe('PasswayClient', () => {
         publicKey: mockPublicKey,
       })
 
+      const fetchSpy = vitest.spyOn(window, 'fetch')
+
       vitest
         .spyOn(navigator.credentials, 'get')
         .mockRejectedValueOnce(undefined)
@@ -165,6 +167,8 @@ describe('PasswayClient', () => {
       await expect(async () => {
         await passwayClient.createUser()
       }).rejects.toThrowError(LoginError)
+
+      expect(fetchSpy).not.toHaveBeenCalled()
     })
 
     test('handles user creation failure response', async () => {

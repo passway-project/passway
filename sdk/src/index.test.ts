@@ -65,7 +65,9 @@ describe('PasswayClient', () => {
     })
 
     test('handles passkey creation error', async () => {
-      vitest.spyOn(navigator.credentials, 'create').mockRejectedValueOnce({})
+      vitest
+        .spyOn(navigator.credentials, 'create')
+        .mockRejectedValueOnce(undefined)
 
       const stubRegistrationConfig = {
         appName: 'appName',
@@ -144,6 +146,25 @@ describe('PasswayClient', () => {
         encryptedKeys: mockEncryptedKeys,
         publicKey: mockPublicKey,
       })
+    })
+
+    test('handles user creation failure due to passkey retrieval error', async () => {
+      vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
+      vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
+
+      vitest.spyOn(crypto, 'generateKeyData').mockResolvedValueOnce({
+        encryptedKeys: mockEncryptedKeys,
+        privateKey: mockPrivateKey,
+        publicKey: mockPublicKey,
+      })
+
+      vitest
+        .spyOn(navigator.credentials, 'get')
+        .mockRejectedValueOnce(undefined)
+
+      await expect(async () => {
+        await passwayClient.createUser()
+      }).rejects.toThrowError(LoginError)
     })
 
     test('handles user creation failure response', async () => {

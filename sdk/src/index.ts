@@ -87,13 +87,17 @@ export class PasswayClient {
         publicKey,
       }
 
-      await window.fetch(`${this.apiRoot}/v1/user`, {
+      const { status } = await window.fetch(`${this.apiRoot}/v1/user`, {
         method: 'PUT',
         body: JSON.stringify(putUserBody),
         headers: {
           'Content-Type': 'application/json',
         },
       })
+
+      if (![200, 201].includes(status)) {
+        throw new Error()
+      }
     } catch (e) {
       console.error(e)
       throw new LoginError()
@@ -101,6 +105,8 @@ export class PasswayClient {
 
     return true
   }
+
+  // TODO: Add method for updating a user
 
   createSession = async () => {
     const publicKeyCredentialRequestOptions: PublicKeyCredentialRequestOptions =

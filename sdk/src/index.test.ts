@@ -1,4 +1,4 @@
-import { RegistrationError } from './errors'
+import { LoginError, RegistrationError } from './errors'
 import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
 import { crypto } from './services/Crypto'
@@ -122,7 +122,7 @@ describe('PasswayClient', () => {
       const fetchSpy = vitest
         .spyOn(window, 'fetch')
         .mockReturnValueOnce(
-          Promise.resolve({ ...new Response(), status: 200 })
+          Promise.resolve({ ...new Response(), status: 201 })
         )
 
       await passwayClient.createUser()
@@ -145,6 +145,64 @@ describe('PasswayClient', () => {
         encryptedKeys: mockEncryptedKeys,
         publicKey: mockPublicKey,
       })
+    })
+
+    test('handles user creation failure response', async () => {
+      const mockUserHandle = dataGenerator.getRandomUint8Array(1)
+      const mockAuthenticatorAssertionResponse = Object.assign(
+        new window.AuthenticatorAssertionResponse(),
+        {
+          authenticatorData: dataGenerator.getRandomUint8Array(1),
+          clientDataJSON: dataGenerator.getRandomUint8Array(1),
+          signature: dataGenerator.getRandomUint8Array(1),
+          userHandle: mockUserHandle,
+        }
+      )
+
+      const passkeyId = 'abc123'
+      const mockPublicKeyCredential = Object.assign(
+        new window.PublicKeyCredential(),
+        {
+          authenticatorAttachment: '',
+          getClientExtensionResults: () => {
+            throw new Error()
+          },
+          id: passkeyId,
+          rawId: dataGenerator.getRandomUint8Array(1),
+          response: mockAuthenticatorAssertionResponse,
+          type: '',
+        }
+      )
+
+      const mockIv = new Uint8Array(12)
+      vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
+
+      const mockSalt = new Uint8Array(16)
+      vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
+
+      const mockEncryptedKeys = 'encrypted keys'
+      const mockPrivateKey = 'private key'
+      const mockPublicKey = 'public key'
+
+      vitest.spyOn(crypto, 'generateKeyData').mockResolvedValueOnce({
+        encryptedKeys: mockEncryptedKeys,
+        privateKey: mockPrivateKey,
+        publicKey: mockPublicKey,
+      })
+
+      vitest
+        .spyOn(navigator.credentials, 'get')
+        .mockResolvedValueOnce(mockPublicKeyCredential)
+
+      vitest
+        .spyOn(window, 'fetch')
+        .mockReturnValueOnce(
+          Promise.resolve({ ...new Response(), status: 500 })
+        )
+
+      await expect(async () => {
+        await passwayClient.createUser()
+      }).rejects.toThrowError(LoginError)
     })
   })
 

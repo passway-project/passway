@@ -222,9 +222,18 @@ export class PasswayClient {
   }
 
   destroySession = async () => {
-    await window.fetch(`${this.apiRoot}/v1/session`, {
-      method: 'DELETE',
-      credentials: 'include',
-    })
+    const deleteSessionResonse = await window.fetch(
+      `${this.apiRoot}/v1/session`,
+      {
+        method: 'DELETE',
+        credentials: 'include',
+      }
+    )
+
+    const { status } = deleteSessionResonse
+
+    // FIXME: Throw an error if the operation was not successful
+
+    return status === 200
   }
 }

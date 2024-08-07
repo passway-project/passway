@@ -492,7 +492,53 @@ describe('PasswayClient', () => {
     })
   })
 
-  describe.skip('destroySession', async () => {
-    // FIXME: Add tests
+  describe('destroySession', () => {
+    test('destroys session', async () => {
+      vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
+      vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
+
+      vitest.spyOn(crypto, 'generateKeyData').mockResolvedValueOnce({
+        encryptedKeys: mockEncryptedKeys,
+        privateKey: mockPrivateKey,
+        publicKey: mockPublicKey,
+      })
+
+      vitest
+        .spyOn(navigator.credentials, 'get')
+        .mockResolvedValueOnce(mockPublicKeyCredential)
+
+      vitest
+        .spyOn(crypto, 'decryptSerializedKeys')
+        .mockResolvedValueOnce(mockSerializedKeys)
+
+      vitest.spyOn(crypto, 'getSignature').mockResolvedValueOnce(mockSignature)
+
+      const fetchSpy = vitest
+        .spyOn(window, 'fetch')
+        .mockResolvedValueOnce({
+          ...new Response(),
+          status: 200,
+          json: async () => mockUserGetResponse,
+        })
+        .mockResolvedValueOnce({
+          ...new Response(),
+          status: 200,
+        })
+        .mockResolvedValueOnce({
+          ...new Response(),
+          status: 200,
+        })
+
+      await passwayClient.createSession()
+
+      const result = await passwayClient.destroySession()
+
+      expect(result).toEqual(true)
+
+      expect(fetchSpy).toHaveBeenNthCalledWith(3, '/v1/session', {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+    })
   })
 })

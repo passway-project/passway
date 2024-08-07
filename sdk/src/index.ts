@@ -1,7 +1,7 @@
 export * from './types'
 import { paths } from './schema'
 import { PasskeyConfig, PutUserBody, isGetUserResponse } from './types'
-import { LoginError, RegistrationError } from './errors'
+import { LoginError, PasskeyCreationError, RegistrationError } from './errors'
 import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
 import { crypto } from './services/Crypto'
@@ -28,7 +28,7 @@ export class PasswayClient {
       })
     } catch (e) {
       console.error(e)
-      throw new RegistrationError()
+      throw new PasskeyCreationError()
     }
 
     return true
@@ -95,12 +95,12 @@ export class PasswayClient {
         },
       })
 
-      if (![200, 201].includes(status)) {
+      if (status !== 201) {
         throw new Error()
       }
     } catch (e) {
       console.error(e)
-      throw new LoginError()
+      throw new RegistrationError()
     }
 
     return true

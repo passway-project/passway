@@ -1,4 +1,4 @@
-import { LoginError, RegistrationError } from './errors'
+import { PasskeyCreationError, RegistrationError } from './errors'
 import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
 import { crypto } from './services/Crypto'
@@ -77,7 +77,7 @@ describe('PasswayClient', () => {
 
       await expect(async () => {
         await passwayClient.createPasskey(stubRegistrationConfig)
-      }).rejects.toThrowError(RegistrationError)
+      }).rejects.toThrowError(PasskeyCreationError)
     })
   })
 
@@ -166,7 +166,7 @@ describe('PasswayClient', () => {
 
       await expect(async () => {
         await passwayClient.createUser()
-      }).rejects.toThrowError(LoginError)
+      }).rejects.toThrowError(RegistrationError)
 
       expect(fetchSpy).not.toHaveBeenCalled()
     })
@@ -217,12 +217,19 @@ describe('PasswayClient', () => {
 
       await expect(async () => {
         await passwayClient.createUser()
-      }).rejects.toThrowError(LoginError)
+      }).rejects.toThrowError(RegistrationError)
     })
   })
 
-  describe.skip('createSession', async () => {
+  describe('createSession', async () => {
     // FIXME: Add tests
+    test.skip('creates session with fresh credentials', async () => {})
+
+    test.skip('creates session with reused credentials', async () => {})
+
+    test.skip('handles session creation failure due to failure response', async () => {})
+
+    test.skip('handles session creation failure due to passkey retrieval error', async () => {})
   })
 
   describe.skip('destroySession', async () => {

@@ -1,7 +1,12 @@
 export * from './types'
 import { paths } from './schema'
 import { PasskeyConfig, PutUserBody, isGetUserResponse } from './types'
-import { LoginError, PasskeyCreationError, RegistrationError } from './errors'
+import {
+  LoginError,
+  LogoutError,
+  PasskeyCreationError,
+  RegistrationError,
+} from './errors'
 import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
 import { crypto } from './services/Crypto'
@@ -232,8 +237,10 @@ export class PasswayClient {
 
     const { status } = deleteSessionResonse
 
-    // FIXME: Throw an error if the operation was not successful
+    if (status !== 200) {
+      throw new LogoutError()
+    }
 
-    return status === 200
+    return true
   }
 }

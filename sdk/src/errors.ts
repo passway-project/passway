@@ -9,3 +9,7 @@ export class RegistrationError extends Error {
 export class LoginError extends Error {
   message = 'Login failed'
 }
+
+export class LogoutError extends Error {
+  message = 'Logout failed'
+}

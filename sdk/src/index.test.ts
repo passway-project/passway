@@ -1,4 +1,9 @@
-import { LoginError, PasskeyCreationError, RegistrationError } from './errors'
+import {
+  LoginError,
+  LogoutError,
+  PasskeyCreationError,
+  RegistrationError,
+} from './errors'
 import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
 import { crypto } from './services/Crypto'
@@ -539,6 +544,49 @@ describe('PasswayClient', () => {
         method: 'DELETE',
         credentials: 'include',
       })
+    })
+
+    test('handles logout failure', async () => {
+      vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
+      vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
+
+      vitest.spyOn(crypto, 'generateKeyData').mockResolvedValueOnce({
+        encryptedKeys: mockEncryptedKeys,
+        privateKey: mockPrivateKey,
+        publicKey: mockPublicKey,
+      })
+
+      vitest
+        .spyOn(navigator.credentials, 'get')
+        .mockResolvedValueOnce(mockPublicKeyCredential)
+
+      vitest
+        .spyOn(crypto, 'decryptSerializedKeys')
+        .mockResolvedValueOnce(mockSerializedKeys)
+
+      vitest.spyOn(crypto, 'getSignature').mockResolvedValueOnce(mockSignature)
+
+      vitest
+        .spyOn(window, 'fetch')
+        .mockResolvedValueOnce({
+          ...new Response(),
+          status: 200,
+          json: async () => mockUserGetResponse,
+        })
+        .mockResolvedValueOnce({
+          ...new Response(),
+          status: 200,
+        })
+        .mockResolvedValueOnce({
+          ...new Response(),
+          status: 400,
+        })
+
+      await passwayClient.createSession()
+
+      await expect(async () => {
+        await passwayClient.destroySession()
+      }).rejects.toThrowError(LogoutError)
     })
   })
 })

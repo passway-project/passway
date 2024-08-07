@@ -3,7 +3,7 @@ import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
 import { crypto } from './services/Crypto'
 
-import { PasswayClient, SerializedKeys } from '.'
+import { GetUserResponse, PasswayClient, SerializedKeys } from '.'
 
 let passwayClient = new PasswayClient({ apiRoot: '' })
 
@@ -50,6 +50,14 @@ const mockSerializedKeys: SerializedKeys = {
 }
 
 const mockSignature = dataGenerator.getRandomUint8Array(1)
+
+const mockUserGetResponse: GetUserResponse = {
+  user: {
+    keys: mockEncryptedKeys,
+    salt: dataTransform.bufferToBase64(mockSalt),
+    iv: dataTransform.bufferToBase64(mockIv),
+  },
+}
 
 beforeEach(() => {
   passwayClient = new PasswayClient({ apiRoot: '' })
@@ -158,9 +166,7 @@ describe('PasswayClient', () => {
 
       const fetchSpy = vitest
         .spyOn(window, 'fetch')
-        .mockReturnValueOnce(
-          Promise.resolve({ ...new Response(), status: 201 })
-        )
+        .mockResolvedValueOnce({ ...new Response(), status: 201 })
 
       await passwayClient.createUser()
 
@@ -247,9 +253,7 @@ describe('PasswayClient', () => {
 
       vitest
         .spyOn(window, 'fetch')
-        .mockReturnValueOnce(
-          Promise.resolve({ ...new Response(), status: 500 })
-        )
+        .mockResolvedValueOnce({ ...new Response(), status: 500 })
 
       await expect(async () => {
         await passwayClient.createUser()
@@ -280,27 +284,15 @@ describe('PasswayClient', () => {
 
       const fetchSpy = vitest
         .spyOn(window, 'fetch')
-        .mockReturnValueOnce(
-          Promise.resolve({
-            ...new Response(),
-            status: 200,
-            json: async () => {
-              return {
-                user: {
-                  keys: mockEncryptedKeys,
-                  salt: dataTransform.bufferToBase64(mockSalt),
-                  iv: dataTransform.bufferToBase64(mockIv),
-                },
-              }
-            },
-          })
-        )
-        .mockReturnValueOnce(
-          Promise.resolve({
-            ...new Response(),
-            status: 200,
-          })
-        )
+        .mockResolvedValueOnce({
+          ...new Response(),
+          status: 200,
+          json: async () => mockUserGetResponse,
+        })
+        .mockResolvedValueOnce({
+          ...new Response(),
+          status: 200,
+        })
 
       const result = await passwayClient.createSession()
       expect(result).toEqual(true)
@@ -345,27 +337,15 @@ describe('PasswayClient', () => {
           .mockResolvedValueOnce(mockSignature)
 
         fetchSpy
-          .mockReturnValueOnce(
-            Promise.resolve({
-              ...new Response(),
-              status: 200,
-              json: async () => {
-                return {
-                  user: {
-                    keys: mockEncryptedKeys,
-                    salt: dataTransform.bufferToBase64(mockSalt),
-                    iv: dataTransform.bufferToBase64(mockIv),
-                  },
-                }
-              },
-            })
-          )
-          .mockReturnValueOnce(
-            Promise.resolve({
-              ...new Response(),
-              status: 200,
-            })
-          )
+          .mockResolvedValueOnce({
+            ...new Response(),
+            status: 200,
+            json: async () => mockUserGetResponse,
+          })
+          .mockResolvedValueOnce({
+            ...new Response(),
+            status: 200,
+          })
       }
 
       const result1 = await passwayClient.createSession()

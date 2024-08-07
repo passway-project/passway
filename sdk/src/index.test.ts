@@ -1,4 +1,4 @@
-import { PasskeyCreationError, RegistrationError } from './errors'
+import { LoginError, PasskeyCreationError, RegistrationError } from './errors'
 import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
 import { crypto } from './services/Crypto'
@@ -387,9 +387,109 @@ describe('PasswayClient', () => {
       expect(getSpy).toHaveBeenCalledTimes(1)
     })
 
-    test.skip('handles session creation failure due to failure response', async () => {})
+    test('handles user retrieval failure response', async () => {
+      vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
+      vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
 
-    test.skip('handles session creation failure due to passkey retrieval error', async () => {})
+      vitest.spyOn(crypto, 'generateKeyData').mockResolvedValueOnce({
+        encryptedKeys: mockEncryptedKeys,
+        privateKey: mockPrivateKey,
+        publicKey: mockPublicKey,
+      })
+
+      vitest
+        .spyOn(navigator.credentials, 'get')
+        .mockResolvedValueOnce(mockPublicKeyCredential)
+
+      vitest
+        .spyOn(crypto, 'decryptSerializedKeys')
+        .mockResolvedValueOnce(mockSerializedKeys)
+
+      vitest.spyOn(crypto, 'getSignature').mockResolvedValueOnce(mockSignature)
+
+      const fetchSpy = vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
+        ...new Response(),
+        status: 404,
+      })
+
+      await expect(async () => {
+        await passwayClient.createSession()
+      }).rejects.toThrowError(LoginError)
+
+      // NOTE: This indicates that the operation appropriately aborted before
+      // the session creation request was made.
+      expect(fetchSpy).toHaveBeenCalledTimes(1)
+    })
+
+    test('handles session creation failure response', async () => {
+      vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
+      vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
+
+      vitest.spyOn(crypto, 'generateKeyData').mockResolvedValueOnce({
+        encryptedKeys: mockEncryptedKeys,
+        privateKey: mockPrivateKey,
+        publicKey: mockPublicKey,
+      })
+
+      vitest
+        .spyOn(navigator.credentials, 'get')
+        .mockResolvedValueOnce(mockPublicKeyCredential)
+
+      vitest
+        .spyOn(crypto, 'decryptSerializedKeys')
+        .mockResolvedValueOnce(mockSerializedKeys)
+
+      vitest.spyOn(crypto, 'getSignature').mockResolvedValueOnce(mockSignature)
+
+      const fetchSpy = vitest
+        .spyOn(window, 'fetch')
+        .mockResolvedValueOnce({
+          ...new Response(),
+          status: 200,
+          json: async () => mockUserGetResponse,
+        })
+        .mockResolvedValueOnce({
+          ...new Response(),
+          status: 400,
+        })
+
+      await expect(async () => {
+        await passwayClient.createSession()
+      }).rejects.toThrowError(LoginError)
+
+      expect(fetchSpy).toHaveBeenCalledTimes(2)
+    })
+
+    test('handles passkey retrieval error', async () => {
+      vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
+      vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
+
+      vitest.spyOn(crypto, 'generateKeyData').mockResolvedValueOnce({
+        encryptedKeys: mockEncryptedKeys,
+        privateKey: mockPrivateKey,
+        publicKey: mockPublicKey,
+      })
+
+      vitest
+        .spyOn(navigator.credentials, 'get')
+        .mockRejectedValueOnce(undefined)
+
+      vitest
+        .spyOn(crypto, 'decryptSerializedKeys')
+        .mockResolvedValueOnce(mockSerializedKeys)
+
+      vitest.spyOn(crypto, 'getSignature').mockResolvedValueOnce(mockSignature)
+
+      const fetchSpy = vitest.spyOn(window, 'fetch')
+
+      await expect(async () => {
+        await passwayClient.createSession()
+      }).rejects.toThrowError(LoginError)
+
+      // NOTE: This indicates that the operation appropriately aborted before
+      // the user data request was made.
+      expect(fetchSpy).toHaveBeenCalledTimes(0)
+    })
   })
 
   describe.skip('destroySession', async () => {

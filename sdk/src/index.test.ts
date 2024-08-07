@@ -15,6 +15,42 @@ const mockEncryptedKeys = 'encrypted keys'
 const mockPrivateKey = 'private key'
 const mockPublicKey = 'public key'
 
+const mockAuthenticatorAssertionResponse = Object.assign(
+  new window.AuthenticatorAssertionResponse(),
+  {
+    authenticatorData: dataGenerator.getRandomUint8Array(1),
+    clientDataJSON: dataGenerator.getRandomUint8Array(1),
+    signature: dataGenerator.getRandomUint8Array(1),
+    userHandle: mockUserHandle,
+  }
+)
+
+const mockPublicKeyCredential = Object.assign(
+  new window.PublicKeyCredential(),
+  {
+    authenticatorAttachment: '',
+    getClientExtensionResults: () => {
+      throw new Error()
+    },
+    id: passkeyId,
+    rawId: dataGenerator.getRandomUint8Array(1),
+    response: mockAuthenticatorAssertionResponse,
+    type: '',
+  }
+)
+
+const mockSerializedKeys: SerializedKeys = {
+  encryptionKey: mockEncryptedKeys,
+  salt: dataTransform.bufferToBase64(mockSalt),
+  iv: dataTransform.bufferToBase64(mockIv),
+  signatureKeys: {
+    privateKey: 'signature private key',
+    publicKey: 'signature public key',
+  },
+}
+
+const mockSignature = dataGenerator.getRandomUint8Array(1)
+
 beforeEach(() => {
   passwayClient = new PasswayClient({ apiRoot: '' })
 })
@@ -223,30 +259,6 @@ describe('PasswayClient', () => {
 
   describe('createSession', async () => {
     test('creates session with fresh credentials', async () => {
-      const mockAuthenticatorAssertionResponse = Object.assign(
-        new window.AuthenticatorAssertionResponse(),
-        {
-          authenticatorData: dataGenerator.getRandomUint8Array(1),
-          clientDataJSON: dataGenerator.getRandomUint8Array(1),
-          signature: dataGenerator.getRandomUint8Array(1),
-          userHandle: mockUserHandle,
-        }
-      )
-
-      const mockPublicKeyCredential = Object.assign(
-        new window.PublicKeyCredential(),
-        {
-          authenticatorAttachment: '',
-          getClientExtensionResults: () => {
-            throw new Error()
-          },
-          id: passkeyId,
-          rawId: dataGenerator.getRandomUint8Array(1),
-          response: mockAuthenticatorAssertionResponse,
-          type: '',
-        }
-      )
-
       vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
       vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
 
@@ -260,21 +272,10 @@ describe('PasswayClient', () => {
         .spyOn(navigator.credentials, 'get')
         .mockResolvedValueOnce(mockPublicKeyCredential)
 
-      const mockSerializedKeys: SerializedKeys = {
-        encryptionKey: mockEncryptedKeys,
-        salt: dataTransform.bufferToBase64(mockSalt),
-        iv: dataTransform.bufferToBase64(mockIv),
-        signatureKeys: {
-          privateKey: 'private signature key',
-          publicKey: 'public signature key',
-        },
-      }
-
       vitest
         .spyOn(crypto, 'decryptSerializedKeys')
         .mockResolvedValueOnce(mockSerializedKeys)
 
-      const mockSignature = dataGenerator.getRandomUint8Array(1)
       vitest.spyOn(crypto, 'getSignature').mockResolvedValueOnce(mockSignature)
 
       const fetchSpy = vitest
@@ -319,7 +320,7 @@ describe('PasswayClient', () => {
       })
     })
 
-    test.skip('creates session with reused credentials', async () => {})
+    test('creates session with reused credentials', async () => {})
 
     test.skip('handles session creation failure due to failure response', async () => {})
 

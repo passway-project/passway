@@ -3,7 +3,7 @@ import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
 import { crypto } from './services/Crypto'
 
-import { PasswayClient } from '.'
+import { PasswayClient, SerializedKeys } from '.'
 
 let passwayClient = new PasswayClient({ apiRoot: '' })
 
@@ -222,8 +222,102 @@ describe('PasswayClient', () => {
   })
 
   describe('createSession', async () => {
-    // FIXME: Add tests
-    test.skip('creates session with fresh credentials', async () => {})
+    test('creates session with fresh credentials', async () => {
+      const mockAuthenticatorAssertionResponse = Object.assign(
+        new window.AuthenticatorAssertionResponse(),
+        {
+          authenticatorData: dataGenerator.getRandomUint8Array(1),
+          clientDataJSON: dataGenerator.getRandomUint8Array(1),
+          signature: dataGenerator.getRandomUint8Array(1),
+          userHandle: mockUserHandle,
+        }
+      )
+
+      const mockPublicKeyCredential = Object.assign(
+        new window.PublicKeyCredential(),
+        {
+          authenticatorAttachment: '',
+          getClientExtensionResults: () => {
+            throw new Error()
+          },
+          id: passkeyId,
+          rawId: dataGenerator.getRandomUint8Array(1),
+          response: mockAuthenticatorAssertionResponse,
+          type: '',
+        }
+      )
+
+      vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
+      vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
+
+      vitest.spyOn(crypto, 'generateKeyData').mockResolvedValueOnce({
+        encryptedKeys: mockEncryptedKeys,
+        privateKey: mockPrivateKey,
+        publicKey: mockPublicKey,
+      })
+
+      vitest
+        .spyOn(navigator.credentials, 'get')
+        .mockResolvedValueOnce(mockPublicKeyCredential)
+
+      const mockSerializedKeys: SerializedKeys = {
+        encryptionKey: mockEncryptedKeys,
+        salt: dataTransform.bufferToBase64(mockSalt),
+        iv: dataTransform.bufferToBase64(mockIv),
+        signatureKeys: {
+          privateKey: 'private signature key',
+          publicKey: 'public signature key',
+        },
+      }
+
+      vitest
+        .spyOn(crypto, 'decryptSerializedKeys')
+        .mockResolvedValueOnce(mockSerializedKeys)
+
+      const mockSignature = dataGenerator.getRandomUint8Array(1)
+      vitest.spyOn(crypto, 'getSignature').mockResolvedValueOnce(mockSignature)
+
+      const fetchSpy = vitest
+        .spyOn(window, 'fetch')
+        .mockReturnValueOnce(
+          Promise.resolve({
+            ...new Response(),
+            status: 200,
+            json: async () => {
+              return {
+                user: {
+                  keys: mockEncryptedKeys,
+                  salt: dataTransform.bufferToBase64(mockSalt),
+                  iv: dataTransform.bufferToBase64(mockIv),
+                },
+              }
+            },
+          })
+        )
+        .mockReturnValueOnce(
+          Promise.resolve({
+            ...new Response(),
+            status: 200,
+          })
+        )
+
+      const result = await passwayClient.createSession()
+      expect(result).toEqual(true)
+
+      expect(fetchSpy).toHaveBeenNthCalledWith(1, '/v1/user', {
+        headers: { 'x-user-id': passkeyId },
+        method: 'GET',
+      })
+
+      expect(fetchSpy).toHaveBeenNthCalledWith(2, '/v1/session', {
+        credentials: 'include',
+        headers: {
+          'x-passway-id': passkeyId,
+          'x-passway-signature': dataTransform.bufferToBase64(mockSignature),
+        },
+        method: 'GET',
+      })
+    })
 
     test.skip('creates session with reused credentials', async () => {})
 

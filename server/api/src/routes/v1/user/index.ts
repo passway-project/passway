@@ -41,6 +41,7 @@ export const userRoute: FastifyPluginAsync = async app => {
               description: 'ID of user to look up',
             },
           },
+          // FIXME: Change this to x-passway-id
           required: ['x-user-id'],
         },
         response: {

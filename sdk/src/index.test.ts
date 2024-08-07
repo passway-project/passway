@@ -7,6 +7,14 @@ import { PasswayClient } from '.'
 
 let passwayClient = new PasswayClient({ apiRoot: '' })
 
+const mockUserHandle = dataGenerator.getRandomUint8Array(1)
+const passkeyId = 'abc123'
+const mockIv = new Uint8Array(12)
+const mockSalt = new Uint8Array(16)
+const mockEncryptedKeys = 'encrypted keys'
+const mockPrivateKey = 'private key'
+const mockPublicKey = 'public key'
+
 beforeEach(() => {
   passwayClient = new PasswayClient({ apiRoot: '' })
 })
@@ -73,7 +81,6 @@ describe('PasswayClient', () => {
 
   describe('createUser', async () => {
     test('creates user', async () => {
-      const mockUserHandle = dataGenerator.getRandomUint8Array(1)
       const mockAuthenticatorAssertionResponse = Object.assign(
         new window.AuthenticatorAssertionResponse(),
         {
@@ -84,7 +91,6 @@ describe('PasswayClient', () => {
         }
       )
 
-      const passkeyId = 'abc123'
       const mockPublicKeyCredential = Object.assign(
         new window.PublicKeyCredential(),
         {
@@ -99,15 +105,8 @@ describe('PasswayClient', () => {
         }
       )
 
-      const mockIv = new Uint8Array(12)
       vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
-
-      const mockSalt = new Uint8Array(16)
       vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
-
-      const mockEncryptedKeys = 'encrypted keys'
-      const mockPrivateKey = 'private key'
-      const mockPublicKey = 'public key'
 
       vitest.spyOn(crypto, 'generateKeyData').mockResolvedValueOnce({
         encryptedKeys: mockEncryptedKeys,
@@ -148,7 +147,6 @@ describe('PasswayClient', () => {
     })
 
     test('handles user creation failure response', async () => {
-      const mockUserHandle = dataGenerator.getRandomUint8Array(1)
       const mockAuthenticatorAssertionResponse = Object.assign(
         new window.AuthenticatorAssertionResponse(),
         {
@@ -159,7 +157,6 @@ describe('PasswayClient', () => {
         }
       )
 
-      const passkeyId = 'abc123'
       const mockPublicKeyCredential = Object.assign(
         new window.PublicKeyCredential(),
         {
@@ -174,15 +171,8 @@ describe('PasswayClient', () => {
         }
       )
 
-      const mockIv = new Uint8Array(12)
       vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
-
-      const mockSalt = new Uint8Array(16)
       vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
-
-      const mockEncryptedKeys = 'encrypted keys'
-      const mockPrivateKey = 'private key'
-      const mockPublicKey = 'public key'
 
       vitest.spyOn(crypto, 'generateKeyData').mockResolvedValueOnce({
         encryptedKeys: mockEncryptedKeys,

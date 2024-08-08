@@ -1,10 +1,11 @@
 import { SerializedKeys, isSerializedKeys } from '../../types'
 
-export const signatureKeyAlgorithmName = 'ECDSA'
-export const signatureKeyNamedCurve = 'P-521'
-export const signatureKeyHashingAlgorithm = 'SHA-256'
-export const signatureKeySaltLength = 32
-export const contentEncryptionKeyAlgorithmName = 'AES-GCM'
+const signatureKeyAlgorithmName = 'ECDSA'
+const signatureKeyNamedCurve = 'P-521'
+const signatureKeyHashingAlgorithm = 'SHA-256'
+const signatureKeySaltLength = 32
+const contentEncryptionKeyAlgorithmName = 'AES-GCM'
+const contentEncryptionKeyAlgorithmLength = 256
 
 export class CryptoService {
   importKey = async (password: string) => {
@@ -28,7 +29,10 @@ export class CryptoService {
         hash: signatureKeyHashingAlgorithm,
       },
       keyMaterial,
-      { name: contentEncryptionKeyAlgorithmName, length: 256 },
+      {
+        name: contentEncryptionKeyAlgorithmName,
+        length: contentEncryptionKeyAlgorithmLength,
+      },
       false,
       ['encrypt', 'decrypt']
     )
@@ -38,7 +42,7 @@ export class CryptoService {
     const encryptionKey = await window.crypto.subtle.generateKey(
       {
         name: contentEncryptionKeyAlgorithmName,
-        length: 256,
+        length: contentEncryptionKeyAlgorithmLength,
       },
       true,
       ['encrypt', 'decrypt']
@@ -113,7 +117,6 @@ export class CryptoService {
     }
   }
 
-  // FIXME: The semantics of this function and related types need to be improved (the keys aren't serialized here)
   decryptSerializedKeys = async (
     encryptedKeys: string,
     passkeySecret: string,

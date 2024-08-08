@@ -158,7 +158,7 @@ export class PasswayClient {
 
       const getUserHeaders: paths['/api/v1/user']['get']['parameters']['header'] =
         {
-          'x-user-id': passkeyId,
+          'x-passway-id': passkeyId,
         }
 
       const getUserResponse = await window.fetch(`${this.apiRoot}/v1/user`, {

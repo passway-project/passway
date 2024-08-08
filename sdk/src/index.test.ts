@@ -303,7 +303,7 @@ describe('PasswayClient', () => {
       expect(result).toEqual(true)
 
       expect(fetchSpy).toHaveBeenNthCalledWith(1, '/v1/user', {
-        headers: { 'x-user-id': passkeyId },
+        headers: { 'x-passway-id': passkeyId },
         method: 'GET',
       })
 
@@ -360,7 +360,7 @@ describe('PasswayClient', () => {
       expect(result2).toEqual(true)
 
       expect(fetchSpy).toHaveBeenNthCalledWith(1, '/v1/user', {
-        headers: { 'x-user-id': passkeyId },
+        headers: { 'x-passway-id': passkeyId },
         method: 'GET',
       })
 
@@ -374,7 +374,7 @@ describe('PasswayClient', () => {
       })
 
       expect(fetchSpy).toHaveBeenNthCalledWith(3, '/v1/user', {
-        headers: { 'x-user-id': passkeyId },
+        headers: { 'x-passway-id': passkeyId },
         method: 'GET',
       })
 

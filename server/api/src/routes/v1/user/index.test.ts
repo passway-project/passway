@@ -61,7 +61,7 @@ describe(endpointRoute, () => {
         method: 'GET',
         url: endpointRoute,
         headers: {
-          'x-user-id': stubUserId,
+          'x-passway-id': stubUserId,
         },
       })
 
@@ -89,7 +89,7 @@ describe(endpointRoute, () => {
         method: 'GET',
         url: endpointRoute,
         headers: {
-          'x-user-id': passkeyId,
+          'x-passway-id': passkeyId,
         },
       })
 

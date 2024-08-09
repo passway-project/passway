@@ -10,7 +10,7 @@
     "generate:types": "openapi-typescript http://api:3000/api/json -o ./src/schema.d.ts",
     "start": "run-p start:storybook start:docs",
     "start:dev": "npm run generate:types && npm run build && npm run generate:dev-cert && npm start",
-    "start:storybook": "storybook dev -p 3000 --no-open --https --ssl-cert localhost.crt --ssl-key localhost.key",
+    "start:storybook": "storybook dev -p $SDK_PORT --no-open --https --ssl-cert localhost.crt --ssl-key localhost.key",
     "start:docs": "serve -p 3001 dist/doc",
     "test": "vitest",
     "test:watch": "npm run test -- --watch",

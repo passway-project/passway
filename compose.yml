@@ -64,13 +64,14 @@ services:
     build:
       context: ./sdk
     ports:
-      - '${SDK_PORT}:3000'
+      - '${SDK_PORT}:${SDK_PORT}'
       - '${SDK_DOCS_PORT}:3001'
     depends_on:
       api:
         condition: service_healthy
     networks:
       - passway-network
+    env_file: '.env'
 
 networks:
   passway-network:

@@ -84,18 +84,14 @@ export class CryptoService {
     const signatureKeys = await this.generateSignatureKeys()
     const encryptionKey = await this.generateEncryptionKey()
 
-    const ivString = Buffer.from(iv).toString('base64')
-    const saltString = Buffer.from(salt).toString('base64')
-
     const keys: SerializedKeys = {
       encryptionKey,
       signatureKeys,
-      iv: ivString,
-      salt: saltString,
+      iv: Buffer.from(iv).toString('base64'),
+      salt: Buffer.from(salt).toString('base64'),
     }
-    const keysString = JSON.stringify(keys)
 
-    const encoder = new TextEncoder()
+    const keysString = JSON.stringify(keys)
 
     const importedKey = await this.importKey(passkeySecret)
     const derivedKey = await this.deriveKey(importedKey, salt)
@@ -106,7 +102,7 @@ export class CryptoService {
         iv,
       },
       derivedKey,
-      encoder.encode(keysString)
+      new TextEncoder().encode(keysString)
     )
 
     const encryptedKeys = Buffer.from(encryptedKeysBuffer).toString('base64')
@@ -123,25 +119,24 @@ export class CryptoService {
     ivString: string,
     saltString: string
   ) => {
-    const iv = Buffer.from(ivString, 'base64')
-    const salt = Buffer.from(saltString, 'base64')
-    const decoder = new TextDecoder()
-
     const importedKey = await this.importKey(passkeySecret)
-    const derivedKey = await this.deriveKey(importedKey, salt)
+    const derivedKey = await this.deriveKey(
+      importedKey,
+      Buffer.from(saltString, 'base64')
+    )
 
     const encryptedKeysBuffer = Buffer.from(encryptedKeys, 'base64')
 
     const decryptedKeysBuffer = await window.crypto.subtle.decrypt(
       {
         name: contentEncryptionKeyAlgorithmName,
-        iv,
+        iv: Buffer.from(ivString, 'base64'),
       },
       derivedKey,
       encryptedKeysBuffer
     )
 
-    const decryptedKeysString = decoder.decode(decryptedKeysBuffer)
+    const decryptedKeysString = new TextDecoder().decode(decryptedKeysBuffer)
     const decryptedKeys = JSON.parse(decryptedKeysString)
 
     if (!isSerializedKeys(decryptedKeys)) {
@@ -155,10 +150,9 @@ export class CryptoService {
     message: string,
     { privateKey }: { privateKey: string }
   ) => {
-    const privateKeyBuffer = Buffer.from(privateKey, 'base64')
     const signaturePrivateKey = await window.crypto.subtle.importKey(
       'pkcs8',
-      privateKeyBuffer,
+      Buffer.from(privateKey, 'base64'),
       {
         name: signatureKeyAlgorithmName,
         namedCurve: signatureKeyNamedCurve,

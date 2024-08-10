@@ -23,7 +23,6 @@ const mockPublicKey = 'public key'
 const mockAuthenticatorAssertionResponse = Object.assign(
   new window.AuthenticatorAssertionResponse(),
   {
-    authenticatorData: dataGenerator.getRandomUint8Array(1),
     clientDataJSON: dataGenerator.getRandomUint8Array(1),
     signature: dataGenerator.getRandomUint8Array(1),
     userHandle: mockUserHandle,

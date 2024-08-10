@@ -227,7 +227,7 @@ export class PasswayClient {
   }
 
   destroySession = async () => {
-    const deleteSessionResonse = await window.fetch(
+    const deleteSessionResponse = await window.fetch(
       `${this.apiRoot}/v1/session`,
       {
         method: 'DELETE',
@@ -235,7 +235,7 @@ export class PasswayClient {
       }
     )
 
-    const { status } = deleteSessionResonse
+    const { status } = deleteSessionResponse
 
     if (status !== 200) {
       throw new LogoutError()

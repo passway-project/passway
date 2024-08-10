@@ -30,7 +30,7 @@ const stubPublicKeyCredential = Object.assign(
 
 describe('login and logout', () => {
   test('user can be created and then log in and log out', async () => {
-    const createSpy = vitest
+    vitest
       .spyOn(navigator.credentials, 'create')
       .mockResolvedValue(stubPublicKeyCredential)
 
@@ -38,7 +38,7 @@ describe('login and logout', () => {
       .spyOn(navigator.credentials, 'get')
       .mockResolvedValue(stubPublicKeyCredential)
 
-    const passwayClient = new PasswayClient({ apiRoot: 'api:3000/api' })
+    const passwayClient = new PasswayClient({ apiRoot: 'http://api:3000/api' })
 
     await passwayClient.createPasskey({
       appName: 'integration-test',
@@ -46,7 +46,14 @@ describe('login and logout', () => {
       userName: 'test-user',
     })
 
-    expect(createSpy).toHaveBeenCalled()
-    // FIXME: Implement the rest of this test
+    const createUserResult = await passwayClient.createUser()
+    expect(createUserResult).toEqual(true)
+
+    const createSessionResult = await passwayClient.createSession()
+    expect(createSessionResult).toEqual(true)
+
+    // FIXME: The server is returning a 403. Determine if cookies are being set as expected.
+    //const destroySessionResult = await passwayClient.destroySession()
+    //expect(destroySessionResult).toEqual(true)
   })
 })

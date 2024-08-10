@@ -8,6 +8,7 @@ const userConfig = {
   test: {
     ...standardConfig.test,
     include: ['**/?(*.)+(integration-test).[tj]s'],
+    silent: false,
   },
 }
 

@@ -38,53 +38,38 @@ ${isTopLevel ? '' : '<p>ℹ️ NOTE: These methods will fail in the standard Sto
     const shadow = this.attachShadow({ mode: 'open' })
     shadow.appendChild(template.content.cloneNode(true))
 
-    const createPasskeyButton = shadow.querySelector('button.create-passkey')
-
-    if (!(createPasskeyButton instanceof HTMLButtonElement)) {
-      throw TypeError()
-    }
-
-    createPasskeyButton.addEventListener('click', async () => {
-      await this.client.createPasskey({
-        appName: this.getAttribute('app-name') ?? '',
-        userName: this.getAttribute('user-name') ?? '',
-        userDisplayName: this.getAttribute('user-display-name') ?? '',
+    shadow
+      .querySelector('button.create-passkey')
+      ?.addEventListener('click', async () => {
+        await this.client.createPasskey({
+          appName: this.getAttribute('app-name') ?? '',
+          userName: this.getAttribute('user-name') ?? '',
+          userDisplayName: this.getAttribute('user-display-name') ?? '',
+        })
       })
-    })
 
-    const createUserButton = shadow.querySelector('button.create-user')
+    shadow
+      .querySelector('button.create-user')
+      ?.addEventListener('click', async () => {
+        await this.client.createUser()
+      })
 
-    if (!(createUserButton instanceof HTMLButtonElement)) {
-      throw TypeError()
-    }
+    shadow
+      .querySelector('button.create-session')
+      ?.addEventListener('click', async () => {
+        await this.client.createSession()
+      })
 
-    createUserButton.addEventListener('click', async () => {
-      await this.client.createUser()
-    })
-
-    const createSessionButton = shadow.querySelector('button.create-session')
-
-    if (!(createSessionButton instanceof HTMLButtonElement)) {
-      throw TypeError()
-    }
-
-    createSessionButton.addEventListener('click', async () => {
-      await this.client.createSession()
-    })
-
-    const destroySessionButton = shadow.querySelector('button.destroy-session')
-
-    if (!(destroySessionButton instanceof HTMLButtonElement)) {
-      throw TypeError()
-    }
-
-    destroySessionButton.addEventListener('click', async () => {
-      await this.client.destroySession()
-    })
+    shadow
+      .querySelector('button.destroy-session')
+      ?.addEventListener('click', async () => {
+        await this.client.destroySession()
+      })
   }
 }
 
-// NOTE: This is a workaround for Storybook's lack of hot module reload support for Storybook
+// NOTE: This is a workaround for Storybook's lack of hot module reload support
+// for web components
 try {
   window.customElements.define('story-registration', RegistrationStory)
 } catch (e) {

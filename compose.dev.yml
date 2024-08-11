@@ -54,7 +54,7 @@ services:
     volumes:
       - ./sdk:/usr/src/app
     ports:
-      # NOTE: This ports is for debugging
+      # NOTE: These ports are for debugging
       - 9231:9231
 
 networks:

@@ -13,7 +13,7 @@ export type UserGetSuccessResponse = {
 
 export interface UserGetApi {
   Headers: {
-    'x-user-id': User['passkeyId']
+    'x-passway-id': User['passkeyId']
   }
   Reply: UserGetSuccessResponse | ReturnType<typeof httpErrors.NotFound>
 }
@@ -36,12 +36,12 @@ export const userRoute: FastifyPluginAsync = async app => {
         headers: {
           type: 'object',
           properties: {
-            'x-user-id': {
+            'x-passway-id': {
               type: 'string',
               description: 'ID of user to look up',
             },
           },
-          required: ['x-user-id'],
+          required: ['x-passway-id'],
         },
         response: {
           [StatusCodes.OK]: {
@@ -76,7 +76,7 @@ export const userRoute: FastifyPluginAsync = async app => {
     },
     async (request, reply) => {
       const requestHeaders = request.headers
-      const { 'x-user-id': passkeyId } = requestHeaders
+      const { 'x-passway-id': passkeyId } = requestHeaders
       let retrievedUser: User
 
       try {

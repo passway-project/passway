@@ -31,13 +31,22 @@ export const buildApp = async (options?: FastifyServerOptions) => {
     ...options,
   }).withTypeProvider<TypeBoxTypeProvider>()
 
-  await app.register(swagger)
+  await app.register(swagger, {
+    openapi: {
+      openapi: '3.0.0',
+    },
+  })
   await app.register(prismaPlugin)
   await app.register(fastifyCookie)
   await app.register(fastifySession, {
     secret: process.env.AUTH_SESSION_SECRET ?? '',
     store: sessionStore,
     cookieName: sessionKeyName,
+    cookie: {
+      // NOTE: This needs to be disabled for integration tests because the
+      // environment in which they run does not support HTTPS.
+      secure: process.env.IS_INTEGRATION_TEST !== 'true',
+    },
   })
 
   await app.register(swaggerUi, {

@@ -5,6 +5,8 @@ services:
       - passway-int-network
 
   api:
+    environment:
+      IS_INTEGRATION_TEST: true
     networks:
       - passway-int-network
 
@@ -16,6 +18,11 @@ services:
       - /var/lib/postgresql/data
 
   cache:
+    ports: !reset []
+    networks:
+      - passway-int-network
+
+  sdk:
     ports: !reset []
     networks:
       - passway-int-network

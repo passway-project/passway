@@ -61,7 +61,7 @@ describe('login and logout', () => {
       method: 'GET',
       url: `/${API_ROOT}/v1/${userRouteName}`,
       headers: {
-        'x-user-id': passkeyId,
+        'x-passway-id': passkeyId,
       },
     })
 

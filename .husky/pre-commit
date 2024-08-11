@@ -1,3 +1,4 @@
+npm run check:types
 npm test
-npm run lint
+npm run lint:fix
 npx pretty-quick --staged

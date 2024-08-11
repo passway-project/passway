@@ -21,6 +21,11 @@ services:
       cache:
         condition: service_healthy
     env_file: '.env'
+    healthcheck:
+      test: ['CMD', 'curl', 'localhost:3000/api', '--fail']
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   db:
     image: postgres:16
@@ -54,6 +59,19 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  sdk:
+    build:
+      context: ./sdk
+    ports:
+      - '${SDK_PORT}:${SDK_PORT}'
+      - '${SDK_DOCS_PORT}:3001'
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - passway-network
+    env_file: '.env'
 
 networks:
   passway-network:

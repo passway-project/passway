@@ -6,6 +6,7 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "start:dev": "nodemon --exec 'node --inspect=0.0.0.0:9230 --require ts-node/register src/index.ts' --ext ts",
+    "check:types": "tsc --noEmit",
     "test": "jest",
     "test:debug": "node --inspect-brk=0.0.0.0:9229 node_modules/.bin/jest --runInBand",
     "test:integration": "jest --config jest.config-integration.ts"

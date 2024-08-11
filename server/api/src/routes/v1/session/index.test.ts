@@ -188,6 +188,16 @@ describe(endpointRoute, () => {
       })
 
       expect(response.statusCode).toEqual(StatusCodes.OK)
+      expect(response.cookies).toEqual([
+        {
+          expires: new Date(0),
+          httpOnly: true,
+          name: sessionKeyName,
+          path: '/',
+          secure: true,
+          value: expect.any(String),
+        },
+      ])
 
       const authRequest = await app.inject({
         method: 'GET',

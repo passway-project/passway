@@ -49,6 +49,14 @@ services:
       cache:
         condition: service_healthy
 
+  sdk:
+    command: bash -c "npm ci && npm run start:dev"
+    volumes:
+      - ./sdk:/usr/src/app
+    ports:
+      # NOTE: These ports are for debugging
+      - 9231:9231
+
 networks:
   passway-network:
 

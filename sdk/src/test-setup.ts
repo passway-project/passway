@@ -15,6 +15,9 @@ Object.assign(navigator, {
 })
 
 // @ts-expect-error This object is not defined in the test environment
+window.AuthenticatorAttestationResponse = class {}
+
+// @ts-expect-error This object is not defined in the test environment
 window.AuthenticatorAssertionResponse = class {}
 
 // @ts-expect-error This object is not defined in the test environment

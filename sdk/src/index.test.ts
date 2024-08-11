@@ -77,24 +77,24 @@ describe('PasswayClient', () => {
           type: 'type',
         })
 
-      const stubRegistrationConfig = {
+      const mockRegistrationConfig = {
         appName: 'appName',
         userDisplayName: 'User',
         userName: 'user-name',
       }
 
-      await passwayClient.createPasskey(stubRegistrationConfig)
+      await passwayClient.createPasskey(mockRegistrationConfig)
 
       expect(createSpy).toHaveBeenCalledWith({
         publicKey: {
           challenge: expect.any(Uint8Array),
           rp: {
-            name: stubRegistrationConfig.appName,
+            name: mockRegistrationConfig.appName,
           },
           user: {
             id: expect.any(Uint8Array),
-            name: stubRegistrationConfig.userName,
-            displayName: stubRegistrationConfig.userDisplayName,
+            name: mockRegistrationConfig.userName,
+            displayName: mockRegistrationConfig.userDisplayName,
           },
           pubKeyCredParams: [
             {
@@ -117,14 +117,14 @@ describe('PasswayClient', () => {
         .spyOn(navigator.credentials, 'create')
         .mockRejectedValueOnce(undefined)
 
-      const stubRegistrationConfig = {
+      const mockRegistrationConfig = {
         appName: 'appName',
         userDisplayName: 'User',
         userName: 'user-name',
       }
 
       await expect(async () => {
-        await passwayClient.createPasskey(stubRegistrationConfig)
+        await passwayClient.createPasskey(mockRegistrationConfig)
       }).rejects.toThrowError(PasskeyCreationError)
     })
   })

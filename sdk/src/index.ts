@@ -1,6 +1,11 @@
 export * from './types'
-import { paths } from './schema'
-import { PasskeyConfig, PutUserBody, isGetUserResponse } from './types'
+import {
+  GetSessionHeaders,
+  GetUserHeaders,
+  PasskeyConfig,
+  PutUserBody,
+  isGetUserResponse,
+} from './types'
 import {
   LoginError,
   LogoutError,
@@ -156,10 +161,9 @@ export class PasswayClient {
 
       const userHandleBase64 = dataTransform.bufferToBase64(userHandle)
 
-      const getUserHeaders: paths['/api/v1/user']['get']['parameters']['header'] =
-        {
-          'x-passway-id': passkeyId,
-        }
+      const getUserHeaders: GetUserHeaders = {
+        'x-passway-id': passkeyId,
+      }
 
       const getUserResponse = await window.fetch(`${this.apiRoot}/v1/user`, {
         method: 'GET',
@@ -196,11 +200,10 @@ export class PasswayClient {
         privateKey: serializedKeys.signatureKeys.privateKey,
       })
 
-      const getSessionHeaders: paths['/api/v1/session']['get']['parameters']['header'] =
-        {
-          'x-passway-id': passkeyId,
-          'x-passway-signature': Buffer.from(signature).toString('base64'),
-        }
+      const getSessionHeaders: GetSessionHeaders = {
+        'x-passway-id': passkeyId,
+        'x-passway-signature': Buffer.from(signature).toString('base64'),
+      }
 
       const getSessionResponse = await window.fetch(
         `${this.apiRoot}/v1/session`,

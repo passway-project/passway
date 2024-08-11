@@ -53,6 +53,9 @@ export const isSerializedKeys = (obj: unknown): obj is SerializedKeys => {
   )
 }
 
+export type GetUserHeaders =
+  paths['/api/v1/user']['get']['parameters']['header']
+
 export type GetUserResponse =
   paths['/api/v1/user']['get']['responses']['200']['content']['application/json']
 
@@ -73,3 +76,6 @@ export const isGetUserResponse = (
     typeof response.user.keys === 'string'
   )
 }
+
+export type GetSessionHeaders =
+  paths['/api/v1/session']['get']['parameters']['header']

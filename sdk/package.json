@@ -13,6 +13,7 @@
     "start:storybook": "storybook dev -p $SDK_PORT --no-open --https --ssl-cert localhost.crt --ssl-key localhost.key",
     "start:docs": "serve -p 3001 dist/doc",
     "test": "vitest",
+    "test:debug": "vitest --inspect-brk=0.0.0.0:9231 --no-file-parallelism",
     "test:integration": "vitest --config vite.config-integration.js --run",
     "test:watch": "npm run test -- --watch",
     "storybook": "storybook dev -p 6006",

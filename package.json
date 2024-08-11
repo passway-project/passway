@@ -20,7 +20,9 @@
     "test": "npm run test:api && npm run test:sdk",
     "test:api": "npm run api -- npm test -- --coverage",
     "test:sdk": "npm run sdk -- npm test -- --run --coverage",
-    "test:debug": "npm run api -- npm run test:debug",
+    "test:debug": "run-p test:debug:api test:debug:sdk",
+    "test:debug:api": "npm run api -- npm run test:debug",
+    "test:debug:sdk": "npm run sdk -- npm run test:debug",
     "test:watch": "mprocs \"npm run api -- npm test -- --watchAll\" \"npm run sdk -- npm run test:watch\"",
     "test:integration": "npm run start:integration && docker compose -p int exec api npx prisma migrate dev && npm run test:integration:execute; exit_code=$? && npm run stop:integration && exit $exit_code",
     "test:integration:execute": "docker compose -p int exec api npm run test:integration && docker compose -p int exec sdk npm run test:integration",
@@ -53,6 +55,7 @@
     "eslint-plugin-prettier": "^5.1.3",
     "husky": "^9.0.11",
     "mprocs": "^0.7.1",
+    "npm-run-all": "^4.1.5",
     "prettier": "^3.3.3",
     "pretty-quick": "^4.0.0"
   },

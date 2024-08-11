@@ -53,6 +53,9 @@ services:
     command: bash -c "npm ci && npm run start:dev"
     volumes:
       - ./sdk:/usr/src/app
+    ports:
+      # NOTE: This ports is for debugging
+      - 9231:9231
 
 networks:
   passway-network:

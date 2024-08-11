@@ -1,5 +1,12 @@
+import nodeFetch from 'node-fetch'
+import fetchCookie from 'fetch-cookie'
+
 import { PasswayClient } from '../../src'
 import { dataGenerator } from '../../src/services/DataGenerator'
+
+// @ts-expect-error This is a polyfill that enables cookies to be automatically
+// used across fetch requests as they would in a browser.
+window.fetch = fetchCookie(nodeFetch)
 
 const mockUserHandle = dataGenerator.getRandomUint8Array(64)
 const stubPasskeyId = 'b1KMe302QMK9sduTOjKK9w'
@@ -52,8 +59,7 @@ describe('login and logout', () => {
     const createSessionResult = await passwayClient.createSession()
     expect(createSessionResult).toEqual(true)
 
-    // FIXME: The server is returning a 403. Determine if cookies are being set as expected.
-    //const destroySessionResult = await passwayClient.destroySession()
-    //expect(destroySessionResult).toEqual(true)
+    const destroySessionResult = await passwayClient.destroySession()
+    expect(destroySessionResult).toEqual(true)
   })
 })

@@ -42,6 +42,11 @@ export const buildApp = async (options?: FastifyServerOptions) => {
     secret: process.env.AUTH_SESSION_SECRET ?? '',
     store: sessionStore,
     cookieName: sessionKeyName,
+    cookie: {
+      // NOTE: This needs to be disabled for integration tests because the
+      // environment in which they run does not support HTTPS.
+      secure: process.env.IS_INTEGRATION_TEST !== 'true',
+    },
   })
 
   await app.register(swaggerUi, {

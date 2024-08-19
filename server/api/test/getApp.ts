@@ -1,11 +1,11 @@
 import fastify, { FastifyInstance } from 'fastify'
-import { mockDeep } from 'jest-mock-extended'
+import { mockDeep } from 'vitest-mock-extended'
 import { PrismaClient } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
 
 import { buildApp } from '../src/app'
 
-jest.mock('../src/sessionStore')
+vitest.mock('../src/sessionStore')
 
 let app: FastifyInstance = fastify()
 

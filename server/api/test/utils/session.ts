@@ -1,6 +1,6 @@
 import { PrismaClient, User } from '@prisma/client'
 import { FastifyInstance } from 'fastify'
-import { DeepMockProxy } from 'jest-mock-extended'
+import { DeepMockProxy } from 'vitest-mock-extended'
 
 import {
   routeName as sessionRouteName,

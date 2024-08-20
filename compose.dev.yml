@@ -1,6 +1,7 @@
 services:
   api:
     command: bash -c "npm ci && npm run start:dev"
+    user: '${UID}:${GID}'
     volumes:
       - ./server/api:/usr/src/app
     ports:
@@ -51,6 +52,7 @@ services:
 
   sdk:
     command: bash -c "npm ci && npm run start:dev"
+    user: '${UID}:${GID}'
     volumes:
       - ./sdk:/usr/src/app
     ports:

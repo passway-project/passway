@@ -6,7 +6,7 @@
     "build": "dotenvx run -f .env -- docker compose -f compose.yml up --build --no-start",
     "build:dev": "dotenvx run -f .env -- docker compose -f compose.yml -f compose.dev.yml up --build --no-start",
     "start": "dotenvx run -f .env -- docker compose up --detach",
-    "start:dev": "dotenvx run -f .env -- docker compose -f compose.yml -f compose.dev.yml up --detach",
+    "start:dev": "UID=$(id -u) GID=$(id -g) dotenvx run -f .env -- docker compose -f compose.yml -f compose.dev.yml up --detach",
     "start:integration": "dotenvx run -f .env -- docker compose -f compose.yml -f compose.integration-test.yml -p int up --build --detach",
     "stop": "docker compose down",
     "stop:dev": "docker compose -f compose.yml -f compose.dev.yml down",
@@ -27,14 +27,13 @@
     "test:integration": "npm run start:integration && docker compose -p int exec api npx prisma migrate dev && npm run test:integration:execute; exit_code=$? && npm run stop:integration && exit $exit_code",
     "test:integration:execute": "docker compose -p int exec api npm run test:integration && docker compose -p int exec sdk npm run test:integration",
     "prepare": "husky && npm run build && npm start && npm run db:migrate:dev",
-    "api": "docker compose exec api",
-    "sdk": "docker compose exec sdk",
+    "api": "docker compose exec --user $(id -u):$(id -g) api",
+    "sdk": "docker compose exec --user $(id -u):$(id -g) sdk",
     "db:migrate:dev": "npm run api -- npx prisma migrate dev",
     "db:migrate:prod": "npm run api -- npx prisma migrate deploy",
     "check:types": "npm run api -- npm run check:types && npm run sdk -- npm run generate:types && npm run sdk -- npm run check:types",
     "enter:api": "npm run api -- /bin/sh",
-    "enter:sdk": "npm run sdk -- /bin/sh",
-    "fix:permissions": "sudo chown -R $USER:$(id -g -n $USER) ./"
+    "enter:sdk": "npm run sdk -- /bin/sh"
   },
   "repository": {
     "type": "git",

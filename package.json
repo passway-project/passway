@@ -23,7 +23,7 @@
     "test:debug": "run-p test:debug:api test:debug:sdk",
     "test:debug:api": "npm run api -- npm run test:debug",
     "test:debug:sdk": "npm run sdk -- npm run test:debug",
-    "test:watch": "mprocs \"npm run api -- npm test -- --watchAll\" \"npm run sdk -- npm run test:watch\"",
+    "test:watch": "mprocs \"npm run api -- npm test -- --watch\" \"npm run sdk -- npm run test:watch\"",
     "test:integration": "npm run start:integration && docker compose -p int exec api npx prisma migrate dev && npm run test:integration:execute; exit_code=$? && npm run stop:integration && exit $exit_code",
     "test:integration:execute": "docker compose -p int exec api npm run test:integration && docker compose -p int exec sdk npm run test:integration",
     "prepare": "husky && npm run build && npm start && npm run db:migrate:dev",

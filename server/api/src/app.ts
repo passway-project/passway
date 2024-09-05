@@ -38,11 +38,11 @@ export const buildApp = async (options?: FastifyServerOptions) => {
     },
   })
   await app.register(prismaPlugin)
-  await app.register(fastifyCookie)
   await app.register(fastifyCors, {
     credentials: true,
     origin: true,
   })
+  await app.register(fastifyCookie)
   await app.register(fastifySession, {
     secret: process.env.AUTH_SESSION_SECRET ?? '',
     store: sessionStore,
@@ -51,6 +51,7 @@ export const buildApp = async (options?: FastifyServerOptions) => {
       // NOTE: This needs to be disabled for integration tests because the
       // environment in which they run does not support HTTPS.
       secure: process.env.IS_INTEGRATION_TEST !== 'true',
+      sameSite: 'none',
     },
   })
 

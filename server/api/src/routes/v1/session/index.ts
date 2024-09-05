@@ -174,6 +174,7 @@ export const sessionRoute: FastifyPluginAsync = async app => {
           path: '/',
           httpOnly: true,
           secure: true,
+          sameSite: 'none',
         })
 
         await request.session.destroy()

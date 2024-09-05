@@ -1,5 +1,6 @@
 import Fastify, { FastifyServerOptions } from 'fastify'
 import swagger from '@fastify/swagger'
+import fastifyCors from '@fastify/cors'
 import fastifyCookie from '@fastify/cookie'
 import fastifySession from '@fastify/session'
 import swaggerUi from '@fastify/swagger-ui'
@@ -38,6 +39,10 @@ export const buildApp = async (options?: FastifyServerOptions) => {
   })
   await app.register(prismaPlugin)
   await app.register(fastifyCookie)
+  await app.register(fastifyCors, {
+    credentials: true,
+    origin: true,
+  })
   await app.register(fastifySession, {
     secret: process.env.AUTH_SESSION_SECRET ?? '',
     store: sessionStore,

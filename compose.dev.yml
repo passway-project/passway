@@ -40,7 +40,7 @@ services:
     image: ghcr.io/joeferner/redis-commander:latest
     restart: always
     environment:
-      REDIS_HOSTS: 'local:cache:${CACHE_PORT}'
+      REDIS_HOSTS: 'local:cache'
       REDIS_DATABASE: ${CACHE_NAME}
     ports:
       - '${CACHE_ADMIN_PORT}:8081'

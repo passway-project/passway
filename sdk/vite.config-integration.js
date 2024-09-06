@@ -1,3 +1,4 @@
+/* c8 ignore start */
 import standardConfig from './vite.config'
 
 /**

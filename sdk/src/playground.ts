@@ -1,3 +1,4 @@
+/* c8 ignore start */
 import { PasswayClient } from './'
 
 class PasswayRegistration extends HTMLElement {

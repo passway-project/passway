@@ -1,3 +1,4 @@
+/* c8 ignore start */
 import { StatusCodes } from 'http-status-codes'
 import fastify, { FastifyInstance } from 'fastify'
 

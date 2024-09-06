@@ -1,3 +1,4 @@
+/* c8 ignore start */
 import fastify, { FastifyInstance } from 'fastify'
 import { mockDeep } from 'vitest-mock-extended'
 import { PrismaClient } from '@prisma/client'

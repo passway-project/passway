@@ -4,6 +4,18 @@ import fs from 'node:fs'
 import { defineConfig } from 'vite'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
+/** @type {Buffer | undefined} */
+let cert
+/** @type {Buffer | undefined} */
+let key
+
+try {
+  cert = fs.readFileSync('localhost.crt')
+  key = fs.readFileSync('localhost.key')
+} catch (e) {
+  console.warn('SSL certificates not found')
+}
+
 export default defineConfig({
   root: __dirname,
   build: {
@@ -30,8 +42,8 @@ export default defineConfig({
   },
   server: {
     https: {
-      cert: fs.readFileSync('localhost.crt'),
-      key: fs.readFileSync('localhost.key'),
+      cert,
+      key,
     },
   },
 })

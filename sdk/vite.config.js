@@ -1,4 +1,5 @@
-import { resolve } from 'path'
+import { resolve } from 'node:path'
+import fs from 'node:fs'
 
 import { defineConfig } from 'vite'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
@@ -26,5 +27,11 @@ export default defineConfig({
     mockReset: true,
     restoreMocks: true,
     setupFiles: ['src/test-setup.ts'],
+  },
+  server: {
+    https: {
+      cert: fs.readFileSync('localhost.crt'),
+      key: fs.readFileSync('localhost.key'),
+    },
   },
 })

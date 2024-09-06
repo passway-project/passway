@@ -1,3 +1,4 @@
+/* c8 ignore start */
 module.exports = {
   presets: [
     ['@babel/preset-env', { targets: { node: 'current' } }],

@@ -1,11 +1,7 @@
-import type { Meta, StoryObj } from '@storybook/html'
+/* c8 ignore start */
+import { PasswayClient } from './'
 
-import { PasswayClient } from '..'
-import { PasskeyConfig } from '../types'
-
-const isTopLevel = window.parent === window
-
-class RegistrationStory extends HTMLElement {
+class PasswayRegistration extends HTMLElement {
   private client = new PasswayClient({
     apiRoot: 'http://localhost:3123/api',
   })
@@ -20,7 +16,6 @@ button {
 </style>
 
 <h1><code>passwayClient</code></h1>
-${isTopLevel ? '' : '<p>ℹ️ NOTE: These methods will fail in the standard Storybook UI because it uses an <code>iframe</code>. Navigate to the story directly in the sidebar and click &ldquo;Open canvas in new tab&ldquo; in the upper right.</p>'}
 <button class="create-passkey"><code>createPasskey()</code></button>
 <button class="create-user"><code>createUser()</code></button>
 <button class="create-session"><code>createSession()</code></button>
@@ -68,39 +63,11 @@ ${isTopLevel ? '' : '<p>ℹ️ NOTE: These methods will fail in the standard Sto
   }
 }
 
-// NOTE: This is a workaround for Storybook's lack of hot module reload support
-// for web components
-try {
-  window.customElements.define('story-registration', RegistrationStory)
-} catch (e) {
-  window.location.reload()
-  console.error(e)
-}
+window.customElements.define('passway-registration', PasswayRegistration)
 
-export default {
-  title: 'passwayClient',
-  tags: ['autodocs'],
-  render: ({ appName, userDisplayName, userName }) => {
-    return `<story-registration app-name="${appName}" user-display-name="${userDisplayName}" user-name="${userName}"/>`
-  },
-  args: {
-    appName: 'Passway Demo',
-    userName: 'example-user',
-    userDisplayName: 'Example User',
-  },
-  argTypes: {
-    appName: {
-      type: 'string',
-    },
-    userName: {
-      type: 'string',
-    },
-    userDisplayName: {
-      type: 'string',
-    },
-  },
-} satisfies Meta<PasskeyConfig>
+const passwayRegistration = document.createElement('passway-registration')
+passwayRegistration.setAttribute('app-name', 'Passway Demo')
+passwayRegistration.setAttribute('user-name', 'example-user')
+passwayRegistration.setAttribute('user-display-name', 'Example User')
 
-export const PublicMethods: StoryObj<PasskeyConfig> = {
-  args: {},
-}
+document.body.appendChild(passwayRegistration)

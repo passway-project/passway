@@ -1,3 +1,4 @@
+/* c8 ignore start */
 import { PrismaClient, User } from '@prisma/client'
 import { FastifyInstance } from 'fastify'
 import { DeepMockProxy } from 'vitest-mock-extended'

@@ -8,16 +8,14 @@
     "build:docs": "typedoc src/index.ts",
     "generate:dev-cert": "openssl req -x509 -sha256 -nodes -newkey rsa:2048 -days 365 -keyout localhost.key -out localhost.crt -subj \"/CN=localhost\"",
     "generate:types": "openapi-typescript http://api:3000/api/json -o ./src/schema.d.ts",
-    "start": "run-p start:storybook start:docs",
+    "start": "run-p start:playground start:docs",
     "start:dev": "npm run generate:types && npm run build && npm run generate:dev-cert && npm start",
-    "start:storybook": "storybook dev -p $SDK_PORT --no-open --https --ssl-cert localhost.crt --ssl-key localhost.key",
+    "start:playground": "vite --host=0.0.0.0 --port=$SDK_PORT",
     "start:docs": "serve -p 3001 dist/doc",
     "test": "vitest",
     "test:debug": "vitest --inspect-brk=0.0.0.0:9231 --no-file-parallelism --run",
     "test:integration": "vitest --config vite.config-integration.js --run",
     "test:watch": "npm run test -- --watch",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
     "check:types": "tsc --noEmit"
   },
   "repository": {
@@ -36,14 +34,6 @@
     "vitest": "^2.0.4"
   },
   "devDependencies": {
-    "@chromatic-com/storybook": "^1.6.1",
-    "@storybook/addon-essentials": "^8.2.6",
-    "@storybook/addon-interactions": "^8.2.6",
-    "@storybook/addon-links": "^8.2.6",
-    "@storybook/blocks": "^8.2.6",
-    "@storybook/html": "^8.2.6",
-    "@storybook/html-vite": "^8.2.6",
-    "@storybook/test": "^8.2.6",
     "@vitest/coverage-v8": "^2.0.5",
     "fetch-cookie": "^3.0.1",
     "jsdom": "^24.1.1",
@@ -51,7 +41,6 @@
     "npm-run-all": "^4.1.5",
     "openapi-typescript": "^7.3.0",
     "serve": "^14.2.3",
-    "storybook": "^8.2.6",
     "typedoc": "^0.26.5"
   }
 }

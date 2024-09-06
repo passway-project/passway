@@ -33,9 +33,8 @@ npm start
 This will start the whole stack via Docker. By default:
 
 - The API can be accessed at http://localhost:3123/api with [Swagger UI](https://swagger.io/tools/swagger-ui/) at the root.
-- The SDK Storybook can be accessed at https://localhost:3126/.
-  - This environment is served via a self-signed certificate that is generated when the stack is booted. You will probably be shown a browser warning UI when opening the page. If so, you will need to accept any risks described by the browser in order to access the Storybook.
-  - The functionality presented in the Storybook environment will mostly not work unless you open the stories in their own tab due to WebAuthn iframe restrictions. This can be done by pressing the "Open canvas in new tab" button in the upper right when navigating to a specific story.
+- The SDK playground can be accessed at https://localhost:3126/.
+  - This environment is served via a self-signed certificate that is generated when the stack is booted. You will probably be shown a browser warning UI when opening the page. If so, you will need to accept any risks described by the browser in order to access the playground.
 - The SDK documentation can be accessed at http://localhost:3127/.
 
 Once started, Passway can be stopped.

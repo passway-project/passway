@@ -43,6 +43,7 @@ const sessionCookie = {
   httpOnly: true,
   name: sessionKeyName,
   path: '/',
+  sameSite: 'None',
   secure: true,
   value: expect.any(String),
 }
@@ -194,6 +195,7 @@ describe(endpointRoute, () => {
           httpOnly: true,
           name: sessionKeyName,
           path: '/',
+          sameSite: 'None',
           secure: true,
           value: expect.any(String),
         },

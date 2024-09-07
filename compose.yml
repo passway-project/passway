@@ -73,6 +73,16 @@ services:
       - passway-network
     env_file: '.env'
 
+  content-store:
+    image: bitnami/minio:2024.8.29
+    ports:
+      - '${CONTENT_STORE_PORT}:9000'
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    networks:
+      - passway-network
+
 networks:
   passway-network:
 

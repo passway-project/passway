@@ -59,6 +59,11 @@ services:
       # NOTE: These ports are for debugging
       - 9231:9231
 
+  content-store:
+    ports:
+      - '${CONTENT_STORE_PORT}:9000'
+      - '${CONTENT_STORE_ADMIN_PORT}:9001'
+
 networks:
   passway-network:
 

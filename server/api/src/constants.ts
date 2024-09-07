@@ -1,5 +1,7 @@
 export const API_ROOT = 'api'
 
+export const contentPathRoot = `/${API_ROOT}/v1/content`
+
 export const sessionKeyName = 'passwaySessionId'
 
 export const signatureKeyAlgorithmName = 'ECDSA'

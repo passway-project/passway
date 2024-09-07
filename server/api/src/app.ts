@@ -6,10 +6,12 @@ import fastifySession from '@fastify/session'
 import swaggerUi from '@fastify/swagger-ui'
 import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes'
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
+import { Server } from '@tus/server'
+import { S3Store } from '@tus/s3-store'
 
 import prismaPlugin from '../prisma/prismaPlugin'
 
-import { API_ROOT, sessionKeyName } from './constants'
+import { API_ROOT, contentPathRoot, sessionKeyName } from './constants'
 import * as routes from './routes'
 import { sessionStore } from './sessionStore'
 import { preHandlers } from './hooks/preHandler'
@@ -53,6 +55,36 @@ export const buildApp = async (options?: FastifyServerOptions) => {
       secure: process.env.IS_INTEGRATION_TEST !== 'true',
       sameSite: 'none',
     },
+  })
+
+  const s3Store = new S3Store({
+    partSize: 8 * 1024 * 1024, // Each uploaded part will have ~8MiB,
+    s3ClientConfig: {
+      bucket: (process.env.MINIO_DEFAULT_BUCKETS ?? '').split(',')[0],
+      region: process.env.MINIO_SERVER_REGION ?? '',
+      credentials: {
+        accessKeyId: process.env.MINIO_SERVER_ACCESS_KEY ?? '',
+        secretAccessKey: process.env.MINIO_SERVER_SECRET_KEY ?? '',
+      },
+    },
+  })
+
+  const tusServer = new Server({
+    path: contentPathRoot,
+    datastore: s3Store,
+  })
+
+  app.addContentTypeParser(
+    'application/offset+octet-stream',
+    (_request, _payload, done) => done(null)
+  )
+
+  app.all(contentPathRoot, (req, res) => {
+    tusServer.handle(req.raw, res.raw)
+  })
+
+  app.all(`${contentPathRoot}/*`, (req, res) => {
+    tusServer.handle(req.raw, res.raw)
   })
 
   await app.register(swaggerUi, {

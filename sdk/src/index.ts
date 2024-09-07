@@ -1,3 +1,5 @@
+import { Upload } from 'tus-js-client'
+
 export * from './types'
 import {
   GetSessionHeaders,
@@ -245,5 +247,54 @@ export class PasswayClient {
     }
 
     return true
+  }
+
+  // FIXME: This is exploratory and not known to work
+  upload = (data: Upload['file'], dataName: string) => {
+    const uploadPromise = new Promise<void>((resolve, reject) => {
+      const upload = new Upload(data, {
+        // Endpoint is the upload creation URL from your tus server
+        endpoint: `${this.apiRoot}/v1/content/`,
+        // Retry delays will enable tus-js-client to automatically retry on errors
+        retryDelays: [0, 3000, 5000, 10000, 20000],
+        // Attach additional meta data about the file for the server
+        metadata: {
+          filename: dataName,
+        },
+
+        // Callback for errors which cannot be fixed using retries
+        onError: function (error) {
+          console.log('Failed because: ' + error)
+          reject()
+        },
+        // Callback for reporting upload progress
+        onProgress: function (bytesUploaded, bytesTotal) {
+          const percentage = ((bytesUploaded / bytesTotal) * 100).toFixed(2)
+          console.log(bytesUploaded, bytesTotal, percentage + '%')
+        },
+        // Callback for once the upload is completed
+        onSuccess: function () {
+          console.log('Download %s from %s', dataName, upload.url)
+          resolve()
+        },
+
+        onShouldRetry: function (err) {
+          const status = err.originalResponse
+            ? err.originalResponse.getStatus()
+            : 0
+          // If the status is a 403, we do not want to retry.
+          if (status === 403) {
+            return false
+          }
+
+          // For any other status code, tus-js-client should retry.
+          return true
+        },
+      })
+
+      upload.start()
+    })
+
+    return uploadPromise
   }
 }

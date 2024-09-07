@@ -20,6 +20,7 @@ button {
 <button class="create-user"><code>createUser()</code></button>
 <button class="create-session"><code>createSession()</code></button>
 <button class="destroy-session"><code>destroySession()</code></button>
+<input class="upload" type="file" />
 `
 
   connectedCallback() {
@@ -60,6 +61,18 @@ button {
       ?.addEventListener('click', async () => {
         await this.client.destroySession()
       })
+
+    const uploadInput = shadow.querySelector<HTMLInputElement>('input.upload')
+    uploadInput?.addEventListener('change', async () => {
+      const [file] = uploadInput.files ?? []
+
+      if (!file) {
+        console.warn('No file provided')
+        return
+      }
+
+      await this.client.upload(file, 'upload-test')
+    })
   }
 }
 

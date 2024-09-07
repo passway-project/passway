@@ -60,9 +60,12 @@ export const buildApp = async (options?: FastifyServerOptions) => {
   const s3Store = new S3Store({
     partSize: 8 * 1024 * 1024, // Each uploaded part will have ~8MiB,
     s3ClientConfig: {
+      forcePathStyle: true,
+      endpoint: `http://content-store:9000`,
       bucket: (process.env.MINIO_DEFAULT_BUCKETS ?? '').split(',')[0],
       region: process.env.MINIO_SERVER_REGION ?? '',
       credentials: {
+        // FIXME: These need to be automatically provisioned in MinIO
         accessKeyId: process.env.MINIO_SERVER_ACCESS_KEY ?? '',
         secretAccessKey: process.env.MINIO_SERVER_SECRET_KEY ?? '',
       },

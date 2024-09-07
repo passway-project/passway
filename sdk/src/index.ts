@@ -253,6 +253,9 @@ export class PasswayClient {
   upload = (data: Upload['file'], dataName: string) => {
     const uploadPromise = new Promise<void>((resolve, reject) => {
       const upload = new Upload(data, {
+        // FIXME: The actual upload isn't using the right port for some reason
+        // See: https://github.com/tus/tus-js-client/issues/85
+        //
         // Endpoint is the upload creation URL from your tus server
         endpoint: `${this.apiRoot}/v1/content/`,
         // Retry delays will enable tus-js-client to automatically retry on errors
@@ -283,7 +286,7 @@ export class PasswayClient {
             ? err.originalResponse.getStatus()
             : 0
           // If the status is a 403, we do not want to retry.
-          if (status === 403) {
+          if (status === 403 || status === 500) {
             return false
           }
 
@@ -291,7 +294,7 @@ export class PasswayClient {
           return true
         },
         onBeforeRequest: function (request) {
-          const xhr = request.getUnderlyingObject()
+          const xhr: XMLHttpRequest = request.getUnderlyingObject()
           xhr.withCredentials = true
         },
       })

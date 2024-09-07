@@ -290,6 +290,10 @@ export class PasswayClient {
           // For any other status code, tus-js-client should retry.
           return true
         },
+        onBeforeRequest: function (request) {
+          const xhr = request.getUnderlyingObject()
+          xhr.withCredentials = true
+        },
       })
 
       upload.start()

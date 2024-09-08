@@ -73,6 +73,9 @@ export const buildApp = async (options?: FastifyServerOptions) => {
   })
 
   const tusServer = new Server({
+    generateUrl: (_request, { host, id, path, proto }) => {
+      return `${proto}://${host}:${process.env.AUTHENTICATION_APP_PORT}${path}/${id}`
+    },
     path: contentPathRoot,
     datastore: s3Store,
   })

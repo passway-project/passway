@@ -80,6 +80,7 @@ services:
       - '${CONTENT_STORE_PORT}:9000'
     volumes:
       - ./server/content-storage/provision-minio.sh:/opt/provision-minio.sh:ro
+      - content_store_data:/bitnami/minio/data
     env_file: '.env'
     networks:
       - passway-network
@@ -89,3 +90,4 @@ networks:
 
 volumes:
   db_data:
+  content_store_data:

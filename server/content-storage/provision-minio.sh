@@ -8,4 +8,5 @@ do
   sleep 2s
 done
 
+echo "Setting MinIO access key. If this is not the first time Passway is booted, this is expected to log an error."
 mc admin user svcacct add --access-key $MINIO_SERVER_ACCESS_KEY --secret-key $MINIO_SERVER_SECRET_KEY local $MINIO_ROOT_USER

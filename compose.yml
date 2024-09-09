@@ -74,10 +74,12 @@ services:
     env_file: '.env'
 
   content-store:
-    command: bash -c "/opt/bitnami/scripts/minio/run.sh & until mc admin user svcacct add --access-key ${MINIO_SERVER_ACCESS_KEY} --secret-key ${MINIO_SERVER_SECRET_KEY} local minio-root-user; do sleep 5; done & wait"
+    command: bash -c "/opt/bitnami/scripts/minio/run.sh & sh /opt/provision-minio.sh & wait"
     image: bitnami/minio:2024.8.29
     ports:
       - '${CONTENT_STORE_PORT}:9000'
+    volumes:
+      - ./server/content-storage/provision-minio.sh:/opt/provision-minio.sh:ro
     env_file: '.env'
     networks:
       - passway-network

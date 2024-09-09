@@ -77,12 +77,17 @@ services:
     image: bitnami/minio:2024.8.29
     ports:
       - '${CONTENT_STORE_PORT}:9000'
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-      MINIO_DEFAULT_BUCKETS: ${MINIO_DEFAULT_BUCKETS}
+    env_file: '.env'
     networks:
       - passway-network
+    healthcheck:
+      # NOTE: This healthcheck does double duty: It attempts to set the access
+      # key repeatedly until it succeeds, and then it reports a healthy
+      # container when it completes cleanly.
+      test: mc admin user svcacct add --access-key ${MINIO_SERVER_ACCESS_KEY} --secret-key ${MINIO_SERVER_SECRET_KEY} local minio-root-user
+      interval: 2s
+      start_period: 2s
+      retries: 5
 
 networks:
   passway-network:

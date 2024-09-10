@@ -249,31 +249,23 @@ export class PasswayClient {
     return true
   }
 
-  upload = (data: Upload['file'], dataName: string) => {
+  // FIXME: Add support for large files
+  // FIXME: Add support for encrypting data prior to uploading
+  upload = (data: Upload['file']) => {
     const uploadPromise = new Promise<void>((resolve, reject) => {
       const upload = new Upload(data, {
-        // Endpoint is the upload creation URL from your tus server
         endpoint: `${this.apiRoot}/v1/content/`,
-        // Retry delays will enable tus-js-client to automatically retry on errors
+
         retryDelays: [0, 3000, 5000, 10000, 20000],
-        // Attach additional meta data about the file for the server
-        metadata: {
-          filename: dataName,
+
+        metadata: {},
+
+        onError: error => {
+          console.error('Upload failed: ' + error)
+          reject(error)
         },
 
-        // Callback for errors which cannot be fixed using retries
-        onError: function (error) {
-          console.log('Failed because: ' + error)
-          reject()
-        },
-        // Callback for reporting upload progress
-        onProgress: function (bytesUploaded, bytesTotal) {
-          const percentage = ((bytesUploaded / bytesTotal) * 100).toFixed(2)
-          console.log(bytesUploaded, bytesTotal, percentage + '%')
-        },
-        // Callback for once the upload is completed
-        onSuccess: function () {
-          console.log('Download %s from %s', dataName, upload.url)
+        onSuccess: () => {
           resolve()
         },
 
@@ -281,15 +273,15 @@ export class PasswayClient {
           const status = err.originalResponse
             ? err.originalResponse.getStatus()
             : 0
-          // If the status is a 403 or 500, we do not want to retry.
+
           if (status === 403 || status === 500) {
             return false
           }
 
-          // For any other status code, tus-js-client should retry.
           return true
         },
-        onBeforeRequest: function (request) {
+
+        onBeforeRequest: request => {
           const xhr: XMLHttpRequest = request.getUnderlyingObject()
           xhr.withCredentials = true
         },

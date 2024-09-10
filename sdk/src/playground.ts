@@ -71,7 +71,7 @@ button {
         return
       }
 
-      await this.client.upload(file, 'upload-test')
+      await this.client.upload(file)
     })
   }
 }

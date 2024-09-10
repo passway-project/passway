@@ -11,7 +11,12 @@ import { S3Store } from '@tus/s3-store'
 
 import prismaPlugin from '../prisma/prismaPlugin'
 
-import { API_ROOT, contentPathRoot, sessionKeyName } from './constants'
+import {
+  API_ROOT,
+  containerName,
+  contentPathRoot,
+  sessionKeyName,
+} from './constants'
 import * as v1Routes from './routes/v1'
 import { healthcheckRoute } from './routes/healthcheck'
 import { sessionStore } from './sessionStore'
@@ -62,7 +67,7 @@ export const buildApp = async (options?: FastifyServerOptions) => {
     partSize: 8 * 1024 * 1024, // Each uploaded part will have ~8MiB,
     s3ClientConfig: {
       forcePathStyle: true,
-      endpoint: `http://content-store:9000`,
+      endpoint: `http://${containerName.CONTENT_STORE}:9000`,
       bucket: (process.env.MINIO_DEFAULT_BUCKETS ?? '').split(',')[0],
       region: process.env.MINIO_SERVER_REGION ?? '',
       credentials: {

@@ -1,5 +1,10 @@
 export const API_ROOT = 'api'
 
+export enum containerName {
+  CACHE = 'cache',
+  CONTENT_STORE = 'content-store',
+}
+
 export const contentPathRoot = `/${API_ROOT}/v1/content`
 
 export const sessionKeyName = 'passwaySessionId'

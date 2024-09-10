@@ -1,9 +1,8 @@
 import Redis from 'ioredis'
 
-// NOTE: This is a reference to the Docker container name.
-const cacheContainerName = 'cache'
+import { containerName } from './constants'
 
 export const redisClient = new Redis({
-  host: cacheContainerName,
+  host: containerName.CACHE,
   password: process.env.CACHE_PASSWORD,
 })

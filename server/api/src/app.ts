@@ -12,7 +12,7 @@ import { S3Store } from '@tus/s3-store'
 import prismaPlugin from '../prisma/prismaPlugin'
 
 import { API_ROOT, contentPathRoot, sessionKeyName } from './constants'
-import * as routes from './routes'
+import * as v1Routes from './routes/v1'
 import { healthcheckRoute } from './routes/healthcheck'
 import { sessionStore } from './sessionStore'
 import { preHandlers } from './hooks/preHandler'
@@ -111,7 +111,7 @@ export const buildApp = async (options?: FastifyServerOptions) => {
     logLevel: 'silent',
   })
 
-  for (const route of Object.values(routes)) {
+  for (const route of Object.values(v1Routes)) {
     await app.register(route, { prefix: `/${API_ROOT}/v1` })
   }
 

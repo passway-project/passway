@@ -22,8 +22,8 @@ services:
         condition: service_healthy
     env_file: '.env'
     healthcheck:
-      test: ['CMD', 'curl', 'localhost:3000/api', '--fail']
-      interval: 5s
+      test: ['CMD', 'curl', 'localhost:3000/api/healthcheck', '--fail']
+      interval: 2s
       timeout: 5s
       retries: 5
 

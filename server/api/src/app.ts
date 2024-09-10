@@ -65,7 +65,6 @@ export const buildApp = async (options?: FastifyServerOptions) => {
       bucket: (process.env.MINIO_DEFAULT_BUCKETS ?? '').split(',')[0],
       region: process.env.MINIO_SERVER_REGION ?? '',
       credentials: {
-        // FIXME: These need to be automatically provisioned in MinIO
         accessKeyId: process.env.MINIO_SERVER_ACCESS_KEY ?? '',
         secretAccessKey: process.env.MINIO_SERVER_SECRET_KEY ?? '',
       },
@@ -100,6 +99,7 @@ export const buildApp = async (options?: FastifyServerOptions) => {
       deepLinking: true,
       tryItOutEnabled: true,
     },
+    logLevel: 'silent',
 
     theme: {
       css: [{ filename: 'theme.css', content }],

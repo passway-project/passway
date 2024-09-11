@@ -31,6 +31,7 @@
     "api:as-root": "docker compose exec api",
     "sdk": "docker compose exec --user $(id -u):$(id -g) sdk",
     "sdk:as-root": "docker compose exec sdk",
+    "content-store": "docker compose exec --user $(id -u):$(id -g) content-store",
     "content-store:as-root": "docker compose exec content-store",
     "db:migrate:dev": "npm run api -- npx prisma migrate dev",
     "db:migrate:prod": "npm run api -- npx prisma migrate deploy",

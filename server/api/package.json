@@ -38,6 +38,7 @@
     "http-errors": "^2.0.0",
     "http-status-codes": "^2.3.0",
     "ioredis": "^5.4.1",
+    "minio": "^8.0.1",
     "nodemon": "^3.1.4",
     "pino-pretty": "^11.2.1",
     "prisma": "^5.15.1",

@@ -8,6 +8,7 @@ import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes'
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 import { Server } from '@tus/server'
 import { S3Store } from '@tus/s3-store'
+import * as Minio from 'minio'
 
 import prismaPlugin from '../prisma/prismaPlugin'
 
@@ -75,6 +76,18 @@ export const buildApp = async (options?: FastifyServerOptions) => {
         secretAccessKey: process.env.MINIO_SERVER_SECRET_KEY ?? '',
       },
     },
+  })
+
+  await app.register(async () => {
+    const minioClient = new Minio.Client({
+      endPoint: containerName.CONTENT_STORE,
+      port: 9000,
+      useSSL: false,
+      accessKey: process.env.MINIO_SERVER_ACCESS_KEY ?? '',
+      secretKey: process.env.MINIO_SERVER_SECRET_KEY ?? '',
+    })
+
+    app.decorate('minioClient', minioClient)
   })
 
   const tusServer = new Server({

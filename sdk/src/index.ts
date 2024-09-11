@@ -17,7 +17,7 @@ import {
 import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
 import { crypto } from './services/Crypto'
-import { signatureMessage } from './constants'
+import { chunkSizeMB, signatureMessage } from './constants'
 
 interface PasswayClientConfig {
   apiRoot: string
@@ -249,11 +249,11 @@ export class PasswayClient {
     return true
   }
 
-  // FIXME: Add support for large files
   // FIXME: Add support for encrypting data prior to uploading
   upload = (data: Upload['file']) => {
     const uploadPromise = new Promise<void>((resolve, reject) => {
       const upload = new Upload(data, {
+        chunkSize: chunkSizeMB * 1024 * 1024,
         endpoint: `${this.apiRoot}/v1/content/`,
 
         retryDelays: [0, 3000, 5000, 10000, 20000],

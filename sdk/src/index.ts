@@ -254,7 +254,7 @@ export class PasswayClient {
     const uploadPromise = new Promise<void>((resolve, reject) => {
       const upload = new Upload(data, {
         chunkSize: chunkSizeMB * 1024 * 1024,
-        endpoint: `${this.apiRoot}/v1/content/`,
+        endpoint: `${this.apiRoot}/v1/upload/`,
 
         retryDelays: [0, 3000, 5000, 10000, 20000],
 

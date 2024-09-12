@@ -4,14 +4,12 @@ import { S3Store } from '@tus/s3-store'
 
 import { containerName } from '../../../constants'
 
-export const routeName = 'content'
+export const routeName = 'upload'
 
-export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
+export const uploadRoute: FastifyPluginAsync<{ prefix: string }> = async (
   app,
   options
 ) => {
-  const contentPathRoot = `${options.prefix}/${routeName}`
-
   const s3Store = new S3Store({
     partSize: 8 * 1024 * 1024, // Each uploaded part will have ~8MiB,
     s3ClientConfig: {
@@ -30,7 +28,7 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
     generateUrl: (_request, { host, id, path, proto }) => {
       return `${proto}://${host}:${process.env.API_PORT}${path}/${id}`
     },
-    path: contentPathRoot,
+    path: `${options.prefix}/${routeName}`,
     datastore: s3Store,
   })
 

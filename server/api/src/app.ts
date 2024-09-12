@@ -6,18 +6,11 @@ import fastifySession from '@fastify/session'
 import swaggerUi from '@fastify/swagger-ui'
 import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes'
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
-import { Server } from '@tus/server'
-import { S3Store } from '@tus/s3-store'
 import * as Minio from 'minio'
 
 import prismaPlugin from '../prisma/prismaPlugin'
 
-import {
-  API_ROOT,
-  containerName,
-  contentPathRoot,
-  sessionKeyName,
-} from './constants'
+import { API_ROOT, containerName, sessionKeyName } from './constants'
 import * as v1Routes from './routes/v1'
 import { healthcheckRoute } from './routes/healthcheck'
 import { sessionStore } from './sessionStore'
@@ -64,20 +57,6 @@ export const buildApp = async (options?: FastifyServerOptions) => {
     },
   })
 
-  const s3Store = new S3Store({
-    partSize: 8 * 1024 * 1024, // Each uploaded part will have ~8MiB,
-    s3ClientConfig: {
-      forcePathStyle: true,
-      endpoint: `http://${containerName.CONTENT_STORE}:9000`,
-      bucket: (process.env.MINIO_DEFAULT_BUCKETS ?? '').split(',')[0],
-      region: process.env.MINIO_SERVER_REGION ?? '',
-      credentials: {
-        accessKeyId: process.env.MINIO_SERVER_ACCESS_KEY ?? '',
-        secretAccessKey: process.env.MINIO_SERVER_SECRET_KEY ?? '',
-      },
-    },
-  })
-
   await app.register(async () => {
     const minioClient = new Minio.Client({
       endPoint: containerName.CONTENT_STORE,
@@ -88,27 +67,6 @@ export const buildApp = async (options?: FastifyServerOptions) => {
     })
 
     app.decorate('minioClient', minioClient)
-  })
-
-  const tusServer = new Server({
-    generateUrl: (_request, { host, id, path, proto }) => {
-      return `${proto}://${host}:${process.env.API_PORT}${path}/${id}`
-    },
-    path: contentPathRoot,
-    datastore: s3Store,
-  })
-
-  app.addContentTypeParser(
-    'application/offset+octet-stream',
-    (_request, _payload, done) => done(null)
-  )
-
-  app.all(contentPathRoot, (req, res) => {
-    tusServer.handle(req.raw, res.raw)
-  })
-
-  app.all(`${contentPathRoot}/*`, (req, res) => {
-    tusServer.handle(req.raw, res.raw)
   })
 
   await app.register(swaggerUi, {

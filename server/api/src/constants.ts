@@ -5,8 +5,6 @@ export enum containerName {
   CONTENT_STORE = 'content-store',
 }
 
-export const contentPathRoot = `/${API_ROOT}/v1/content`
-
 export const sessionKeyName = 'passwaySessionId'
 
 export const signatureKeyAlgorithmName = 'ECDSA'

@@ -252,12 +252,14 @@ export class PasswayClient {
   // FIXME: Add support for encrypting data prior to uploading
   upload = (data: Upload['file']) => {
     const uploadPromise = new Promise<void>((resolve, reject) => {
-      const upload = new Upload(data, {
+      const readableStream =
+        data instanceof Blob ? data.stream().getReader() : data
+
+      const upload = new Upload(readableStream, {
         chunkSize: chunkSizeMB * 1024 * 1024,
+        uploadLengthDeferred: true,
         endpoint: `${this.apiRoot}/v1/upload/`,
-
         retryDelays: [0, 3000, 5000, 10000, 20000],
-
         metadata: {},
 
         onError: error => {

@@ -30,6 +30,11 @@ export const uploadRoute: FastifyPluginAsync<{ prefix: string }> = async (
     },
     path: `${options.prefix}/${routeName}`,
     datastore: s3Store,
+    onUploadFinish: async (_request, response, upload) => {
+      // FIXME: Create file metadata record
+      app.log.info(upload, 'Upload complete')
+      return response
+    },
   })
 
   // NOTE: Needed for tus-node-server

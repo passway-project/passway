@@ -13,13 +13,6 @@ import {
   signatureKeySaltLength,
 } from '../../../constants'
 
-declare module 'fastify' {
-  interface Session {
-    authenticated?: boolean
-    userId?: User['id']
-  }
-}
-
 export const routeName = 'session'
 
 // TODO: Rather than use a hardcoded signature base, make it dynamic per-session

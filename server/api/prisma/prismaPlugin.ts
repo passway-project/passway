@@ -3,13 +3,6 @@ import { PrismaClient } from '@prisma/client'
 
 // NOTE: Adapted from https://www.prisma.io/fastify
 
-// Use TypeScript module augmentation to declare the type of server.prisma to be PrismaClient
-declare module 'fastify' {
-  interface FastifyInstance {
-    prisma: PrismaClient
-  }
-}
-
 const prismaPlugin = fastifyPlugin(async server => {
   const prisma = new PrismaClient()
 

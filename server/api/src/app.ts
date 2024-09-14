@@ -30,6 +30,7 @@ export const buildApp = async (options?: FastifyServerOptions) => {
           ignore: 'pid,hostname',
         },
       },
+      level: process.env.MODE === 'production' ? 'info' : 'debug',
     },
     ...options,
   }).withTypeProvider<TypeBoxTypeProvider>()
@@ -50,9 +51,9 @@ export const buildApp = async (options?: FastifyServerOptions) => {
     store: sessionStore,
     cookieName: sessionKeyName,
     cookie: {
-      // NOTE: This needs to be disabled for integration tests because the
-      // environment in which they run does not support HTTPS.
-      secure: process.env.IS_INTEGRATION_TEST !== 'true',
+      // NOTE: This needs to be disabled for tests because the environment in
+      // which they run does not support HTTPS.
+      secure: process.env.MODE !== 'integration-test',
       sameSite: 'none',
     },
   })

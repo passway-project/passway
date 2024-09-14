@@ -8,6 +8,9 @@ services:
       # NOTE: These ports are for debugging
       - 9229:9229
       - 9230:9230
+    env_file:
+      - .env
+      - .env.development
 
   db-admin:
     image: dpage/pgadmin4
@@ -58,11 +61,17 @@ services:
     ports:
       # NOTE: These ports are for debugging
       - 9231:9231
+    env_file:
+      - .env
+      - .env.development
 
   content-store:
     ports:
       - '${CONTENT_STORE_PORT}:9000'
       - '${CONTENT_STORE_ADMIN_PORT}:9001'
+    env_file:
+      - .env
+      - .env.development
 
 networks:
   passway-network:

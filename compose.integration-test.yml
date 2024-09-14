@@ -9,6 +9,9 @@ services:
       IS_INTEGRATION_TEST: true
     networks:
       - passway-int-network
+    env_file:
+      - .env
+      - .env.integration-test
 
   db:
     ports: !reset []
@@ -26,11 +29,17 @@ services:
     ports: !reset []
     networks:
       - passway-int-network
+    env_file:
+      - .env
+      - .env.integration-test
 
   content-store:
     ports: !reset []
     networks:
       - passway-int-network
+    env_file:
+      - .env
+      - .env.integration-test
 
 networks:
   passway-int-network:

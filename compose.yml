@@ -20,7 +20,8 @@ services:
         condition: service_healthy
       cache:
         condition: service_healthy
-    env_file: '.env'
+    env_file:
+      - .env
     healthcheck:
       test: ['CMD', 'curl', 'localhost:3000/api/healthcheck', '--fail']
       interval: 2s
@@ -71,7 +72,8 @@ services:
         condition: service_healthy
     networks:
       - passway-network
-    env_file: '.env'
+    env_file:
+      - .env
 
   content-store:
     command: bash -c "/opt/bitnami/scripts/minio/run.sh & sh /opt/provision-minio.sh & wait"
@@ -81,7 +83,8 @@ services:
     volumes:
       - ./server/content-storage/provision-minio.sh:/opt/provision-minio.sh:ro
       - content_store_data:/bitnami/minio/data
-    env_file: '.env'
+    env_file:
+      - .env
     networks:
       - passway-network
 

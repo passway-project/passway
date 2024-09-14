@@ -33,7 +33,7 @@ export const uploadRoute: FastifyPluginAsync<{ prefix: string }> = async (
     path: `${options.prefix}/${routeName}`,
     datastore: s3Store,
     onUploadFinish: async (request, response, upload) => {
-      app.log.info(upload, 'Upload complete')
+      app.log.debug(upload, 'Upload complete')
       const { [sessionKeyName]: sessionId } = app.parseCookie(
         request.headers.cookie ?? ''
       )
@@ -79,7 +79,7 @@ export const uploadRoute: FastifyPluginAsync<{ prefix: string }> = async (
 
       try {
         const result = await app.prisma.fileMetadata.create(fileMetadataRecord)
-        app.log.info(result, 'Created file metadata record')
+        app.log.debug(result, 'Created file metadata record')
       } catch (e) {
         app.log.error(e, 'Could not record file metadata')
       }

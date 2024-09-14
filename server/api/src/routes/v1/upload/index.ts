@@ -1,8 +1,10 @@
-import { FastifyPluginAsync } from 'fastify'
+import { FastifyPluginAsync, Session } from 'fastify'
 import { Server } from '@tus/server'
 import { S3Store } from '@tus/s3-store'
+import { Prisma } from '@prisma/client'
 
-import { containerName } from '../../../constants'
+import { containerName, sessionKeyName } from '../../../constants'
+import { sessionStore } from '../../../sessionStore'
 
 export const routeName = 'upload'
 
@@ -30,9 +32,58 @@ export const uploadRoute: FastifyPluginAsync<{ prefix: string }> = async (
     },
     path: `${options.prefix}/${routeName}`,
     datastore: s3Store,
-    onUploadFinish: async (_request, response, upload) => {
-      // FIXME: Create file metadata record
+    onUploadFinish: async (request, response, upload) => {
       app.log.info(upload, 'Upload complete')
+      const { [sessionKeyName]: sessionId } = app.parseCookie(
+        request.headers.cookie ?? ''
+      )
+
+      let userId = -1
+
+      try {
+        userId = await new Promise<number>((resolve, reject) => {
+          sessionStore.get(
+            `${sessionId.split('.')[0]}`,
+            (err, data: Session) => {
+              if (err) {
+                reject(err)
+              }
+              const { userId, authenticated } = data
+
+              if (!authenticated || typeof userId !== 'number') {
+                app.log.error(data, 'User is not authenticated')
+                return reject(new Error('User is not authenticated'))
+              }
+
+              resolve(userId)
+            }
+          )
+        })
+      } catch (e) {
+        app.log.error(`Could not find data for session ID ${sessionId}`)
+      }
+
+      const { size: contentSize } = upload
+
+      if (typeof contentSize !== 'number') {
+        throw new Error()
+      }
+
+      const fileMetadataRecord: Prisma.FileMetadataCreateArgs = {
+        data: {
+          contentId: upload.id,
+          contentSize,
+          userId,
+        },
+      }
+
+      try {
+        const result = await app.prisma.fileMetadata.create(fileMetadataRecord)
+        app.log.info(result, 'Created file metadata record')
+      } catch (e) {
+        app.log.error(e, 'Could not record file metadata')
+      }
+
       return response
     },
   })

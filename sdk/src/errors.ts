@@ -13,3 +13,7 @@ export class LoginError extends Error {
 export class LogoutError extends Error {
   message = 'Logout failed'
 }
+
+export class AuthenticationError extends Error {
+  message = 'The user is not authenticated'
+}

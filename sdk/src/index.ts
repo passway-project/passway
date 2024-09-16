@@ -9,6 +9,7 @@ import {
   isGetUserResponse,
 } from './types'
 import {
+  AuthenticationError,
   LoginError,
   LogoutError,
   PasskeyCreationError,
@@ -17,10 +18,17 @@ import {
 import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
 import { crypto } from './services/Crypto'
-import { chunkSizeMB, signatureMessage } from './constants'
+import { uploadChunkSizeMB, signatureMessage } from './constants'
 
 interface PasswayClientConfig {
   apiRoot: string
+}
+
+export interface UploadOptions {
+  /**
+   * Default value: true
+   */
+  enableEncryption?: boolean
 }
 
 export class PasswayClient {
@@ -28,6 +36,23 @@ export class PasswayClient {
 
   private passkeyId: string | null = null
   private userHandle: ArrayBuffer | null = null
+
+  private getEncryptedDataStreamReader = async (data: Upload['file']) => {
+    const readableStream =
+      data instanceof Blob ? data.stream().getReader() : data
+
+    const { userHandle } = this
+
+    if (userHandle === null) {
+      throw new AuthenticationError()
+    }
+
+    const encryptedStream = await crypto
+      .getKeychain(dataTransform.bufferToBase64(userHandle))
+      .encryptStream(dataTransform.convertReaderToStream(readableStream))
+
+    return encryptedStream.getReader()
+  }
 
   constructor({ apiRoot }: PasswayClientConfig) {
     this.apiRoot = apiRoot
@@ -249,27 +274,17 @@ export class PasswayClient {
     return true
   }
 
-  // FIXME: Make encryption optional
-  // FIXME: Add support for encrypting data prior to uploading
-  upload = async (data: Upload['file']) => {
-    const readableStream =
-      data instanceof Blob ? data.stream().getReader() : data
-
-    const { userHandle } = this
-
-    if (userHandle === null) {
-      throw new TypeError()
-    }
-
-    const encryptedStreamReader = (
-      await crypto
-        .getKeychain(dataTransform.bufferToBase64(userHandle))
-        .encryptStream(dataTransform.convertReaderToStream(readableStream))
-    ).getReader()
+  upload = async (
+    data: Upload['file'],
+    { enableEncryption = true }: UploadOptions = {}
+  ) => {
+    const dataStream = enableEncryption
+      ? await this.getEncryptedDataStreamReader(data)
+      : data
 
     const uploadPromise = new Promise<void>((resolve, reject) => {
-      const upload = new Upload(encryptedStreamReader, {
-        chunkSize: chunkSizeMB * 1024 * 1024,
+      const upload = new Upload(dataStream, {
+        chunkSize: uploadChunkSizeMB * 1024 * 1024,
         uploadLengthDeferred: true,
         endpoint: `${this.apiRoot}/v1/upload/`,
         retryDelays: [0, 3000, 5000, 10000, 20000],

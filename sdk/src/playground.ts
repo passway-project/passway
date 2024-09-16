@@ -6,6 +6,13 @@ class PasswayRegistration extends HTMLElement {
     apiRoot: 'http://localhost:3123/api',
   })
 
+  get isEncryptionEnabled() {
+    return (
+      this.shadowRoot?.querySelector<HTMLInputElement>('.encrypt-data')
+        ?.checked ?? false
+    )
+  }
+
   connectedCallback() {
     const template = document.querySelector<HTMLTemplateElement>(
       'template.playground'
@@ -55,7 +62,9 @@ class PasswayRegistration extends HTMLElement {
         return
       }
 
-      await this.client.upload(file)
+      const { isEncryptionEnabled } = this
+
+      await this.client.upload(file, { enableEncryption: isEncryptionEnabled })
     })
   }
 }

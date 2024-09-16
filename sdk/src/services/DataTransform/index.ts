@@ -18,6 +18,28 @@ export class DataTransformService {
 
     return base64String
   }
+
+  // NOTE: Adapted from https://chatgpt.com/share/66e796d0-e340-8011-affe-8c6199269cbf
+  convertReaderToStream = (
+    reader: Pick<ReadableStreamDefaultReader, 'read'>
+  ): ReadableStream => {
+    return new ReadableStream({
+      async pull(controller) {
+        const { done, value } = await reader.read()
+
+        if (done) {
+          controller.close()
+          return
+        }
+
+        controller.enqueue(value)
+      },
+      cancel() {
+        // TODO: Implmeent this
+        // Optional: handle stream cancellation if necessary
+      },
+    })
+  }
 }
 
 export const dataTransform = new DataTransformService()

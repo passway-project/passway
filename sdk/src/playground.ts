@@ -6,28 +6,12 @@ class PasswayRegistration extends HTMLElement {
     apiRoot: 'http://localhost:3123/api',
   })
 
-  private templateHTML = `
-<style>
-button {
-  display: block;
-  margin: 1rem;
-  font-size: 1rem;
-}
-</style>
-
-<h1><code>passwayClient</code></h1>
-<button class="create-passkey"><code>createPasskey()</code></button>
-<button class="create-user"><code>createUser()</code></button>
-<button class="create-session"><code>createSession()</code></button>
-<button class="destroy-session"><code>destroySession()</code></button>
-<input class="upload" type="file" />
-`
-
   connectedCallback() {
-    const template = document.createElement('template')
-    template.innerHTML = this.templateHTML
+    const template = document.querySelector<HTMLTemplateElement>(
+      'template.playground'
+    )
 
-    if (!(template instanceof HTMLTemplateElement)) {
+    if (!template) {
       throw new TypeError()
     }
 

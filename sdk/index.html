@@ -6,6 +6,22 @@
   </head>
   <body>
     <div id="sdk"></div>
+    <template class="playground">
+      <style>
+        button {
+          display: block;
+          margin: 1rem;
+          font-size: 1rem;
+        }
+      </style>
+
+      <h1><code>passwayClient</code></h1>
+      <button class="create-passkey"><code>createPasskey()</code></button>
+      <button class="create-user"><code>createUser()</code></button>
+      <button class="create-session"><code>createSession()</code></button>
+      <button class="destroy-session"><code>destroySession()</code></button>
+      <input class="upload" type="file" />
+    </template>
     <script type="module" src="/src/playground.ts"></script>
   </body>
 </html>

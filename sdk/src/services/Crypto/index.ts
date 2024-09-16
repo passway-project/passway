@@ -177,14 +177,17 @@ export class CryptoService {
     return signature
   }
 
-  getKeychain = (password: string) => {
+  getKeychain = (password: string, salt = window.location.host) => {
     const encoder = new TextEncoder()
     const keyLength = 16
     const padding = new Array(keyLength).join('0')
     const key = password.concat(padding).slice(0, keyLength)
-    const salt = window.location.origin.concat(padding).slice(0, keyLength)
+    const paddedSalt = salt.concat(padding).slice(0, keyLength)
 
-    const keychain = new Keychain(encoder.encode(key), encoder.encode(salt))
+    const keychain = new Keychain(
+      encoder.encode(key),
+      encoder.encode(paddedSalt)
+    )
 
     return keychain
   }

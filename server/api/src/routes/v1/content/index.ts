@@ -92,11 +92,11 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
   // https://github.com/tus/tus-node-server?tab=readme-ov-file#quick-start
   app.addContentTypeParser('application/offset+octet-stream', async () => null)
 
-  app.all(`/${routeName}`, (req, res) => {
-    tusServer.handle(req.raw, res.raw)
+  app.all(`/${routeName}`, (request, reply) => {
+    tusServer.handle(request.raw, reply.raw)
   })
 
-  app.all(`/${routeName}/*`, (req, res) => {
-    tusServer.handle(req.raw, res.raw)
+  app.all(`/${routeName}/*`, (request, reply) => {
+    tusServer.handle(request.raw, reply.raw)
   })
 }

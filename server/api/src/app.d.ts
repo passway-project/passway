@@ -1,3 +1,4 @@
+import { PrismaClient } from '@prisma/client'
 import { Client } from 'minio'
 
 declare module 'fastify' {

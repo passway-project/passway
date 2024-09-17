@@ -286,7 +286,8 @@ export class PasswayClient {
       const upload = new Upload(dataStream, {
         chunkSize: uploadChunkSizeMB * 1024 * 1024,
         uploadLengthDeferred: true,
-        endpoint: `${this.apiRoot}/v1/upload/`,
+        // FIXME: Make constants for routes
+        endpoint: `${this.apiRoot}/v1/content/`,
         retryDelays: [0, 3000, 5000, 10000, 20000],
         metadata: {},
 

@@ -6,9 +6,9 @@ import { Prisma } from '@prisma/client'
 import { containerName, sessionKeyName } from '../../../constants'
 import { sessionStore } from '../../../sessionStore'
 
-export const routeName = 'upload'
+export const routeName = 'content'
 
-export const uploadRoute: FastifyPluginAsync<{ prefix: string }> = async (
+export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
   app,
   options
 ) => {

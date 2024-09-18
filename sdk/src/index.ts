@@ -323,4 +323,28 @@ export class PasswayClient {
 
     return uploadPromise
   }
+
+  // FIXME: Test this
+  listContent = async () => {
+    const getContentListResponse = await window.fetch(
+      `${this.apiRoot}/v1/content/list`,
+      {
+        method: 'GET',
+        credentials: 'include',
+      }
+    )
+
+    const { status: getContentListResponseStatus } = getContentListResponse
+
+    if (getContentListResponseStatus !== 200) {
+      throw new Error(
+        `Received error from ${this.apiRoot}/v1/content/list: ${getContentListResponseStatus}`
+      )
+    }
+
+    // FIXME: Validate the type of getContentListResponseBody
+    const getContentListResponseBody = await getContentListResponse.json()
+
+    return getContentListResponseBody
+  }
 }

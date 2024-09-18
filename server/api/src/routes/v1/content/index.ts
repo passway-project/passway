@@ -100,13 +100,18 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
     tusServer.handle(request.raw, reply.raw)
   })
 
-  // FIXME: Test this
-  // FIXME: Implement pagination
-  // FIXME: Implement filtering
+  // NOTE: This is a stub implementation of the content/list route. At the
+  // moment it only serves to stand up just enough functionality to test
+  // content uploading and downloading. It is not complete and will change
+  // significantly (and possibly go away entirely).
+  //
+  // TODO: Test this
+  // TODO: Implement pagination
+  // TODO: Implement filtering
   app.get(
     `/${routeName}/list`,
     {
-      // FIXME: Define schema
+      // TODO: Define schema
     },
     async (request, reply) => {
       const { userId } = request.session

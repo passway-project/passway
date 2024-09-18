@@ -66,6 +66,13 @@ class PasswayRegistration extends HTMLElement {
 
       await this.client.upload(file, { enableEncryption: isEncryptionEnabled })
     })
+
+    shadow
+      .querySelector('button.list-content')
+      ?.addEventListener('click', async () => {
+        const contentList = await this.client.listContent()
+        console.log({ contentList })
+      })
   }
 }
 

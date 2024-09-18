@@ -3,6 +3,8 @@ import { Server } from '@tus/server'
 import { S3Store } from '@tus/s3-store'
 import { Prisma } from '@prisma/client'
 
+import { StatusCodes } from 'http-status-codes'
+
 import { containerName, sessionKeyName } from '../../../constants'
 import { sessionStore } from '../../../sessionStore'
 
@@ -103,7 +105,7 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
   // NOTE: This is a stub implementation of the content/list route. At the
   // moment it only serves to stand up just enough functionality to test
   // content uploading and downloading. It is not complete and will change
-  // significantly (and possibly go away entirely).
+  // significantly.
   //
   // TODO: Test this
   // TODO: Implement pagination
@@ -112,6 +114,25 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
     `/${routeName}/list`,
     {
       // TODO: Define schema
+      schema: {
+        response: {
+          [StatusCodes.OK]: {
+            description: 'Content found',
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                contentId: {
+                  type: 'string',
+                },
+                contentSize: {
+                  type: 'number',
+                },
+              },
+            },
+          },
+        },
+      },
     },
     async (request, reply) => {
       const { userId } = request.session

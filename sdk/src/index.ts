@@ -274,6 +274,7 @@ export class PasswayClient {
     return true
   }
 
+  // FIXME: Test this
   upload = async (
     data: Upload['file'],
     { enableEncryption = true }: UploadOptions = {}

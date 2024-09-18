@@ -99,4 +99,26 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
   app.all(`/${routeName}/*`, (request, reply) => {
     tusServer.handle(request.raw, reply.raw)
   })
+
+  // FIXME: Test this
+  // FIXME: Implement pagination
+  // FIXME: Implement filtering
+  app.get(
+    `/${routeName}/list`,
+    {
+      // FIXME: Define schema
+    },
+    async (request, reply) => {
+      const { userId } = request.session
+
+      const result = await app.prisma.fileMetadata.findMany({
+        select: { contentId: true, contentSize: true },
+        where: {
+          userId,
+        },
+      })
+
+      reply.send(result)
+    }
+  )
 }

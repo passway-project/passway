@@ -76,8 +76,8 @@ services:
       - .env
 
   content-store:
-    command: bash -c "/opt/bitnami/scripts/minio/run.sh & sh /opt/provision-minio.sh & wait"
     image: bitnami/minio:2024.8.29
+    command: bash -c "/opt/bitnami/scripts/minio/run.sh & sh /opt/provision-minio.sh & wait"
     ports:
       - '${CONTENT_STORE_PORT}:9000'
     volumes:

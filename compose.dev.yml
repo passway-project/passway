@@ -12,6 +12,10 @@ services:
       - .env
       - .env.development
 
+  db:
+    command:
+      ['postgres', '-c', 'log_statement=all', '-c', 'log_destination=stderr']
+
   db-admin:
     image: dpage/pgadmin4
     ports:

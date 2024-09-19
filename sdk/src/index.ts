@@ -6,6 +6,7 @@ import {
   GetUserHeaders,
   PasskeyConfig,
   PutUserBody,
+  isGetContentListResponse,
   isGetUserResponse,
 } from './types'
 import {
@@ -14,6 +15,7 @@ import {
   LogoutError,
   PasskeyCreationError,
   RegistrationError,
+  ResponseBodyError,
 } from './errors'
 import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
@@ -343,8 +345,11 @@ export class PasswayClient {
       )
     }
 
-    // FIXME: Validate the type of getContentListResponseBody
     const getContentListResponseBody = await getContentListResponse.json()
+
+    if (!isGetContentListResponse(getContentListResponseBody)) {
+      throw new ResponseBodyError()
+    }
 
     return getContentListResponseBody
   }

@@ -17,3 +17,7 @@ export class LogoutError extends Error {
 export class AuthenticationError extends Error {
   message = 'The user is not authenticated'
 }
+
+export class ResponseBodyError extends Error {
+  message = 'The expected response was not received'
+}

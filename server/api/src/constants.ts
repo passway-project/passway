@@ -15,3 +15,5 @@ export const signatureKeyHashingAlgorithm = 'SHA-256'
 export const signatureKeySaltLength = 32
 
 export const contentEncryptionKeyAlgorithmName = 'AES-GCM'
+
+export const contentBucketName = 'passway-bucket'

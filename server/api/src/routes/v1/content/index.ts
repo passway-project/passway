@@ -2,10 +2,15 @@ import { FastifyPluginAsync, Session } from 'fastify'
 import { Server } from '@tus/server'
 import { S3Store } from '@tus/s3-store'
 import { Prisma } from '@prisma/client'
+import httpErrors from 'http-errors'
 
 import { StatusCodes } from 'http-status-codes'
 
-import { containerName, sessionKeyName } from '../../../constants'
+import {
+  containerName,
+  contentBucketName,
+  sessionKeyName,
+} from '../../../constants'
 import { sessionStore } from '../../../sessionStore'
 
 export const routeName = 'content'
@@ -145,6 +150,43 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
       })
 
       reply.send(result)
+    }
+  )
+
+  app.get<{ Params: { contentId: string } }>(
+    `/${routeName}/:contentId`,
+    {
+      schema: {
+        params: {
+          contentId: {
+            type: 'string',
+          },
+        },
+        response: {
+          [StatusCodes.OK]: {
+            content: {
+              'text/plain': {},
+            },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const { contentId } = request.params
+
+      try {
+        const objectDataStream = await app.minioClient.getObject(
+          contentBucketName,
+          contentId
+        )
+
+        reply.header('content-type', 'text/plain')
+
+        return reply.send(objectDataStream)
+      } catch (e) {
+        app.log.error(e, `Object ID ${contentId} lookup failed`)
+        return reply.send(httpErrors.InternalServerError())
+      }
     }
   )
 }

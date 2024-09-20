@@ -360,6 +360,12 @@ export class PasswayClient {
       throw new ArgumentError('contentId is empty')
     }
 
+    const { userHandle } = this
+
+    if (userHandle === null) {
+      throw new AuthenticationError()
+    }
+
     const getContentResponse = await window.fetch(
       `${this.apiRoot}/v1/content/${contentId}`,
       {
@@ -382,7 +388,10 @@ export class PasswayClient {
       throw new ResponseBodyError()
     }
 
-    // FIXME: Decrypt the data
-    return body
+    const decryptedStream = await crypto
+      .getKeychain(dataTransform.bufferToBase64(userHandle))
+      .decryptStream(body)
+
+    return decryptedStream
   }
 }

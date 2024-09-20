@@ -165,7 +165,7 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
         response: {
           [StatusCodes.OK]: {
             content: {
-              'text/plain': {},
+              'application/octet-stream': {},
             },
           },
         },
@@ -180,7 +180,7 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
           contentId
         )
 
-        reply.header('content-type', 'text/plain')
+        reply.header('content-type', 'application/octet-stream')
 
         return reply.send(objectDataStream)
       } catch (e) {

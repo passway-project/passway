@@ -21,3 +21,5 @@ export class AuthenticationError extends Error {
 export class ResponseBodyError extends Error {
   message = 'The expected response was not received'
 }
+
+export class ArgumentError extends Error {}

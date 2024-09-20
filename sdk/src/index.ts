@@ -10,6 +10,7 @@ import {
   isGetUserResponse,
 } from './types'
 import {
+  ArgumentError,
   AuthenticationError,
   LoginError,
   LogoutError,
@@ -352,5 +353,36 @@ export class PasswayClient {
     }
 
     return getContentListResponseBody
+  }
+
+  download = async (contentId: string) => {
+    if (contentId.length === 0) {
+      throw new ArgumentError('contentId is empty')
+    }
+
+    const getContentResponse = await window.fetch(
+      `${this.apiRoot}/v1/content/${contentId}`,
+      {
+        method: 'GET',
+        credentials: 'include',
+      }
+    )
+
+    const { status: getContentResponseStatus } = getContentResponse
+
+    if (getContentResponseStatus !== 200) {
+      throw new Error(
+        `Received error from ${this.apiRoot}/v1/content/${contentId}: ${getContentResponseStatus}`
+      )
+    }
+
+    const { body } = getContentResponse
+
+    if (body === null) {
+      throw new ResponseBodyError()
+    }
+
+    // FIXME: Decrypt the data
+    return body
   }
 }

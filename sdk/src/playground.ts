@@ -1,4 +1,8 @@
 /* c8 ignore start */
+import { createWriteStream } from 'streamsaver'
+
+import { dataTransform } from './services/DataTransform'
+
 import { PasswayClient } from './'
 
 class PasswayRegistration extends HTMLElement {
@@ -72,6 +76,20 @@ class PasswayRegistration extends HTMLElement {
       ?.addEventListener('click', async () => {
         const contentList = await this.client.listContent()
         console.log({ contentList })
+      })
+
+    shadow
+      .querySelector('button.download')
+      ?.addEventListener('click', async () => {
+        const [{ contentId, contentSize }] = await this.client.listContent()
+        const reader = await this.client.download(contentId ?? '')
+
+        const writeStream = createWriteStream('download.txt', {
+          size: contentSize,
+        })
+
+        const writer = writeStream.getWriter()
+        reader.pipeTo(dataTransform.convertWriterToStream(writer))
       })
   }
 }

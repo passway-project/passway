@@ -40,6 +40,24 @@ export class DataTransformService {
       },
     })
   }
+
+  // TODO: Currently this is only used by the playground. Expose it in actual
+  // SDK methods somehow.
+  convertWriterToStream = (
+    writer: WritableStreamDefaultWriter<Uint8Array>
+  ): WritableStream<Uint8Array> => {
+    return new WritableStream<Uint8Array>({
+      async write(chunk) {
+        await writer.write(chunk)
+      },
+      async close() {
+        await writer.close()
+      },
+      async abort(err) {
+        await writer.abort(err)
+      },
+    })
+  }
 }
 
 export const dataTransform = new DataTransformService()

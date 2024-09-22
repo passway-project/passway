@@ -81,18 +81,26 @@ class PasswayRegistration extends HTMLElement {
       ?.addEventListener('click', async () => {
         const contentList = await this.client.listContent()
 
-        for (const content of contentList) {
-          const objectLink = document.createElement('passway-object-link')
+        const { objectLinkList } = this
 
-          if (!(objectLink instanceof PasswayObjectLink)) {
-            throw new Error()
+        if (objectLinkList) {
+          while (objectLinkList.lastChild) {
+            objectLinkList.removeChild(objectLinkList.lastChild)
           }
 
-          objectLink.contentId = content.contentId ?? ''
-          objectLink.contentSize = content.contentSize
-          objectLink.client = this.client
+          for (const content of contentList) {
+            const objectLink = document.createElement('passway-object-link')
 
-          this.objectLinkList?.appendChild(objectLink)
+            if (!(objectLink instanceof PasswayObjectLink)) {
+              throw new Error()
+            }
+
+            objectLink.contentId = content.contentId ?? ''
+            objectLink.contentSize = content.contentSize
+            objectLink.client = this.client
+
+            objectLinkList.appendChild(objectLink)
+          }
         }
       })
   }

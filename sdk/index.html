@@ -28,6 +28,7 @@
       <button class="destroy-session"><code>destroySession()</code></button>
       <hr />
       <div class="upload-control">
+        <h2>Upload a file</h2>
         <label>
           <input type="checkbox" checked class="encrypt-data" /><span
             >Encrypt data</span
@@ -37,7 +38,12 @@
       </div>
       <hr />
       <button class="list-content"><code>listContent()</code></button>
-      <button class="download"><code>download()</code> and save to file</button>
+      <ul class="object-links"></ul>
+    </template>
+    <template class="object-link">
+      <li>
+        <button />
+      </li>
     </template>
     <script type="module" src="/src/playground.ts"></script>
   </body>

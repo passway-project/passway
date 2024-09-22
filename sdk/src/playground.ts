@@ -10,6 +10,8 @@ class PasswayRegistration extends HTMLElement {
     apiRoot: 'http://localhost:3123/api',
   })
 
+  private objectLinkList: HTMLUListElement | undefined | null
+
   get isEncryptionEnabled() {
     return (
       this.shadowRoot?.querySelector<HTMLInputElement>('.encrypt-data')
@@ -71,30 +73,89 @@ class PasswayRegistration extends HTMLElement {
       await this.client.upload(file, { enableEncryption: isEncryptionEnabled })
     })
 
+    this.objectLinkList =
+      shadow.querySelector<HTMLUListElement>('ul.object-links')
+
     shadow
       .querySelector('button.list-content')
       ?.addEventListener('click', async () => {
         const contentList = await this.client.listContent()
-        console.log({ contentList })
-      })
 
-    shadow
-      .querySelector('button.download')
-      ?.addEventListener('click', async () => {
-        const [{ contentId, contentSize }] = await this.client.listContent()
-        const reader = await this.client.download(contentId ?? '')
+        for (const content of contentList) {
+          const objectLink = document.createElement('passway-object-link')
 
-        const writeStream = createWriteStream('download.txt', {
-          size: contentSize,
-        })
+          if (!(objectLink instanceof PasswayObjectLink)) {
+            throw new Error()
+          }
 
-        const writer = writeStream.getWriter()
-        reader.pipeTo(dataTransform.convertWriterToStream(writer))
+          objectLink.contentId = content.contentId ?? ''
+          objectLink.contentSize = content.contentSize
+          objectLink.client = this.client
+
+          this.objectLinkList?.appendChild(objectLink)
+        }
       })
   }
 }
 
+class PasswayObjectLink extends HTMLElement {
+  client: PasswayClient | undefined
+
+  private button: HTMLButtonElement | undefined | null
+
+  private handleButtonClick = async () => {
+    const { client, _contentId: contentId, contentSize } = this
+
+    if (contentId && client) {
+      const reader = await client.download(contentId ?? '')
+
+      const writeStream = createWriteStream('download', {
+        size: contentSize,
+      })
+
+      const writer = writeStream.getWriter()
+      reader.pipeTo(dataTransform.convertWriterToStream(writer))
+    }
+  }
+
+  private _contentId: string | undefined
+  contentSize: number | undefined
+
+  private updateButtonLabel = () => {
+    if (this.button) {
+      this.button.innerText = `Download ${this._contentId}`
+    }
+  }
+
+  set contentId(contentId: string) {
+    this._contentId = contentId
+    this.updateButtonLabel()
+  }
+
+  connectedCallback() {
+    const template = document.querySelector<HTMLTemplateElement>(
+      'template.object-link'
+    )
+
+    if (!template) {
+      throw new TypeError()
+    }
+
+    const shadow = this.attachShadow({ mode: 'open' })
+    shadow.appendChild(template.content.cloneNode(true))
+
+    this.button = shadow.querySelector('button')
+    this.button?.addEventListener('click', this.handleButtonClick)
+    this.updateButtonLabel()
+  }
+
+  disconnectedCallback() {
+    this.button?.removeEventListener('click', this.handleButtonClick)
+  }
+}
+
 window.customElements.define('passway-registration', PasswayRegistration)
+window.customElements.define('passway-object-link', PasswayObjectLink)
 
 const passwayRegistration = document.createElement('passway-registration')
 passwayRegistration.setAttribute('app-name', 'Passway Demo')

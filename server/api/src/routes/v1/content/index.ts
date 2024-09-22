@@ -70,10 +70,18 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
         app.log.error(`Could not find data for session ID ${sessionId}`)
       }
 
-      const { size: contentSize } = upload
+      const { size: contentSize, metadata: { isEncrypted } = {} } = upload
 
       if (typeof contentSize !== 'number') {
-        throw new Error()
+        throw new TypeError(
+          `contentSize must be a number. Received: ${typeof contentSize}`
+        )
+      }
+
+      if (!['0', '1'].includes(isEncrypted ?? '')) {
+        throw new TypeError(
+          `metadata.isEncrypted must be either "0" or "1". Received: ${isEncrypted}, (${typeof isEncrypted})`
+        )
       }
 
       const fileMetadataRecord: Prisma.FileMetadataCreateArgs = {
@@ -81,6 +89,7 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
           contentId: upload.id,
           contentSize,
           userId,
+          isEncrypted: isEncrypted === '1',
         },
       }
 
@@ -126,12 +135,16 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
             type: 'array',
             items: {
               type: 'object',
+              required: ['contentId', 'contentSize', 'isEncrypted'],
               properties: {
                 contentId: {
                   type: 'string',
                 },
                 contentSize: {
                   type: 'number',
+                },
+                isEncrypted: {
+                  type: 'boolean',
                 },
               },
             },
@@ -143,7 +156,7 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
       const { userId } = request.session
 
       const result = await app.prisma.fileMetadata.findMany({
-        select: { contentId: true, contentSize: true },
+        select: { contentId: true, contentSize: true, isEncrypted: true },
         where: {
           userId,
         },

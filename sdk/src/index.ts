@@ -293,7 +293,9 @@ export class PasswayClient {
         // FIXME: Make constants for routes
         endpoint: `${this.apiRoot}/v1/content/`,
         retryDelays: [0, 3000, 5000, 10000, 20000],
-        metadata: {},
+        metadata: {
+          isEncrypted: enableEncryption ? '1' : '0',
+        },
 
         onError: error => {
           console.error('Upload failed: ' + error)
@@ -355,7 +357,7 @@ export class PasswayClient {
     return getContentListResponseBody
   }
 
-  download = async (contentId: string) => {
+  download = async (contentId: string, { isEncrypted = true } = {}) => {
     if (contentId.length === 0) {
       throw new ArgumentError('contentId is empty')
     }
@@ -388,9 +390,11 @@ export class PasswayClient {
       throw new ResponseBodyError()
     }
 
-    const decryptedStream = await crypto
-      .getKeychain(dataTransform.bufferToBase64(userHandle))
-      .decryptStream(body)
+    const decryptedStream = isEncrypted
+      ? await crypto
+          .getKeychain(dataTransform.bufferToBase64(userHandle))
+          .decryptStream(body)
+      : body
 
     return decryptedStream
   }

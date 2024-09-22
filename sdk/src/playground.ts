@@ -95,8 +95,9 @@ class PasswayRegistration extends HTMLElement {
               throw new Error()
             }
 
-            objectLink.contentId = content.contentId ?? ''
+            objectLink.contentId = content.contentId
             objectLink.contentSize = content.contentSize
+            objectLink.isEncrypted = content.isEncrypted
             objectLink.client = this.client
 
             objectLinkList.appendChild(objectLink)
@@ -109,13 +110,15 @@ class PasswayRegistration extends HTMLElement {
 class PasswayObjectLink extends HTMLElement {
   client: PasswayClient | undefined
 
+  isEncrypted = true
+
   private button: HTMLButtonElement | undefined | null
 
   private handleButtonClick = async () => {
-    const { client, _contentId: contentId, contentSize } = this
+    const { client, _contentId: contentId, contentSize, isEncrypted } = this
 
     if (contentId && client) {
-      const reader = await client.download(contentId ?? '')
+      const reader = await client.download(contentId ?? '', { isEncrypted })
 
       const writeStream = createWriteStream('download', {
         size: contentSize,
@@ -131,7 +134,7 @@ class PasswayObjectLink extends HTMLElement {
 
   private updateButtonLabel = () => {
     if (this.button) {
-      this.button.innerText = `Download ${this._contentId}`
+      this.button.innerText = `Download ${this._contentId} (${this.isEncrypted ? 'encrypted' : 'not encrypted'})`
     }
   }
 

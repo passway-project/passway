@@ -34,5 +34,6 @@ model FileMetadata {
   contentId   String
   // The size in bytes of the file data
   contentSize Int
+  isEncrypted Boolean  @default(true)
   createdAt   DateTime @default(now())
 }

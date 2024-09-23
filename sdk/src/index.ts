@@ -22,9 +22,11 @@ import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
 import { crypto } from './services/Crypto'
 import { uploadChunkSizeMB, signatureMessage } from './constants'
+import { Route, RouteService } from './services/Route'
 
 interface PasswayClientConfig {
   apiRoot: string
+  apiVersion?: number
 }
 
 export interface UploadOptions {
@@ -36,6 +38,7 @@ export interface UploadOptions {
 
 export class PasswayClient {
   readonly apiRoot: string
+  private route: RouteService
 
   private passkeyId: string | null = null
   private userHandle: ArrayBuffer | null = null
@@ -57,8 +60,9 @@ export class PasswayClient {
     return encryptedStream.getReader()
   }
 
-  constructor({ apiRoot }: PasswayClientConfig) {
+  constructor({ apiRoot, apiVersion = 1 }: PasswayClientConfig) {
     this.apiRoot = apiRoot
+    this.route = new RouteService(apiRoot, apiVersion)
   }
 
   createPasskey = async (registrationConfig: PasskeyConfig) => {
@@ -127,7 +131,9 @@ export class PasswayClient {
         publicKey,
       }
 
-      const { status } = await window.fetch(`${this.apiRoot}/v1/user`, {
+      const userRoute = this.route.resolve(Route.user)
+
+      const { status } = await window.fetch(userRoute, {
         method: 'PUT',
         body: JSON.stringify(putUserBody),
         headers: {
@@ -195,7 +201,9 @@ export class PasswayClient {
         'x-passway-id': passkeyId,
       }
 
-      const getUserResponse = await window.fetch(`${this.apiRoot}/v1/user`, {
+      const userRoute = this.route.resolve(Route.user)
+
+      const getUserResponse = await window.fetch(userRoute, {
         method: 'GET',
         headers: getUserHeaders,
       })
@@ -204,7 +212,7 @@ export class PasswayClient {
 
       if (getUserResponseStatus !== 200) {
         throw new Error(
-          `Received error from ${this.apiRoot}/v1/user: ${getUserResponseStatus}`
+          `Received error from ${userRoute}: ${getUserResponseStatus}`
         )
       }
 
@@ -212,7 +220,7 @@ export class PasswayClient {
 
       if (!isGetUserResponse(getUserResponseBodyJson)) {
         throw new TypeError(
-          `Unexpected response from ${this.apiRoot}/v1/user: ${JSON.stringify(getUserResponseBodyJson)}`
+          `Unexpected response from ${userRoute}: ${JSON.stringify(getUserResponseBodyJson)}`
         )
       }
 
@@ -235,20 +243,19 @@ export class PasswayClient {
         'x-passway-signature': Buffer.from(signature).toString('base64'),
       }
 
-      const getSessionResponse = await window.fetch(
-        `${this.apiRoot}/v1/session`,
-        {
-          method: 'GET',
-          headers: getSessionHeaders,
-          credentials: 'include',
-        }
-      )
+      const sessionRoute = this.route.resolve(Route.session)
+
+      const getSessionResponse = await window.fetch(sessionRoute, {
+        method: 'GET',
+        headers: getSessionHeaders,
+        credentials: 'include',
+      })
 
       const { status: getSessionResponseStatus } = getSessionResponse
 
       if (getSessionResponseStatus !== 200) {
         throw new Error(
-          `Received error from ${this.apiRoot}/v1/session: ${getSessionResponseStatus}`
+          `Received error from ${sessionRoute}: ${getSessionResponseStatus}`
         )
       }
 
@@ -260,13 +267,12 @@ export class PasswayClient {
   }
 
   destroySession = async () => {
-    const deleteSessionResponse = await window.fetch(
-      `${this.apiRoot}/v1/session`,
-      {
-        method: 'DELETE',
-        credentials: 'include',
-      }
-    )
+    const sessionRoute = this.route.resolve(Route.session)
+
+    const deleteSessionResponse = await window.fetch(sessionRoute, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
 
     const { status } = deleteSessionResponse
 
@@ -287,11 +293,12 @@ export class PasswayClient {
       : data
 
     const uploadPromise = new Promise<void>((resolve, reject) => {
+      const contentRoute = this.route.resolve(Route.content)
+
       const upload = new Upload(dataStream, {
         chunkSize: uploadChunkSizeMB * 1024 * 1024,
         uploadLengthDeferred: true,
-        // FIXME: Make constants for routes
-        endpoint: `${this.apiRoot}/v1/content/`,
+        endpoint: contentRoute,
         retryDelays: [0, 3000, 5000, 10000, 20000],
         metadata: {
           isEncrypted: enableEncryption ? '1' : '0',
@@ -332,19 +339,18 @@ export class PasswayClient {
 
   // FIXME: Test this
   listContent = async () => {
-    const getContentListResponse = await window.fetch(
-      `${this.apiRoot}/v1/content/list`,
-      {
-        method: 'GET',
-        credentials: 'include',
-      }
-    )
+    const contentListRoute = this.route.resolve(Route.contentList)
+
+    const getContentListResponse = await window.fetch(contentListRoute, {
+      method: 'GET',
+      credentials: 'include',
+    })
 
     const { status: getContentListResponseStatus } = getContentListResponse
 
     if (getContentListResponseStatus !== 200) {
       throw new Error(
-        `Received error from ${this.apiRoot}/v1/content/list: ${getContentListResponseStatus}`
+        `Received error from ${contentListRoute}: ${getContentListResponseStatus}`
       )
     }
 
@@ -368,23 +374,23 @@ export class PasswayClient {
       throw new AuthenticationError()
     }
 
-    const getContentResponse = await window.fetch(
-      `${this.apiRoot}/v1/content/${contentId}`,
-      {
-        method: 'GET',
-        credentials: 'include',
-      }
-    )
+    const route = this.route.resolve(Route.contentDownload, { contentId })
 
-    const { status: getContentResponseStatus } = getContentResponse
+    const getContentDownloadResponse = await window.fetch(route, {
+      method: 'GET',
+      credentials: 'include',
+    })
 
-    if (getContentResponseStatus !== 200) {
+    const { status: getContentDownloadResponseStatus } =
+      getContentDownloadResponse
+
+    if (getContentDownloadResponseStatus !== 200) {
       throw new Error(
-        `Received error from ${this.apiRoot}/v1/content/${contentId}: ${getContentResponseStatus}`
+        `Received error from ${route}: ${getContentDownloadResponseStatus}`
       )
     }
 
-    const { body } = getContentResponse
+    const { body } = getContentDownloadResponse
 
     if (body === null) {
       throw new ResponseBodyError()

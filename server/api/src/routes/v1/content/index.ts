@@ -116,12 +116,12 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
     tusServer.handle(request.raw, reply.raw)
   })
 
-  // NOTE: This is a stub implementation of the content/list route. At the
+  // NOTE: This is a minimal implementation of the content/list route. At the
   // moment it only serves to stand up just enough functionality to test
   // content uploading and downloading. It is not complete and will change
   // significantly.
   //
-  // TODO: Test this
+  // FIXME: Test this
   // TODO: Implement pagination
   // TODO: Implement filtering
   app.get(

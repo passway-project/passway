@@ -178,7 +178,12 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
         response: {
           [StatusCodes.OK]: {
             content: {
-              'application/octet-stream': {},
+              'application/octet-stream': {
+                schema: {
+                  type: 'string',
+                  format: 'binary',
+                },
+              },
             },
           },
         },

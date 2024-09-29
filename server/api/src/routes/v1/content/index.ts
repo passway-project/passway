@@ -1,17 +1,13 @@
-import { FastifyPluginAsync, Session } from 'fastify'
+import { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify'
 import { Server } from '@tus/server'
 import { S3Store } from '@tus/s3-store'
-import { Prisma } from '@prisma/client'
 import httpErrors from 'http-errors'
 
 import { StatusCodes } from 'http-status-codes'
 
-import {
-  containerName,
-  contentBucketName,
-  sessionKeyName,
-} from '../../../constants'
-import { sessionStore } from '../../../sessionStore'
+import { containerName, contentBucketName } from '../../../constants'
+
+import { TusService } from '../../../services/Tus'
 
 export const routeName = 'content'
 
@@ -19,6 +15,8 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
   app,
   options
 ) => {
+  const tusService = new TusService(app)
+
   const s3Store = new S3Store({
     partSize: 8 * 1024 * 1024, // Each uploaded part will have ~8MiB,
     s3ClientConfig: {
@@ -39,82 +37,19 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
     },
     path: `${options.prefix}/${routeName}`,
     datastore: s3Store,
-    onUploadFinish: async (request, response, upload) => {
-      app.log.debug(upload, 'Upload complete')
-      const { [sessionKeyName]: sessionId } = app.parseCookie(
-        request.headers.cookie ?? ''
-      )
-
-      let userId = -1
-
-      try {
-        userId = await new Promise<number>((resolve, reject) => {
-          sessionStore.get(
-            `${sessionId.split('.')[0]}`,
-            (err, data: Session) => {
-              if (err) {
-                reject(err)
-              }
-              const { userId, authenticated } = data
-
-              if (!authenticated || typeof userId !== 'number') {
-                app.log.error(data, 'User is not authenticated')
-                return reject(new Error('User is not authenticated'))
-              }
-
-              resolve(userId)
-            }
-          )
-        })
-      } catch (e) {
-        app.log.error(`Could not find data for session ID ${sessionId}`)
-      }
-
-      const { size: contentSize, metadata: { isEncrypted } = {} } = upload
-
-      if (typeof contentSize !== 'number') {
-        throw new TypeError(
-          `contentSize must be a number. Received: ${typeof contentSize}`
-        )
-      }
-
-      if (!['0', '1'].includes(isEncrypted ?? '')) {
-        throw new TypeError(
-          `metadata.isEncrypted must be either "0" or "1". Received: ${isEncrypted}, (${typeof isEncrypted})`
-        )
-      }
-
-      const fileMetadataRecord: Prisma.FileMetadataCreateArgs = {
-        data: {
-          contentId: upload.id,
-          contentSize,
-          userId,
-          isEncrypted: isEncrypted === '1',
-        },
-      }
-
-      try {
-        const result = await app.prisma.fileMetadata.create(fileMetadataRecord)
-        app.log.debug(result, 'Created file metadata record')
-      } catch (e) {
-        app.log.error(e, 'Could not record file metadata')
-      }
-
-      return response
-    },
+    onUploadFinish: tusService.handleUploadFinish,
   })
 
   // NOTE: Needed for tus-node-server
   // https://github.com/tus/tus-node-server?tab=readme-ov-file#quick-start
   app.addContentTypeParser('application/offset+octet-stream', async () => null)
 
-  app.all(`/${routeName}`, (request, reply) => {
+  const pipeToTus = (request: FastifyRequest, reply: FastifyReply) => {
     tusServer.handle(request.raw, reply.raw)
-  })
+  }
 
-  app.all(`/${routeName}/*`, (request, reply) => {
-    tusServer.handle(request.raw, reply.raw)
-  })
+  app.all(`/${routeName}`, pipeToTus)
+  app.all(`/${routeName}/*`, pipeToTus)
 
   // NOTE: This is a minimal implementation of the content/list route. At the
   // moment it only serves to stand up just enough functionality to test
@@ -166,6 +101,7 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
     }
   )
 
+  // FIXME: Test this
   app.get<{ Params: { contentId: string } }>(
     `/${routeName}/:contentId`,
     {

@@ -5,7 +5,7 @@ import { StatusCodes } from 'http-status-codes'
 
 import { contentBucketName } from '../../../constants'
 
-import { TusService } from '../../../services/Tus'
+import { UploadService } from '../../../services/Upload'
 
 export const routeName = 'content'
 
@@ -13,13 +13,13 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
   app,
   options
 ) => {
-  const tusService = new TusService({
+  const uploadService = new UploadService({
     fastify: app,
-    tusServerPath: `${options.prefix}/${routeName}`,
+    path: `${options.prefix}/${routeName}`,
   })
 
-  app.all(`/${routeName}`, tusService.pipeToTus)
-  app.all(`/${routeName}/*`, tusService.pipeToTus)
+  app.all(`/${routeName}`, uploadService.handleRequest)
+  app.all(`/${routeName}/*`, uploadService.handleRequest)
 
   // NOTE: This is a minimal implementation of the content/list route. At the
   // moment it only serves to stand up just enough functionality to test
@@ -109,6 +109,7 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
         return reply.send(objectDataStream)
       } catch (e) {
         app.log.error(e, `Object ID ${contentId} lookup failed`)
+        // FIXME: Return a 404 if the object was not found
         return reply.send(httpErrors.InternalServerError())
       }
     }

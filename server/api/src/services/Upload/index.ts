@@ -10,19 +10,21 @@ import { Upload } from '@tus/server'
 import { containerName, sessionKeyName } from '../../constants'
 import { sessionStore } from '../../sessionStore'
 
-export class TusService {
-  private app: FastifyInstance
+// FIXME: Test this
+export class UploadService {
+  private fastify: FastifyInstance
 
-  private tusServer: Server
+  private server: Server
 
-  constructor({
-    fastify,
-    tusServerPath,
-  }: {
-    fastify: FastifyInstance
-    tusServerPath: string
-  }) {
-    this.app = fastify
+  constructor({ fastify, path }: { fastify: FastifyInstance; path: string }) {
+    this.fastify = fastify
+
+    // NOTE: Needed for tus-node-server
+    // https://github.com/tus/tus-node-server?tab=readme-ov-file#quick-start
+    fastify.addContentTypeParser(
+      'application/offset+octet-stream',
+      async () => null
+    )
 
     const s3Store = new S3Store({
       partSize: 8 * 1024 * 1024, // Each uploaded part will have ~8MiB,
@@ -38,25 +40,17 @@ export class TusService {
       },
     })
 
-    this.tusServer = new Server({
-      generateUrl: (_request, { host, id, path, proto }) => {
-        return `${proto}://${host}:${process.env.API_PORT}${path}/${id}`
-      },
-      path: tusServerPath,
+    this.server = new Server({
+      generateUrl: (_request, { host, id, path, proto }) =>
+        `${proto}://${host}:${process.env.API_PORT}${path}/${id}`,
+      path,
       datastore: s3Store,
       onUploadFinish: this.handleUploadFinish,
     })
-
-    // NOTE: Needed for tus-node-server
-    // https://github.com/tus/tus-node-server?tab=readme-ov-file#quick-start
-    fastify.addContentTypeParser(
-      'application/offset+octet-stream',
-      async () => null
-    )
   }
 
-  pipeToTus = (request: FastifyRequest, reply: FastifyReply) => {
-    this.tusServer.handle(request.raw, reply.raw)
+  handleRequest = (request: FastifyRequest, reply: FastifyReply) => {
+    this.server.handle(request.raw, reply.raw)
   }
 
   handleUploadFinish = async (
@@ -64,9 +58,9 @@ export class TusService {
     response: ServerResponse<IncomingMessage>,
     upload: Upload
   ) => {
-    this.app.log.debug(upload, 'Upload complete')
+    this.fastify.log.debug(upload, 'Upload complete')
 
-    const { [sessionKeyName]: sessionId } = this.app.parseCookie(
+    const { [sessionKeyName]: sessionId } = this.fastify.parseCookie(
       request.headers.cookie ?? ''
     )
 
@@ -81,7 +75,7 @@ export class TusService {
           const { userId, authenticated } = data
 
           if (!authenticated || typeof userId !== 'number') {
-            this.app.log.error(data, 'User is not authenticated')
+            this.fastify.log.error(data, 'User is not authenticated')
             return reject(new Error('User is not authenticated'))
           }
 
@@ -89,7 +83,7 @@ export class TusService {
         })
       })
     } catch (e) {
-      this.app.log.error(`Could not find data for session ID ${sessionId}`)
+      this.fastify.log.error(`Could not find data for session ID ${sessionId}`)
     }
 
     const { size: contentSize, metadata: { isEncrypted } = {} } = upload
@@ -117,10 +111,10 @@ export class TusService {
 
     try {
       const result =
-        await this.app.prisma.fileMetadata.create(fileMetadataRecord)
-      this.app.log.debug(result, 'Created file metadata record')
+        await this.fastify.prisma.fileMetadata.create(fileMetadataRecord)
+      this.fastify.log.debug(result, 'Created file metadata record')
     } catch (e) {
-      this.app.log.error(e, 'Could not record file metadata')
+      this.fastify.log.error(e, 'Could not record file metadata')
     }
 
     return response

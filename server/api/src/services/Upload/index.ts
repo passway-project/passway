@@ -7,6 +7,8 @@ import { Prisma } from '@prisma/client'
 import { FastifyInstance, Session } from 'fastify'
 import { Upload } from '@tus/server'
 
+import { StatusCodes } from 'http-status-codes'
+
 import { containerName, sessionKeyName } from '../../constants'
 import { sessionStore } from '../../sessionStore'
 
@@ -72,6 +74,7 @@ export class UploadService {
           if (err) {
             reject(err)
           }
+
           const { userId, authenticated } = data
 
           if (!authenticated || typeof userId !== 'number') {
@@ -84,6 +87,9 @@ export class UploadService {
       })
     } catch (e) {
       this.fastify.log.error(`Could not find data for session ID ${sessionId}`)
+      response.statusCode = StatusCodes.FORBIDDEN
+
+      return response
     }
 
     const { size: contentSize, metadata: { isEncrypted } = {} } = upload

@@ -1,17 +1,62 @@
 import { IncomingMessage, ServerResponse } from 'http'
 
+import { FastifyReply, FastifyRequest } from 'fastify'
+import { Server } from '@tus/server'
+import { S3Store } from '@tus/s3-store'
 import { Prisma } from '@prisma/client'
 import { FastifyInstance, Session } from 'fastify'
 import { Upload } from '@tus/server'
 
-import { sessionKeyName } from '../../constants'
+import { containerName, sessionKeyName } from '../../constants'
 import { sessionStore } from '../../sessionStore'
 
 export class TusService {
   private app: FastifyInstance
 
-  constructor(app: FastifyInstance) {
-    this.app = app
+  private tusServer: Server
+
+  constructor({
+    fastify,
+    tusServerPath,
+  }: {
+    fastify: FastifyInstance
+    tusServerPath: string
+  }) {
+    this.app = fastify
+
+    const s3Store = new S3Store({
+      partSize: 8 * 1024 * 1024, // Each uploaded part will have ~8MiB,
+      s3ClientConfig: {
+        forcePathStyle: true,
+        endpoint: `http://${containerName.CONTENT_STORE}:9000`,
+        bucket: (process.env.MINIO_DEFAULT_BUCKETS ?? '').split(',')[0],
+        region: process.env.MINIO_SERVER_REGION ?? '',
+        credentials: {
+          accessKeyId: process.env.MINIO_SERVER_ACCESS_KEY ?? '',
+          secretAccessKey: process.env.MINIO_SERVER_SECRET_KEY ?? '',
+        },
+      },
+    })
+
+    this.tusServer = new Server({
+      generateUrl: (_request, { host, id, path, proto }) => {
+        return `${proto}://${host}:${process.env.API_PORT}${path}/${id}`
+      },
+      path: tusServerPath,
+      datastore: s3Store,
+      onUploadFinish: this.handleUploadFinish,
+    })
+
+    // NOTE: Needed for tus-node-server
+    // https://github.com/tus/tus-node-server?tab=readme-ov-file#quick-start
+    fastify.addContentTypeParser(
+      'application/offset+octet-stream',
+      async () => null
+    )
+  }
+
+  pipeToTus = (request: FastifyRequest, reply: FastifyReply) => {
+    this.tusServer.handle(request.raw, reply.raw)
   }
 
   handleUploadFinish = async (

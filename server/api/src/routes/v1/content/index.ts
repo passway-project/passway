@@ -1,11 +1,9 @@
-import { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify'
-import { Server } from '@tus/server'
-import { S3Store } from '@tus/s3-store'
+import { FastifyPluginAsync } from 'fastify'
 import httpErrors from 'http-errors'
 
 import { StatusCodes } from 'http-status-codes'
 
-import { containerName, contentBucketName } from '../../../constants'
+import { contentBucketName } from '../../../constants'
 
 import { TusService } from '../../../services/Tus'
 
@@ -15,41 +13,13 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
   app,
   options
 ) => {
-  const tusService = new TusService(app)
-
-  const s3Store = new S3Store({
-    partSize: 8 * 1024 * 1024, // Each uploaded part will have ~8MiB,
-    s3ClientConfig: {
-      forcePathStyle: true,
-      endpoint: `http://${containerName.CONTENT_STORE}:9000`,
-      bucket: (process.env.MINIO_DEFAULT_BUCKETS ?? '').split(',')[0],
-      region: process.env.MINIO_SERVER_REGION ?? '',
-      credentials: {
-        accessKeyId: process.env.MINIO_SERVER_ACCESS_KEY ?? '',
-        secretAccessKey: process.env.MINIO_SERVER_SECRET_KEY ?? '',
-      },
-    },
+  const tusService = new TusService({
+    fastify: app,
+    tusServerPath: `${options.prefix}/${routeName}`,
   })
 
-  const tusServer = new Server({
-    generateUrl: (_request, { host, id, path, proto }) => {
-      return `${proto}://${host}:${process.env.API_PORT}${path}/${id}`
-    },
-    path: `${options.prefix}/${routeName}`,
-    datastore: s3Store,
-    onUploadFinish: tusService.handleUploadFinish,
-  })
-
-  // NOTE: Needed for tus-node-server
-  // https://github.com/tus/tus-node-server?tab=readme-ov-file#quick-start
-  app.addContentTypeParser('application/offset+octet-stream', async () => null)
-
-  const pipeToTus = (request: FastifyRequest, reply: FastifyReply) => {
-    tusServer.handle(request.raw, reply.raw)
-  }
-
-  app.all(`/${routeName}`, pipeToTus)
-  app.all(`/${routeName}/*`, pipeToTus)
+  app.all(`/${routeName}`, tusService.pipeToTus)
+  app.all(`/${routeName}/*`, tusService.pipeToTus)
 
   // NOTE: This is a minimal implementation of the content/list route. At the
   // moment it only serves to stand up just enough functionality to test

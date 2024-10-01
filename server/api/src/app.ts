@@ -8,7 +8,7 @@ import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes'
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 import * as Minio from 'minio'
 
-import prismaPlugin from '../prisma/prismaPlugin'
+import { prismaPlugin } from '../prisma/prismaPlugin'
 
 import { API_ROOT, containerName, sessionKeyName } from './constants'
 import * as v1Routes from './routes/v1'

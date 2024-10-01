@@ -86,10 +86,15 @@ export class UploadService {
         })
       })
     } catch (e) {
-      this.fastify.log.error(`Could not find data for session ID ${sessionId}`)
-      response.statusCode = StatusCodes.FORBIDDEN
+      this.fastify.log.error(
+        e,
+        `Could not find data for session ID ${sessionId}`
+      )
 
-      return response
+      throw {
+        body: `Could not find data for session ID ${sessionId}`,
+        status_code: StatusCodes.FORBIDDEN,
+      }
     }
 
     const { size: contentSize, metadata: { isEncrypted } = {} } = upload
@@ -101,9 +106,10 @@ export class UploadService {
     }
 
     if (!['0', '1'].includes(isEncrypted ?? '')) {
-      throw new TypeError(
-        `metadata.isEncrypted must be either "0" or "1". Received: ${isEncrypted}, (${typeof isEncrypted})`
-      )
+      throw {
+        body: `metadata.isEncrypted must be either "0" or "1". Received: ${isEncrypted}, (${typeof isEncrypted})`,
+        status_code: StatusCodes.BAD_REQUEST,
+      }
     }
 
     const fileMetadataRecord: Prisma.FileMetadataCreateArgs = {
@@ -121,6 +127,11 @@ export class UploadService {
       this.fastify.log.debug(result, 'Created file metadata record')
     } catch (e) {
       this.fastify.log.error(e, 'Could not record file metadata')
+
+      throw {
+        body: 'Could not record file metadata',
+        status_code: StatusCodes.INTERNAL_SERVER_ERROR,
+      }
     }
 
     return response

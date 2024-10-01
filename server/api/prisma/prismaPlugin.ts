@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client'
 
 // NOTE: Adapted from https://www.prisma.io/fastify
 
-const prismaPlugin = fastifyPlugin(async server => {
+export const prismaPlugin = fastifyPlugin(async server => {
   const prisma = new PrismaClient()
 
   await prisma.$connect()
@@ -15,5 +15,3 @@ const prismaPlugin = fastifyPlugin(async server => {
     await server.prisma.$disconnect()
   })
 })
-
-export default prismaPlugin

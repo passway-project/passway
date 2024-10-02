@@ -70,79 +70,79 @@ export class UploadService {
     response: ServerResponse<IncomingMessage>,
     upload: Upload
   ) => {
-    this.fastify.log.debug(upload, 'Upload complete')
-
-    const { [sessionKeyName]: sessionId } = this.fastify.parseCookie(
-      request.headers.cookie ?? ''
-    )
-
-    let userId = -1
-
     try {
-      userId = await new Promise<number>((resolve, reject) => {
-        sessionStore.get(`${sessionId.split('.')[0]}`, (err, data: Session) => {
-          if (err) {
-            reject(err)
-          }
+      this.fastify.log.debug(upload, 'Upload complete')
 
-          const { userId, authenticated } = data
+      const { [sessionKeyName]: sessionId } = this.fastify.parseCookie(
+        request.headers.cookie ?? ''
+      )
 
-          if (!authenticated || typeof userId !== 'number') {
-            this.fastify.log.error(data, 'User is not authenticated')
-            return reject(new Error('User is not authenticated'))
-          }
+      let userId = -1
 
-          resolve(userId)
+      try {
+        userId = await new Promise<number>((resolve, reject) => {
+          sessionStore.get(
+            `${sessionId.split('.')[0]}`,
+            (err, data: Session) => {
+              if (err) {
+                reject(err)
+              }
+
+              const { userId, authenticated } = data
+
+              if (!authenticated || typeof userId !== 'number') {
+                return reject(new Error('User is not authenticated'))
+              }
+
+              resolve(userId)
+            }
+          )
         })
-      })
+      } catch (e) {
+        throw new UploadError(
+          `Could not find data for session ID ${sessionId}`,
+          StatusCodes.FORBIDDEN
+        )
+      }
+
+      const { size: contentSize, metadata: { isEncrypted } = {} } = upload
+
+      if (typeof contentSize !== 'number') {
+        throw new UploadError(
+          `contentSize must be a number. Received: ${typeof contentSize}`,
+          StatusCodes.BAD_REQUEST
+        )
+      }
+
+      if (!['0', '1'].includes(isEncrypted ?? '')) {
+        throw new UploadError(
+          `metadata.isEncrypted must be either "0" or "1" (string). Received: ${isEncrypted} (${typeof isEncrypted})`,
+          StatusCodes.BAD_REQUEST
+        )
+      }
+
+      const fileMetadataRecord: Prisma.FileMetadataCreateArgs = {
+        data: {
+          contentId: upload.id,
+          contentSize,
+          userId,
+          isEncrypted: isEncrypted === '1',
+        },
+      }
+
+      try {
+        const result =
+          await this.fastify.prisma.fileMetadata.create(fileMetadataRecord)
+        this.fastify.log.debug(result, 'Created file metadata record')
+      } catch (e) {
+        throw new UploadError(
+          'Could not record file metadata',
+          StatusCodes.INTERNAL_SERVER_ERROR
+        )
+      }
     } catch (e) {
-      this.fastify.log.error(
-        e,
-        `Could not find data for session ID ${sessionId}`
-      )
-
-      throw new UploadError(
-        `Could not find data for session ID ${sessionId}`,
-        StatusCodes.FORBIDDEN
-      )
-    }
-
-    const { size: contentSize, metadata: { isEncrypted } = {} } = upload
-
-    if (typeof contentSize !== 'number') {
-      throw new UploadError(
-        `contentSize must be a number. Received: ${typeof contentSize}`,
-        StatusCodes.BAD_REQUEST
-      )
-    }
-
-    if (!['0', '1'].includes(isEncrypted ?? '')) {
-      throw new UploadError(
-        `metadata.isEncrypted must be either "0" or "1" (string). Received: ${isEncrypted} (${typeof isEncrypted})`,
-        StatusCodes.BAD_REQUEST
-      )
-    }
-
-    const fileMetadataRecord: Prisma.FileMetadataCreateArgs = {
-      data: {
-        contentId: upload.id,
-        contentSize,
-        userId,
-        isEncrypted: isEncrypted === '1',
-      },
-    }
-
-    try {
-      const result =
-        await this.fastify.prisma.fileMetadata.create(fileMetadataRecord)
-      this.fastify.log.debug(result, 'Created file metadata record')
-    } catch (e) {
-      this.fastify.log.error(e, 'Could not record file metadata')
-
-      throw new UploadError(
-        'Could not record file metadata',
-        StatusCodes.INTERNAL_SERVER_ERROR
-      )
+      this.fastify.log.error(e)
+      throw e
     }
 
     return response

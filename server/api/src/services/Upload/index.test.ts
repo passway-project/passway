@@ -125,8 +125,51 @@ describe('UploadService', () => {
       }).rejects.toThrowError('Could not find data for session ID session-id')
     })
 
-    test.skip('handles missing content size', async () => {
-      // FIXME: Implement this
+    test('handles missing content size', async () => {
+      const stubFastify = await getFastifyStub()
+
+      vi.spyOn(stubFastify, 'parseCookie').mockReturnValueOnce({
+        [sessionKeyName]: stubSessionId,
+      })
+
+      vi.spyOn(stubFastify.prisma.fileMetadata, 'create')
+
+      vi.spyOn(sessionStore, 'get').mockImplementationOnce(
+        (_sessionId, callback) => {
+          callback(null, {
+            cookie: {
+              originalMaxAge: null,
+            },
+            authenticated: true,
+            userId: stubUserId,
+          })
+        }
+      )
+
+      const uploadService = new UploadService({
+        fastify: stubFastify,
+        path: '/',
+      })
+
+      const stubIncomingMessage = new IncomingMessage(new Socket())
+      const stubServerResponse = new ServerResponse(stubIncomingMessage)
+      const stubUpload = new Upload({
+        id: stubContentId,
+        offset: 0,
+        metadata: {
+          isEncrypted: '1',
+        },
+      })
+
+      expect(async () => {
+        await uploadService.handleUploadFinish(
+          stubIncomingMessage,
+          stubServerResponse,
+          stubUpload
+        )
+      }).rejects.toThrowError(
+        'contentSize must be a number. Received: undefined'
+      )
     })
 
     test.skip('handles invalid isEncrypted metadata', async () => {

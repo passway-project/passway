@@ -111,8 +111,9 @@ export class UploadService {
     const { size: contentSize, metadata: { isEncrypted } = {} } = upload
 
     if (typeof contentSize !== 'number') {
-      throw new TypeError(
-        `contentSize must be a number. Received: ${typeof contentSize}`
+      throw new UploadError(
+        `contentSize must be a number. Received: ${typeof contentSize}`,
+        StatusCodes.BAD_REQUEST
       )
     }
 

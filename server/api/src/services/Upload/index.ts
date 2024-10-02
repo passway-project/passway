@@ -23,7 +23,6 @@ export class UploadError extends Error {
   }
 }
 
-// FIXME: Test this
 export class UploadService {
   private fastify: FastifyInstance
 
@@ -140,10 +139,10 @@ export class UploadService {
     } catch (e) {
       this.fastify.log.error(e, 'Could not record file metadata')
 
-      throw {
-        body: 'Could not record file metadata',
-        status_code: StatusCodes.INTERNAL_SERVER_ERROR,
-      }
+      throw new UploadError(
+        'Could not record file metadata',
+        StatusCodes.INTERNAL_SERVER_ERROR
+      )
     }
 
     return response

@@ -221,8 +221,55 @@ describe('UploadService', () => {
       )
     })
 
-    test.skip('handles FileMetadata creation failure', async () => {
-      // FIXME: Implement this
+    test('handles FileMetadata creation failure', async () => {
+      const stubFastify = await getFastifyStub()
+
+      vi.spyOn(stubFastify, 'parseCookie').mockReturnValueOnce({
+        [sessionKeyName]: stubSessionId,
+      })
+
+      vi.spyOn(
+        stubFastify.prisma.fileMetadata,
+        'create'
+      ).mockImplementationOnce(() => {
+        throw new Error()
+      })
+
+      vi.spyOn(sessionStore, 'get').mockImplementationOnce(
+        (_sessionId, callback) => {
+          callback(null, {
+            cookie: {
+              originalMaxAge: null,
+            },
+            authenticated: true,
+            userId: stubUserId,
+          })
+        }
+      )
+
+      const uploadService = new UploadService({
+        fastify: stubFastify,
+        path: '/',
+      })
+
+      const stubIncomingMessage = new IncomingMessage(new Socket())
+      const stubServerResponse = new ServerResponse(stubIncomingMessage)
+      const stubUpload = new Upload({
+        id: stubContentId,
+        offset: 0,
+        size: stubContentSize,
+        metadata: {
+          isEncrypted: '1',
+        },
+      })
+
+      expect(async () => {
+        await uploadService.handleUploadFinish(
+          stubIncomingMessage,
+          stubServerResponse,
+          stubUpload
+        )
+      }).rejects.toThrowError('Could not record file metadata')
     })
   })
 })

@@ -122,7 +122,9 @@ describe('UploadService', () => {
           stubServerResponse,
           stubUpload
         )
-      }).rejects.toThrowError('Could not find data for session ID session-id')
+      }).rejects.toThrowError(
+        '[403] Could not find data for session ID session-id'
+      )
     })
 
     test('handles missing content size', async () => {
@@ -168,7 +170,7 @@ describe('UploadService', () => {
           stubUpload
         )
       }).rejects.toThrowError(
-        'contentSize must be a number. Received: undefined'
+        '[400] contentSize must be a number. Received: undefined'
       )
     })
 
@@ -217,7 +219,7 @@ describe('UploadService', () => {
           stubUpload
         )
       }).rejects.toThrowError(
-        'metadata.isEncrypted must be either "0" or "1" (string). Received: 1 (number)'
+        '[400] metadata.isEncrypted must be either "0" or "1" (string). Received: 1 (number)'
       )
     })
 
@@ -269,7 +271,7 @@ describe('UploadService', () => {
           stubServerResponse,
           stubUpload
         )
-      }).rejects.toThrowError('Could not record file metadata')
+      }).rejects.toThrowError('[500] Could not record file metadata')
     })
   })
 })

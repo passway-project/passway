@@ -17,7 +17,7 @@ export class UploadError extends Error {
   status_code: number
 
   constructor(message: string, statusCode: number) {
-    super(message)
+    super(`[${statusCode}] ${message}`)
     this.body = message
     this.status_code = statusCode
   }

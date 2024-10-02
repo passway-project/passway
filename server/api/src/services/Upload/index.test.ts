@@ -172,8 +172,53 @@ describe('UploadService', () => {
       )
     })
 
-    test.skip('handles invalid isEncrypted metadata', async () => {
-      // FIXME: Implement this
+    test('handles invalid isEncrypted metadata', async () => {
+      const stubFastify = await getFastifyStub()
+
+      vi.spyOn(stubFastify, 'parseCookie').mockReturnValueOnce({
+        [sessionKeyName]: stubSessionId,
+      })
+
+      vi.spyOn(stubFastify.prisma.fileMetadata, 'create')
+
+      vi.spyOn(sessionStore, 'get').mockImplementationOnce(
+        (_sessionId, callback) => {
+          callback(null, {
+            cookie: {
+              originalMaxAge: null,
+            },
+            authenticated: true,
+            userId: stubUserId,
+          })
+        }
+      )
+
+      const uploadService = new UploadService({
+        fastify: stubFastify,
+        path: '/',
+      })
+
+      const stubIncomingMessage = new IncomingMessage(new Socket())
+      const stubServerResponse = new ServerResponse(stubIncomingMessage)
+      const stubUpload = new Upload({
+        id: stubContentId,
+        offset: 0,
+        size: stubContentSize,
+        metadata: {
+          // @ts-expect-error This is a forced error for the sake of testing
+          isEncrypted: 1,
+        },
+      })
+
+      expect(async () => {
+        await uploadService.handleUploadFinish(
+          stubIncomingMessage,
+          stubServerResponse,
+          stubUpload
+        )
+      }).rejects.toThrowError(
+        'metadata.isEncrypted must be either "0" or "1" (string). Received: 1 (number)'
+      )
     })
 
     test.skip('handles FileMetadata creation failure', async () => {

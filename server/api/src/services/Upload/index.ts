@@ -118,10 +118,10 @@ export class UploadService {
     }
 
     if (!['0', '1'].includes(isEncrypted ?? '')) {
-      throw {
-        body: `metadata.isEncrypted must be either "0" or "1". Received: ${isEncrypted}, (${typeof isEncrypted})`,
-        status_code: StatusCodes.BAD_REQUEST,
-      }
+      throw new UploadError(
+        `metadata.isEncrypted must be either "0" or "1" (string). Received: ${isEncrypted} (${typeof isEncrypted})`,
+        StatusCodes.BAD_REQUEST
+      )
     }
 
     const fileMetadataRecord: Prisma.FileMetadataCreateArgs = {

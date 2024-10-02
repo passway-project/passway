@@ -12,6 +12,17 @@ import { StatusCodes } from 'http-status-codes'
 import { containerName, sessionKeyName } from '../../constants'
 import { sessionStore } from '../../sessionStore'
 
+export class UploadError extends Error {
+  body: string
+  status_code: number
+
+  constructor(message: string, statusCode: number) {
+    super(message)
+    this.body = message
+    this.status_code = statusCode
+  }
+}
+
 // FIXME: Test this
 export class UploadService {
   private fastify: FastifyInstance
@@ -91,10 +102,10 @@ export class UploadService {
         `Could not find data for session ID ${sessionId}`
       )
 
-      throw {
-        body: `Could not find data for session ID ${sessionId}`,
-        status_code: StatusCodes.FORBIDDEN,
-      }
+      throw new UploadError(
+        `Could not find data for session ID ${sessionId}`,
+        StatusCodes.FORBIDDEN
+      )
     }
 
     const { size: contentSize, metadata: { isEncrypted } = {} } = upload

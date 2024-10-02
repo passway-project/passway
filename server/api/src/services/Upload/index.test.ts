@@ -84,19 +84,56 @@ describe('UploadService', () => {
       })
     })
 
-    test.skip('handles missing session data', () => {
+    test('handles missing session data', async () => {
+      const stubFastify = await getFastifyStub()
+
+      vi.spyOn(stubFastify, 'parseCookie').mockReturnValueOnce({
+        [sessionKeyName]: stubSessionId,
+      })
+
+      vi.spyOn(stubFastify.prisma.fileMetadata, 'create')
+
+      vi.spyOn(sessionStore, 'get').mockImplementationOnce(
+        (_sessionId, callback) => {
+          callback('session not found', {
+            cookie: {
+              originalMaxAge: null,
+            },
+          })
+        }
+      )
+
+      const uploadService = new UploadService({
+        fastify: stubFastify,
+        path: '/',
+      })
+
+      const stubIncomingMessage = new IncomingMessage(new Socket())
+      const stubServerResponse = new ServerResponse(stubIncomingMessage)
+      const stubUpload = new Upload({
+        id: stubContentId,
+        offset: 0,
+        metadata: {},
+      })
+
+      expect(async () => {
+        await uploadService.handleUploadFinish(
+          stubIncomingMessage,
+          stubServerResponse,
+          stubUpload
+        )
+      }).rejects.toThrowError('Could not find data for session ID session-id')
+    })
+
+    test.skip('handles missing content size', async () => {
       // FIXME: Implement this
     })
 
-    test.skip('handles missing content size', () => {
+    test.skip('handles invalid isEncrypted metadata', async () => {
       // FIXME: Implement this
     })
 
-    test.skip('handles invalid isEncrypted metadata', () => {
-      // FIXME: Implement this
-    })
-
-    test.skip('handles FileMetadata creation failure', () => {
+    test.skip('handles FileMetadata creation failure', async () => {
       // FIXME: Implement this
     })
   })

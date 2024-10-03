@@ -8,7 +8,7 @@ import { PrismaClient } from '@prisma/client'
 
 import { sessionKeyName } from '../../constants'
 import { sessionStore } from '../../__mocks__/sessionStore'
-import { getApp } from '../../../test/getApp'
+import { getApp } from '../../../test/utils/getApp'
 
 import { UploadService } from '.'
 

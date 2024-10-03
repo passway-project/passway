@@ -2,7 +2,7 @@ import { PrismaClient, User } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
 import { DeepMockProxy } from 'vitest-mock-extended'
 
-import { getApp } from '../../../../test/getApp'
+import { getApp } from '../../../../test/utils/getApp'
 import { API_ROOT, sessionKeyName } from '../../../constants'
 
 import {

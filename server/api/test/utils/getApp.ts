@@ -4,9 +4,9 @@ import { mockDeep } from 'vitest-mock-extended'
 import { PrismaClient } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
 
-import { buildApp } from '../src/app'
+import { buildApp } from '../../src/app'
 
-vitest.mock('../src/sessionStore')
+vitest.mock('../../src/sessionStore')
 
 let app: FastifyInstance = fastify()
 

@@ -1,54 +1,39 @@
-import { PrismaClient, User } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
 import { DeepMockProxy } from 'vitest-mock-extended'
 
 import { getApp } from '../../../../test/utils/getApp'
 import { API_ROOT, sessionKeyName } from '../../../constants'
-
-import {
-  StubKeyData,
-  getMockKeyData,
-} from '../../../../test/utils/getMockKeyData'
+import { getMockKeyData } from '../../../../test/utils/getMockKeyData'
 import { requestAuthenticatedSession } from '../../../../test/utils/session'
+import {
+  getMockUser,
+  stubKeyData,
+  stubIv,
+  stubPasskeyId,
+  stubSalt,
+  stubTimestamp,
+  stubUserId,
+  stubUserIvString,
+  stubUserPasskeySecret,
+  stubUserSaltString,
+} from '../../../../test/stubs'
 
 import { UserGetApi, routeName } from '.'
 
 const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 
-const stubUserId = 0
-const stubPasskeyId = 'foo'
-const stubUserPasskeySecret = 'abc123'
-const stubIv = crypto.getRandomValues(new Uint8Array(12))
-const stubSalt = crypto.getRandomValues(new Uint8Array(16))
-const stubUserIvString = Buffer.from(stubIv).toString('base64')
-const stubUserSaltString = Buffer.from(stubSalt).toString('base64')
-
-const stubKeyData: StubKeyData = {
-  publicKey: '',
-  privateKey: '',
-  encryptedKeys: '',
-}
-
-const stubTimestamp = new Date(Date.now())
-const preexistingUser: User = {
-  id: stubUserId,
-  passkeyId: stubPasskeyId,
-  encryptedKeys: stubKeyData.encryptedKeys,
-  iv: stubUserIvString,
-  salt: stubUserSaltString,
-  publicKey: stubKeyData.publicKey,
-  createdAt: stubTimestamp,
-  updatedAt: stubTimestamp,
-}
+const mockKeyData = stubKeyData()
+const mockUser = getMockUser(mockKeyData)
 
 beforeAll(async () => {
   Object.assign(
-    stubKeyData,
+    mockKeyData,
     await getMockKeyData(stubUserPasskeySecret, stubIv, stubSalt)
   )
 
-  preexistingUser.publicKey = stubKeyData.publicKey
-  preexistingUser.encryptedKeys = stubKeyData.encryptedKeys
+  mockUser.publicKey = mockKeyData.publicKey
+  mockUser.encryptedKeys = mockKeyData.encryptedKeys
 })
 
 describe(endpointRoute, () => {
@@ -58,7 +43,7 @@ describe(endpointRoute, () => {
 
       ;(
         app.prisma as DeepMockProxy<PrismaClient>
-      ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
+      ).user.findFirstOrThrow.mockResolvedValueOnce(mockUser)
 
       const response = await app.inject({
         method: 'GET',
@@ -72,9 +57,9 @@ describe(endpointRoute, () => {
 
       expect(bodyJson).toEqual({
         user: {
-          iv: preexistingUser.iv,
-          keys: preexistingUser.encryptedKeys,
-          salt: preexistingUser.salt,
+          iv: mockUser.iv,
+          keys: mockUser.encryptedKeys,
+          salt: mockUser.salt,
         },
       })
       expect(response.statusCode).toEqual(StatusCodes.OK)
@@ -114,8 +99,8 @@ describe(endpointRoute, () => {
         app.prisma as DeepMockProxy<PrismaClient>
       ).user.upsert.mockResolvedValueOnce({
         id: stubUserId,
-        encryptedKeys: stubKeyData.encryptedKeys,
-        publicKey: stubKeyData.publicKey,
+        encryptedKeys: mockKeyData.encryptedKeys,
+        publicKey: mockKeyData.publicKey,
         iv: stubUserIvString,
         salt: stubUserSaltString,
         passkeyId: stubPasskeyId,
@@ -127,10 +112,10 @@ describe(endpointRoute, () => {
         method: 'PUT',
         url: endpointRoute,
         body: {
-          encryptedKeys: stubKeyData.encryptedKeys,
+          encryptedKeys: mockKeyData.encryptedKeys,
           id: stubPasskeyId,
           iv: stubUserIvString,
-          publicKey: stubKeyData.publicKey,
+          publicKey: mockKeyData.publicKey,
           salt: stubUserSaltString,
         },
       })
@@ -140,15 +125,15 @@ describe(endpointRoute, () => {
         (app.prisma as DeepMockProxy<PrismaClient>).user.upsert
       ).toHaveBeenCalledWith({
         create: {
-          encryptedKeys: stubKeyData.encryptedKeys,
+          encryptedKeys: mockKeyData.encryptedKeys,
           iv: stubUserIvString,
           passkeyId: stubPasskeyId,
-          publicKey: stubKeyData.publicKey,
+          publicKey: mockKeyData.publicKey,
           salt: stubUserSaltString,
         },
         update: {
-          encryptedKeys: stubKeyData.encryptedKeys,
-          publicKey: stubKeyData.publicKey,
+          encryptedKeys: mockKeyData.encryptedKeys,
+          publicKey: mockKeyData.publicKey,
         },
         where: {
           passkeyId: stubPasskeyId,
@@ -161,19 +146,19 @@ describe(endpointRoute, () => {
 
       const sessionResponse = await requestAuthenticatedSession(app, {
         userId: stubUserId,
-        ...stubKeyData,
+        ...mockKeyData,
       })
 
       ;(
         app.prisma as DeepMockProxy<PrismaClient>
-      ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
+      ).user.findFirstOrThrow.mockResolvedValueOnce(mockUser)
       ;(
         app.prisma as DeepMockProxy<PrismaClient>
       ).user.upsert.mockResolvedValueOnce({
         id: stubUserId,
         passkeyId: stubPasskeyId,
-        encryptedKeys: stubKeyData.encryptedKeys,
-        publicKey: stubKeyData.publicKey,
+        encryptedKeys: mockKeyData.encryptedKeys,
+        publicKey: mockKeyData.publicKey,
         iv: stubUserIvString,
         salt: stubUserSaltString,
         createdAt: stubTimestamp,
@@ -184,10 +169,10 @@ describe(endpointRoute, () => {
         method: 'PUT',
         url: endpointRoute,
         body: {
-          encryptedKeys: stubKeyData.encryptedKeys,
+          encryptedKeys: mockKeyData.encryptedKeys,
           id: stubPasskeyId,
           iv: stubUserIvString,
-          publicKey: stubKeyData.publicKey,
+          publicKey: mockKeyData.publicKey,
           salt: stubUserSaltString,
         },
         cookies: {
@@ -200,18 +185,18 @@ describe(endpointRoute, () => {
         (app.prisma as DeepMockProxy<PrismaClient>).user.upsert
       ).toHaveBeenCalledWith({
         create: {
-          encryptedKeys: stubKeyData.encryptedKeys,
+          encryptedKeys: mockKeyData.encryptedKeys,
           iv: stubUserIvString,
           passkeyId: stubPasskeyId,
-          publicKey: stubKeyData.publicKey,
+          publicKey: mockKeyData.publicKey,
           salt: stubUserSaltString,
         },
         update: {
-          encryptedKeys: stubKeyData.encryptedKeys,
-          publicKey: stubKeyData.publicKey,
+          encryptedKeys: mockKeyData.encryptedKeys,
+          publicKey: mockKeyData.publicKey,
         },
         where: {
-          id: preexistingUser.id,
+          id: mockUser.id,
           passkeyId: stubPasskeyId,
         },
       })
@@ -222,19 +207,19 @@ describe(endpointRoute, () => {
 
       const sessionResponse = await requestAuthenticatedSession(app, {
         userId: stubUserId + 1,
-        ...stubKeyData,
+        ...mockKeyData,
       })
 
       ;(
         app.prisma as DeepMockProxy<PrismaClient>
-      ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
+      ).user.findFirstOrThrow.mockResolvedValueOnce(mockUser)
       ;(
         app.prisma as DeepMockProxy<PrismaClient>
       ).user.upsert.mockResolvedValueOnce({
         id: stubUserId,
         passkeyId: stubPasskeyId,
-        encryptedKeys: stubKeyData.encryptedKeys,
-        publicKey: stubKeyData.publicKey,
+        encryptedKeys: mockKeyData.encryptedKeys,
+        publicKey: mockKeyData.publicKey,
         iv: stubUserIvString,
         salt: stubUserSaltString,
         createdAt: stubTimestamp,
@@ -245,10 +230,10 @@ describe(endpointRoute, () => {
         method: 'PUT',
         url: endpointRoute,
         body: {
-          encryptedKeys: stubKeyData.encryptedKeys,
+          encryptedKeys: mockKeyData.encryptedKeys,
           id: stubPasskeyId,
           iv: stubUserIvString,
-          publicKey: stubKeyData.publicKey,
+          publicKey: mockKeyData.publicKey,
           salt: stubUserSaltString,
         },
         cookies: {
@@ -267,7 +252,7 @@ describe(endpointRoute, () => {
 
       ;(
         app.prisma as DeepMockProxy<PrismaClient>
-      ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
+      ).user.findFirstOrThrow.mockResolvedValueOnce(mockUser)
       ;(
         app.prisma as DeepMockProxy<PrismaClient>
       ).user.upsert.mockRejectedValueOnce(new Error())
@@ -276,10 +261,10 @@ describe(endpointRoute, () => {
         method: 'PUT',
         url: endpointRoute,
         body: {
-          encryptedKeys: stubKeyData.encryptedKeys,
+          encryptedKeys: mockKeyData.encryptedKeys,
           id: stubPasskeyId,
           iv: stubUserIvString,
-          publicKey: stubKeyData.publicKey,
+          publicKey: mockKeyData.publicKey,
           salt: stubUserSaltString,
         },
       })

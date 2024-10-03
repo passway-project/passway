@@ -88,4 +88,4 @@ export const getMockKeyData = async (
   }
 }
 
-export type StubKeyData = Awaited<ReturnType<typeof getMockKeyData>>
+export type MockKeyData = Awaited<ReturnType<typeof getMockKeyData>>

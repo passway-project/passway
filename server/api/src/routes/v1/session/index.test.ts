@@ -1,46 +1,29 @@
-import { PrismaClient, User } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
 import { DeepMockProxy } from 'vitest-mock-extended'
 
 import { getApp, testAuthenticationRoute } from '../../../../test/utils/getApp'
 import { API_ROOT, sessionKeyName } from '../../../constants'
-
 import { getSignature } from '../../../../test/utils/crypto'
 import { requestAuthenticatedSession } from '../../../../test/utils/session'
+import { getMockKeyData } from '../../../../test/utils/getMockKeyData'
+
 import {
-  StubKeyData,
-  getMockKeyData,
-} from '../../../../test/utils/getMockKeyData'
+  getMockUser,
+  stubKeyData,
+  stubIv,
+  stubPasskeyId,
+  stubSalt,
+  stubUserId,
+  stubUserPasskeySecret,
+} from '../../../../test/stubs'
 
 import { routeName, signatureMessage } from '.'
 
 const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 
-const stubPasskeyId = 'foo'
-const stubUserId = 0
-const stubUserSecret = 'abc123'
-const stubIv = crypto.getRandomValues(new Uint8Array(12))
-const stubSalt = crypto.getRandomValues(new Uint8Array(16))
-const stubUserIvString = Buffer.from(stubIv).toString('base64')
-const stubUserSaltString = Buffer.from(stubSalt).toString('base64')
-
-const stubKeyData: StubKeyData = {
-  publicKey: '',
-  privateKey: '',
-  encryptedKeys: '',
-}
-
-const stubTimestamp = new Date(Date.now())
-const preexistingUser: User = {
-  id: stubUserId,
-  passkeyId: stubPasskeyId,
-  encryptedKeys: stubKeyData.encryptedKeys,
-  publicKey: stubKeyData.publicKey,
-  iv: stubUserIvString,
-  salt: stubUserSaltString,
-  createdAt: stubTimestamp,
-  updatedAt: stubTimestamp,
-}
+const mockKeyData = stubKeyData()
+const mockUser = getMockUser(mockKeyData)
 
 const sessionCookie = {
   httpOnly: true,
@@ -53,8 +36,8 @@ const sessionCookie = {
 
 beforeAll(async () => {
   Object.assign(
-    stubKeyData,
-    await getMockKeyData(stubUserSecret, stubIv, stubSalt)
+    mockKeyData,
+    await getMockKeyData(stubUserPasskeySecret, stubIv, stubSalt)
   )
 })
 
@@ -68,7 +51,7 @@ describe(endpointRoute, () => {
       ).user.findFirstOrThrow.mockRejectedValueOnce(new Error())
 
       const signature = await getSignature(signatureMessage, {
-        privateKey: stubKeyData.privateKey,
+        privateKey: mockKeyData.privateKey,
       })
 
       const signatureHeader = Buffer.from(signature).toString('base64')
@@ -96,7 +79,7 @@ describe(endpointRoute, () => {
 
       const sessionResponse = await requestAuthenticatedSession(app, {
         userId: stubUserId,
-        ...stubKeyData,
+        ...mockKeyData,
       })
 
       const authRequest = await app.inject({
@@ -116,14 +99,14 @@ describe(endpointRoute, () => {
       const app = getApp()
 
       const signature = await getSignature('some other message', {
-        privateKey: stubKeyData.privateKey,
+        privateKey: mockKeyData.privateKey,
       })
 
       const signatureHeader = Buffer.from(signature).toString('base64')
 
       ;(
         app.prisma as DeepMockProxy<PrismaClient>
-      ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
+      ).user.findFirstOrThrow.mockResolvedValueOnce(mockUser)
 
       const response = await app.inject({
         method: 'GET',
@@ -155,7 +138,7 @@ describe(endpointRoute, () => {
 
       ;(
         app.prisma as DeepMockProxy<PrismaClient>
-      ).user.findFirstOrThrow.mockResolvedValueOnce(preexistingUser)
+      ).user.findFirstOrThrow.mockResolvedValueOnce(mockUser)
 
       const response = await app.inject({
         method: 'GET',
@@ -180,7 +163,7 @@ describe(endpointRoute, () => {
 
       const sessionResponse = await requestAuthenticatedSession(app, {
         userId: stubUserId,
-        ...stubKeyData,
+        ...mockKeyData,
       })
 
       const response = await app.inject({

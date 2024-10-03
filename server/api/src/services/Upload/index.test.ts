@@ -1,42 +1,43 @@
 import { IncomingMessage, ServerResponse } from 'http'
 import { Socket } from 'net'
 
-import fastify from 'fastify'
-import fastifyCookie from '@fastify/cookie'
 import { Upload } from '@tus/server'
 import { StatusCodes } from 'http-status-codes'
+import { DeepMockProxy } from 'vitest-mock-extended'
+import { PrismaClient } from '@prisma/client'
 
 import { sessionKeyName } from '../../constants'
 import { sessionStore } from '../../__mocks__/sessionStore'
-import { prismaPlugin } from '../../../prisma/prismaPlugin'
+import { getApp } from '../../../test/getApp'
 
 import { UploadService } from '.'
-
-vi.mock('../../sessionStore')
 
 const stubUserId = 1
 const stubSessionId = 'session-id'
 const stubContentId = 'abc123'
 const stubContentSize = 1024
-
-const getFastifyStub = async () => {
-  const stubFastify = fastify()
-  await stubFastify.register(fastifyCookie)
-  await stubFastify.register(prismaPlugin)
-
-  return stubFastify
-}
+const stubFileMetadataRecordId = 1
 
 describe('UploadService', () => {
   describe('handleUploadFinish', () => {
     test('creates FileMetadata record upon success', async () => {
-      const stubFastify = await getFastifyStub()
+      const app = getApp()
 
-      vi.spyOn(stubFastify, 'parseCookie').mockReturnValueOnce({
+      vi.spyOn(app, 'parseCookie').mockReturnValueOnce({
         [sessionKeyName]: stubSessionId,
       })
+      ;(
+        app.prisma as DeepMockProxy<PrismaClient>
+      ).fileMetadata.create.mockResolvedValueOnce({
+        contentId: stubContentId,
+        contentSize: stubContentSize,
+        createdAt: new Date(),
+        id: stubFileMetadataRecordId,
+        isEncrypted: true,
+        userId: stubUserId,
+      })
 
-      vi.spyOn(stubFastify.prisma.fileMetadata, 'create')
+      vi.spyOn(app.prisma.fileMetadata, 'create')
 
       vi.spyOn(sessionStore, 'get').mockImplementationOnce(
         (_sessionId, callback) => {
@@ -51,7 +52,7 @@ describe('UploadService', () => {
       )
 
       const uploadService = new UploadService({
-        fastify: stubFastify,
+        fastify: app,
         path: '/',
       })
 
@@ -74,7 +75,7 @@ describe('UploadService', () => {
 
       expect(response.statusCode).toEqual(StatusCodes.OK)
 
-      expect(stubFastify.prisma.fileMetadata.create).toHaveBeenCalledWith({
+      expect(app.prisma.fileMetadata.create).toHaveBeenCalledWith({
         data: {
           contentId: stubContentId,
           contentSize: stubContentSize,
@@ -85,13 +86,13 @@ describe('UploadService', () => {
     })
 
     test('handles missing session data', async () => {
-      const stubFastify = await getFastifyStub()
+      const app = getApp()
 
-      vi.spyOn(stubFastify, 'parseCookie').mockReturnValueOnce({
+      vi.spyOn(app, 'parseCookie').mockReturnValueOnce({
         [sessionKeyName]: stubSessionId,
       })
 
-      vi.spyOn(stubFastify.prisma.fileMetadata, 'create')
+      //vi.spyOn(app.prisma.fileMetadata, 'create')
 
       vi.spyOn(sessionStore, 'get').mockImplementationOnce(
         (_sessionId, callback) => {
@@ -104,7 +105,7 @@ describe('UploadService', () => {
       )
 
       const uploadService = new UploadService({
-        fastify: stubFastify,
+        fastify: app,
         path: '/',
       })
 
@@ -128,13 +129,13 @@ describe('UploadService', () => {
     })
 
     test('handles missing content size', async () => {
-      const stubFastify = await getFastifyStub()
+      const app = getApp()
 
-      vi.spyOn(stubFastify, 'parseCookie').mockReturnValueOnce({
+      vi.spyOn(app, 'parseCookie').mockReturnValueOnce({
         [sessionKeyName]: stubSessionId,
       })
 
-      vi.spyOn(stubFastify.prisma.fileMetadata, 'create')
+      vi.spyOn(app.prisma.fileMetadata, 'create')
 
       vi.spyOn(sessionStore, 'get').mockImplementationOnce(
         (_sessionId, callback) => {
@@ -149,7 +150,7 @@ describe('UploadService', () => {
       )
 
       const uploadService = new UploadService({
-        fastify: stubFastify,
+        fastify: app,
         path: '/',
       })
 
@@ -175,13 +176,13 @@ describe('UploadService', () => {
     })
 
     test('handles invalid isEncrypted metadata', async () => {
-      const stubFastify = await getFastifyStub()
+      const app = getApp()
 
-      vi.spyOn(stubFastify, 'parseCookie').mockReturnValueOnce({
+      vi.spyOn(app, 'parseCookie').mockReturnValueOnce({
         [sessionKeyName]: stubSessionId,
       })
 
-      vi.spyOn(stubFastify.prisma.fileMetadata, 'create')
+      vi.spyOn(app.prisma.fileMetadata, 'create')
 
       vi.spyOn(sessionStore, 'get').mockImplementationOnce(
         (_sessionId, callback) => {
@@ -196,7 +197,7 @@ describe('UploadService', () => {
       )
 
       const uploadService = new UploadService({
-        fastify: stubFastify,
+        fastify: app,
         path: '/',
       })
 
@@ -224,18 +225,14 @@ describe('UploadService', () => {
     })
 
     test('handles FileMetadata creation failure', async () => {
-      const stubFastify = await getFastifyStub()
+      const app = getApp()
 
-      vi.spyOn(stubFastify, 'parseCookie').mockReturnValueOnce({
+      vi.spyOn(app, 'parseCookie').mockReturnValueOnce({
         [sessionKeyName]: stubSessionId,
       })
-
-      vi.spyOn(
-        stubFastify.prisma.fileMetadata,
-        'create'
-      ).mockImplementationOnce(() => {
-        throw new Error()
-      })
+      ;(
+        app.prisma as DeepMockProxy<PrismaClient>
+      ).fileMetadata.create.mockRejectedValueOnce(new Error())
 
       vi.spyOn(sessionStore, 'get').mockImplementationOnce(
         (_sessionId, callback) => {
@@ -250,7 +247,7 @@ describe('UploadService', () => {
       )
 
       const uploadService = new UploadService({
-        fastify: stubFastify,
+        fastify: app,
         path: '/',
       })
 

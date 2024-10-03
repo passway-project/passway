@@ -23,6 +23,8 @@ export class UploadError extends Error {
   }
 }
 
+const offsetOctetStreamParserName = 'application/offset+octet-stream'
+
 export class UploadService {
   private fastify: FastifyInstance
 
@@ -31,12 +33,16 @@ export class UploadService {
   constructor({ fastify, path }: { fastify: FastifyInstance; path: string }) {
     this.fastify = fastify
 
-    // NOTE: Needed for tus-node-server
-    // https://github.com/tus/tus-node-server?tab=readme-ov-file#quick-start
-    fastify.addContentTypeParser(
-      'application/offset+octet-stream',
-      async () => null
-    )
+    // NOTE: This check is needed to avoid redefining the content type parser
+    // in the test environment
+    if (!fastify.hasContentTypeParser(offsetOctetStreamParserName)) {
+      // NOTE: Needed for tus-node-server
+      // https://github.com/tus/tus-node-server?tab=readme-ov-file#quick-start
+      fastify.addContentTypeParser(
+        offsetOctetStreamParserName,
+        async () => null
+      )
+    }
 
     const s3Store = new S3Store({
       partSize: 8 * 1024 * 1024, // Each uploaded part will have ~8MiB,

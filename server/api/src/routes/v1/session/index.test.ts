@@ -7,7 +7,10 @@ import { API_ROOT, sessionKeyName } from '../../../constants'
 
 import { getSignature } from '../../../../test/utils/crypto'
 import { requestAuthenticatedSession } from '../../../../test/utils/session'
-import { StubKeyData, getStubKeyData } from '../../../../test/getStubKeyData'
+import {
+  StubKeyData,
+  getMockKeyData,
+} from '../../../../test/utils/getMockKeyData'
 
 import { routeName, signatureMessage } from '.'
 
@@ -51,7 +54,7 @@ const sessionCookie = {
 beforeAll(async () => {
   Object.assign(
     stubKeyData,
-    await getStubKeyData(stubUserSecret, stubIv, stubSalt)
+    await getMockKeyData(stubUserSecret, stubIv, stubSalt)
   )
 })
 
@@ -138,7 +141,7 @@ describe(endpointRoute, () => {
     test('handles invalid signature', async () => {
       const app = getApp()
 
-      const differentSignatureKeys = await getStubKeyData(
+      const differentSignatureKeys = await getMockKeyData(
         'some other secret',
         stubIv,
         stubSalt

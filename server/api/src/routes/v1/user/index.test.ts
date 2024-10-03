@@ -5,7 +5,10 @@ import { DeepMockProxy } from 'vitest-mock-extended'
 import { getApp } from '../../../../test/getApp'
 import { API_ROOT, sessionKeyName } from '../../../constants'
 
-import { StubKeyData, getStubKeyData } from '../../../../test/getStubKeyData'
+import {
+  StubKeyData,
+  getMockKeyData,
+} from '../../../../test/utils/getMockKeyData'
 import { requestAuthenticatedSession } from '../../../../test/utils/session'
 
 import { UserGetApi, routeName } from '.'
@@ -41,7 +44,7 @@ const preexistingUser: User = {
 beforeAll(async () => {
   Object.assign(
     stubKeyData,
-    await getStubKeyData(stubUserPasskeySecret, stubIv, stubSalt)
+    await getMockKeyData(stubUserPasskeySecret, stubIv, stubSalt)
   )
 
   preexistingUser.publicKey = stubKeyData.publicKey

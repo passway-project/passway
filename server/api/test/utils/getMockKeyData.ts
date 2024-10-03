@@ -5,9 +5,9 @@ import {
   contentEncryptionKeyAlgorithmName,
   signatureKeyAlgorithmName,
   signatureKeyNamedCurve,
-} from '../src/constants'
+} from '../../src/constants'
 
-import { SerializedKeys, deriveKey, importKey } from './utils/crypto'
+import { SerializedKeys, deriveKey, importKey } from './crypto'
 
 const getEncryptionKey = async () => {
   const encryptionKey = await webcrypto.subtle.generateKey(
@@ -47,7 +47,7 @@ const getSignatureKeys = async () => {
   return { publicKey, privateKey }
 }
 
-export const getStubKeyData = async (
+export const getMockKeyData = async (
   passkeySecret: string,
   iv: Uint8Array,
   salt: Uint8Array
@@ -88,4 +88,4 @@ export const getStubKeyData = async (
   }
 }
 
-export type StubKeyData = Awaited<ReturnType<typeof getStubKeyData>>
+export type StubKeyData = Awaited<ReturnType<typeof getMockKeyData>>

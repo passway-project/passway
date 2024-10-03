@@ -26,22 +26,19 @@ export class UploadError extends Error {
 const offsetOctetStreamParserName = 'application/offset+octet-stream'
 
 export class UploadService {
-  private fastify: FastifyInstance
+  private app: FastifyInstance
 
   private server: Server
 
-  constructor({ fastify, path }: { fastify: FastifyInstance; path: string }) {
-    this.fastify = fastify
+  constructor({ app, path }: { app: FastifyInstance; path: string }) {
+    this.app = app
 
     // NOTE: This check is needed to avoid redefining the content type parser
     // in the test environment
-    if (!fastify.hasContentTypeParser(offsetOctetStreamParserName)) {
+    if (!app.hasContentTypeParser(offsetOctetStreamParserName)) {
       // NOTE: Needed for tus-node-server
       // https://github.com/tus/tus-node-server?tab=readme-ov-file#quick-start
-      fastify.addContentTypeParser(
-        offsetOctetStreamParserName,
-        async () => null
-      )
+      app.addContentTypeParser(offsetOctetStreamParserName, async () => null)
     }
 
     const s3Store = new S3Store({
@@ -77,9 +74,9 @@ export class UploadService {
     upload: Upload
   ) => {
     try {
-      this.fastify.log.debug(upload, 'Upload complete')
+      this.app.log.debug(upload, 'Upload complete')
 
-      const { [sessionKeyName]: sessionId } = this.fastify.parseCookie(
+      const { [sessionKeyName]: sessionId } = this.app.parseCookie(
         request.headers.cookie ?? ''
       )
 
@@ -138,8 +135,8 @@ export class UploadService {
 
       try {
         const result =
-          await this.fastify.prisma.fileMetadata.create(fileMetadataRecord)
-        this.fastify.log.debug(result, 'Created file metadata record')
+          await this.app.prisma.fileMetadata.create(fileMetadataRecord)
+        this.app.log.debug(result, 'Created file metadata record')
       } catch (e) {
         throw new UploadError(
           'Could not record file metadata',
@@ -147,7 +144,7 @@ export class UploadService {
         )
       }
     } catch (e) {
-      this.fastify.log.error(e)
+      this.app.log.error(e)
       throw e
     }
 

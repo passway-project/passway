@@ -313,7 +313,7 @@ export class PasswayClient {
           resolve()
         },
 
-        onShouldRetry: function (err) {
+        onShouldRetry(err) {
           const status = err.originalResponse
             ? err.originalResponse.getStatus()
             : 0

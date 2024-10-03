@@ -14,7 +14,7 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
   options
 ) => {
   const uploadService = new UploadService({
-    fastify: app,
+    app,
     path: `${options.prefix}/${routeName}`,
   })
 

@@ -52,7 +52,7 @@ describe('UploadService', () => {
       )
 
       const uploadService = new UploadService({
-        fastify: app,
+        app,
         path: '/',
       })
 
@@ -92,8 +92,6 @@ describe('UploadService', () => {
         [sessionKeyName]: stubSessionId,
       })
 
-      //vi.spyOn(app.prisma.fileMetadata, 'create')
-
       vi.spyOn(sessionStore, 'get').mockImplementationOnce(
         (_sessionId, callback) => {
           callback('session not found', {
@@ -105,7 +103,7 @@ describe('UploadService', () => {
       )
 
       const uploadService = new UploadService({
-        fastify: app,
+        app,
         path: '/',
       })
 
@@ -150,7 +148,7 @@ describe('UploadService', () => {
       )
 
       const uploadService = new UploadService({
-        fastify: app,
+        app,
         path: '/',
       })
 
@@ -197,7 +195,7 @@ describe('UploadService', () => {
       )
 
       const uploadService = new UploadService({
-        fastify: app,
+        app,
         path: '/',
       })
 
@@ -247,7 +245,7 @@ describe('UploadService', () => {
       )
 
       const uploadService = new UploadService({
-        fastify: app,
+        app,
         path: '/',
       })
 

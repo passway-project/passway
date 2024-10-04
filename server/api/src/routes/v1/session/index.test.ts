@@ -6,8 +6,10 @@ import { getApp, testAuthenticationRoute } from '../../../../test/utils/getApp'
 import { API_ROOT, sessionKeyName } from '../../../constants'
 import { getSignature } from '../../../../test/utils/crypto'
 import { requestAuthenticatedSession } from '../../../../test/utils/session'
-import { getMockKeyData } from '../../../../test/utils/getMockKeyData'
-
+import {
+  getMockKeyData,
+  hydrateMockKeyData,
+} from '../../../../test/utils/getMockKeyData'
 import {
   getMockUser,
   stubKeyData,
@@ -15,7 +17,6 @@ import {
   stubPasskeyId,
   stubSalt,
   stubUserId,
-  stubUserPasskeySecret,
 } from '../../../../test/stubs'
 
 import { routeName, signatureMessage } from '.'
@@ -35,10 +36,7 @@ const sessionCookie = {
 }
 
 beforeAll(async () => {
-  Object.assign(
-    mockKeyData,
-    await getMockKeyData(stubUserPasskeySecret, stubIv, stubSalt)
-  )
+  await hydrateMockKeyData(mockKeyData)
 })
 
 describe(endpointRoute, () => {

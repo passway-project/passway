@@ -4,18 +4,15 @@ import { DeepMockProxy } from 'vitest-mock-extended'
 
 import { getApp } from '../../../../test/utils/getApp'
 import { API_ROOT, sessionKeyName } from '../../../constants'
-import { getMockKeyData } from '../../../../test/utils/getMockKeyData'
+import { hydrateMockKeyData } from '../../../../test/utils/getMockKeyData'
 import { requestAuthenticatedSession } from '../../../../test/utils/session'
 import {
   getMockUser,
   stubKeyData,
-  stubIv,
   stubPasskeyId,
-  stubSalt,
   stubTimestamp,
   stubUserId,
   stubUserIvString,
-  stubUserPasskeySecret,
   stubUserSaltString,
 } from '../../../../test/stubs'
 
@@ -27,10 +24,7 @@ const mockKeyData = stubKeyData()
 const mockUser = getMockUser(mockKeyData)
 
 beforeAll(async () => {
-  Object.assign(
-    mockKeyData,
-    await getMockKeyData(stubUserPasskeySecret, stubIv, stubSalt)
-  )
+  await hydrateMockKeyData(mockKeyData)
 
   mockUser.publicKey = mockKeyData.publicKey
   mockUser.encryptedKeys = mockKeyData.encryptedKeys

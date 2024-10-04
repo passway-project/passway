@@ -1,18 +1,8 @@
 import { API_ROOT } from '../../../constants'
-
 import { requestAuthenticatedSession } from '../../../../test/utils/session'
-import {
-  getMockUser,
-  stubKeyData,
-  stubIv,
-  stubSalt,
-  stubUserId,
-  stubUserPasskeySecret,
-} from '../../../../test/stubs'
-
+import { getMockUser, stubKeyData, stubUserId } from '../../../../test/stubs'
 import { getApp } from '../../../../test/utils/getApp'
-
-import { getMockKeyData } from '../../../../test/utils/getMockKeyData'
+import { hydrateMockKeyData } from '../../../../test/utils/getMockKeyData'
 
 import { routeName } from '.'
 
@@ -22,10 +12,7 @@ const mockKeyData = stubKeyData()
 const mockUser = getMockUser(mockKeyData)
 
 beforeAll(async () => {
-  Object.assign(
-    mockKeyData,
-    await getMockKeyData(stubUserPasskeySecret, stubIv, stubSalt)
-  )
+  await hydrateMockKeyData(mockKeyData)
 
   mockUser.publicKey = mockKeyData.publicKey
   mockUser.encryptedKeys = mockKeyData.encryptedKeys

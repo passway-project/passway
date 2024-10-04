@@ -7,6 +7,8 @@ import {
   signatureKeyNamedCurve,
 } from '../../src/constants'
 
+import { stubIv, stubSalt, stubUserPasskeySecret } from '../stubs'
+
 import { SerializedKeys, deriveKey, importKey } from './crypto'
 
 const getEncryptionKey = async () => {
@@ -89,3 +91,10 @@ export const getMockKeyData = async (
 }
 
 export type MockKeyData = Awaited<ReturnType<typeof getMockKeyData>>
+
+export const hydrateMockKeyData = async (mockKeyData: MockKeyData) => {
+  Object.assign(
+    mockKeyData,
+    await getMockKeyData(stubUserPasskeySecret, stubIv, stubSalt)
+  )
+}

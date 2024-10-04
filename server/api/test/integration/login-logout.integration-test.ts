@@ -9,7 +9,7 @@ import {
   isUserGetSuccessResponse,
   routeName as userRouteName,
 } from '../../src/routes/v1/user'
-import { getMockKeyData } from '../utils/getMockKeyData'
+import { getMockKeyData } from '../utils/keyData'
 import { redisClient } from '../../src/cache'
 import { decryptSerializedKeys, getSignature } from '../utils/crypto'
 import {

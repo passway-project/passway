@@ -7,7 +7,7 @@ import {
   stubUserId,
 } from '../../../../test/stubs'
 import { getApp } from '../../../../test/utils/getApp'
-import { hydrateMockKeyData } from '../../../../test/utils/getMockKeyData'
+import { hydrateMockKeyData } from '../../../../test/utils/keyData'
 
 import { routeName } from '.'
 

@@ -1,6 +1,6 @@
 import { User } from '@prisma/client'
 
-import { MockKeyData } from './utils/getMockKeyData'
+import { MockKeyData } from './utils/keyData'
 
 export const stubUserId = 0
 export const stubPasskeyId = 'foo'

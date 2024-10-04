@@ -4,7 +4,7 @@ import { DeepMockProxy } from 'vitest-mock-extended'
 
 import { getApp } from '../../../../test/utils/getApp'
 import { API_ROOT, sessionKeyName } from '../../../constants'
-import { hydrateMockKeyData } from '../../../../test/utils/getMockKeyData'
+import { hydrateMockKeyData } from '../../../../test/utils/keyData'
 import { requestAuthenticatedSession } from '../../../../test/utils/session'
 import {
   getStubUser,

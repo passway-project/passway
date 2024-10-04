@@ -9,7 +9,7 @@ import { requestAuthenticatedSession } from '../../../../test/utils/session'
 import {
   getMockKeyData,
   hydrateMockKeyData,
-} from '../../../../test/utils/getMockKeyData'
+} from '../../../../test/utils/keyData'
 import {
   getStubUser,
   stubKeyData,

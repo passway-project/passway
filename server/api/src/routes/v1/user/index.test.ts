@@ -7,7 +7,8 @@ import { API_ROOT, sessionKeyName } from '../../../constants'
 import { hydrateMockKeyData } from '../../../../test/utils/getMockKeyData'
 import { requestAuthenticatedSession } from '../../../../test/utils/session'
 import {
-  getMockUser,
+  getStubUser,
+  hydrateMockUser,
   stubKeyData,
   stubPasskeyId,
   stubTimestamp,
@@ -21,13 +22,11 @@ import { UserGetApi, routeName } from '.'
 const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 
 const mockKeyData = stubKeyData()
-const mockUser = getMockUser(mockKeyData)
+const mockUser = getStubUser()
 
 beforeAll(async () => {
   await hydrateMockKeyData(mockKeyData)
-
-  mockUser.publicKey = mockKeyData.publicKey
-  mockUser.encryptedKeys = mockKeyData.encryptedKeys
+  hydrateMockUser(mockUser, mockKeyData)
 })
 
 describe(endpointRoute, () => {

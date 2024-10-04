@@ -11,7 +11,7 @@ import {
   hydrateMockKeyData,
 } from '../../../../test/utils/getMockKeyData'
 import {
-  getMockUser,
+  getStubUser,
   stubKeyData,
   stubIv,
   stubPasskeyId,
@@ -24,7 +24,7 @@ import { routeName, signatureMessage } from '.'
 const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 
 const mockKeyData = stubKeyData()
-const mockUser = getMockUser(mockKeyData)
+const mockUser = getStubUser()
 
 const sessionCookie = {
   httpOnly: true,

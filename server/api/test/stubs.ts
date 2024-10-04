@@ -16,15 +16,22 @@ export const stubKeyData = (): MockKeyData => ({
   encryptedKeys: '',
 })
 
-export const getMockUser = (mockKeyData: MockKeyData): User => ({
+export const getStubUser = (): User => ({
   id: stubUserId,
   passkeyId: stubPasskeyId,
-  encryptedKeys: mockKeyData.encryptedKeys,
+  encryptedKeys: '',
   iv: stubUserIvString,
   salt: stubUserSaltString,
-  publicKey: mockKeyData.publicKey,
+  publicKey: '',
   createdAt: stubTimestamp,
   updatedAt: stubTimestamp,
 })
+
+export const hydrateMockUser = (mockUser: User, mockKeyData: MockKeyData) => {
+  Object.assign(mockUser, {
+    encryptedKeys: mockKeyData.encryptedKeys,
+    publicKey: mockKeyData.publicKey,
+  })
+}
 
 export const stubTimestamp = new Date(Date.now())

@@ -26,7 +26,6 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
   // content uploading and downloading. It is not complete and will change
   // significantly.
   //
-  // FIXME: Test this
   // TODO: Implement pagination
   // TODO: Implement filtering
   app.get(

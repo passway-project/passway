@@ -70,7 +70,6 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
     }
   )
 
-  // FIXME: Test this
   app.get<{ Params: { contentId: string } }>(
     `/${routeName}/:contentId`,
     {

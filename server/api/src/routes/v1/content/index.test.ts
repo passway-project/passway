@@ -1,7 +1,7 @@
+import { Readable } from 'stream'
+
 import { DeepMockProxy } from 'vitest-mock-extended'
-
 import { PrismaClient, Prisma } from '@prisma/client'
-
 import { StatusCodes } from 'http-status-codes'
 
 import { API_ROOT, sessionKeyName } from '../../../constants'
@@ -14,6 +14,7 @@ import {
 } from '../../../../test/stubs'
 import { getApp } from '../../../../test/utils/getApp'
 import { hydrateMockKeyData } from '../../../../test/utils/keyData'
+import { streamToString } from '../../../../test/utils/stream'
 
 import { routeName } from '.'
 
@@ -21,6 +22,7 @@ const endpointRoute = `/${API_ROOT}/v1/${routeName}`
 
 const mockKeyData = stubKeyData()
 const mockUser = getStubUser()
+const mockContentDataString = 'content data'
 
 const mockFileMetadataRecord1: Prisma.$FileMetadataPayload['scalars'] = {
   contentId: 'mock-content-id-1',
@@ -87,6 +89,38 @@ describe(endpointRoute, () => {
           },
         ])
       })
+    })
+  })
+
+  describe(`/${routeName}/:contentId`, () => {
+    describe('GET', () => {
+      test('responds with content data', async () => {
+        const app = getApp()
+
+        const sessionResponse = await requestAuthenticatedSession(app, {
+          userId: stubUserId,
+          ...mockKeyData,
+        })
+
+        vi.spyOn(app.minioClient, 'getObject').mockResolvedValueOnce(
+          Readable.from(mockContentDataString)
+        )
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `${endpointRoute}/${mockFileMetadataRecord1.contentId}`,
+          cookies: {
+            [sessionKeyName]: sessionResponse.cookies[0].value,
+          },
+        })
+
+        const retrievedContentString = await streamToString(response.stream())
+
+        expect(response.statusCode).toEqual(StatusCodes.OK)
+        expect(retrievedContentString).toEqual(mockContentDataString)
+      })
+
+      test.skip('responds with a 404 if content is not available', async () => {})
     })
   })
 })

@@ -17,3 +17,10 @@ export const signatureKeySaltLength = 32
 export const contentEncryptionKeyAlgorithmName = 'AES-GCM'
 
 export const contentBucketName = 'passway-bucket'
+
+// NOTE: This does not appear to be explicitly defined by the MinIO client
+// package, so it is defined explicitly in application code here.
+/**
+ * @see: https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-aws-sdk-client-s3/Class/NoSuchKey/
+ */
+export const minioNoSuchKeyCode = 'NoSuchKey'

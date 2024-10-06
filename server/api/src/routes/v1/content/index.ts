@@ -3,7 +3,9 @@ import httpErrors from 'http-errors'
 
 import { StatusCodes } from 'http-status-codes'
 
-import { contentBucketName } from '../../../constants'
+import { S3Error } from 'minio'
+
+import { contentBucketName, minioNoSuchKeyCode } from '../../../constants'
 
 import { UploadService } from '../../../services/Upload'
 
@@ -107,7 +109,17 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
         return reply.send(objectDataStream)
       } catch (e) {
         app.log.error(e, `Object ID ${contentId} lookup failed`)
-        // FIXME: Return a 404 if the object was not found
+
+        if (e instanceof S3Error) {
+          const { code } = e
+
+          if (code === minioNoSuchKeyCode) {
+            return reply.send(
+              httpErrors.NotFound(`Content ID "${contentId}" not found`)
+            )
+          }
+        }
+
         return reply.send(httpErrors.InternalServerError())
       }
     }

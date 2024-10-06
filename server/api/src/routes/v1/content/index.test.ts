@@ -4,7 +4,13 @@ import { DeepMockProxy } from 'vitest-mock-extended'
 import { PrismaClient, Prisma } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
 
-import { API_ROOT, sessionKeyName } from '../../../constants'
+import { S3Error } from 'minio'
+
+import {
+  API_ROOT,
+  minioNoSuchKeyCode,
+  sessionKeyName,
+} from '../../../constants'
 import { requestAuthenticatedSession } from '../../../../test/utils/session'
 import {
   getStubUser,
@@ -120,7 +126,35 @@ describe(endpointRoute, () => {
         expect(retrievedContentString).toEqual(mockContentDataString)
       })
 
-      test.skip('responds with a 404 if content is not available', async () => {})
+      test('responds with a 404 if content is not available', async () => {
+        const app = getApp()
+
+        const sessionResponse = await requestAuthenticatedSession(app, {
+          userId: stubUserId,
+          ...mockKeyData,
+        })
+
+        vi.spyOn(app.minioClient, 'getObject').mockRejectedValueOnce(
+          Object.assign(new S3Error(), { code: minioNoSuchKeyCode })
+        )
+
+        const nonexistentContentId = 'some-nonexistent-content-id'
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `${endpointRoute}/${nonexistentContentId}`,
+          cookies: {
+            [sessionKeyName]: sessionResponse.cookies[0].value,
+          },
+        })
+
+        const bodyJson = await response.json()
+
+        expect(response.statusCode).toEqual(StatusCodes.NOT_FOUND)
+        expect(bodyJson).toMatchObject({
+          message: `Content ID "${nonexistentContentId}" not found`,
+        })
+      })
     })
   })
 })

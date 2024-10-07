@@ -1,4 +1,6 @@
 /* c8 ignore start */
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
+
 import standardConfig from './vite.config'
 
 /**
@@ -6,6 +8,14 @@ import standardConfig from './vite.config'
  */
 const userConfig = {
   ...standardConfig,
+  plugins: [
+    nodePolyfills({
+      globals: {
+        Buffer: true,
+        Blob: true,
+      },
+    }),
+  ],
   test: {
     ...standardConfig.test,
     include: ['**/?(*.)+(integration-test).[tj]s'],

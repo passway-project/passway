@@ -1,4 +1,4 @@
-import { Upload } from 'tus-js-client'
+import { Upload as TusUpload } from 'tus-js-client'
 
 export * from './types'
 import {
@@ -34,6 +34,8 @@ export interface UploadOptions {
    * Default value: true
    */
   enableEncryption?: boolean
+
+  Upload?: typeof TusUpload
 }
 
 export class PasswayClient {
@@ -43,7 +45,7 @@ export class PasswayClient {
   private passkeyId: string | null = null
   private userHandle: ArrayBuffer | null = null
 
-  private getEncryptedDataStreamReader = async (data: Upload['file']) => {
+  private getEncryptedDataStreamReader = async (data: TusUpload['file']) => {
     const readableStream =
       data instanceof Blob ? data.stream().getReader() : data
 
@@ -285,8 +287,8 @@ export class PasswayClient {
 
   // FIXME: Test this
   upload = async (
-    data: Upload['file'],
-    { enableEncryption = true }: UploadOptions = {}
+    data: TusUpload['file'],
+    { enableEncryption = true, Upload = TusUpload }: UploadOptions = {}
   ) => {
     const dataStream = enableEncryption
       ? await this.getEncryptedDataStreamReader(data)
@@ -363,6 +365,7 @@ export class PasswayClient {
     return getContentListResponseBody
   }
 
+  // FIXME: Test this
   download = async (contentId: string, { isEncrypted = true } = {}) => {
     if (contentId.length === 0) {
       throw new ArgumentError('contentId is empty')

@@ -1,3 +1,7 @@
+import { File } from 'node:buffer'
+
+import { Upload, UploadOptions } from 'tus-js-client'
+
 import {
   LoginError,
   LogoutError,
@@ -12,7 +16,8 @@ import { GetUserResponse, PasswayClient, SerializedKeys } from '.'
 
 let passwayClient = new PasswayClient({ apiRoot: '' })
 
-const mockUserHandle = dataGenerator.getRandomUint8Array(1)
+const mockUserHandle = dataGenerator.getRandomUint8Array(16)
+const mockUserHandleString = dataTransform.bufferToBase64(mockUserHandle)
 const passkeyId = 'abc123'
 const mockIv = new Uint8Array(12)
 const mockSalt = new Uint8Array(16)
@@ -68,7 +73,7 @@ beforeEach(() => {
 })
 
 describe('PasswayClient', () => {
-  describe('createPasskey', async () => {
+  describe('createPasskey', () => {
     test('creates a passkey', async () => {
       const createSpy = vitest
         .spyOn(navigator.credentials, 'create')
@@ -129,7 +134,7 @@ describe('PasswayClient', () => {
     })
   })
 
-  describe('createUser', async () => {
+  describe('createUser', () => {
     test('creates user', async () => {
       const mockPublicKeyCredential = Object.assign(
         new window.PublicKeyCredential(),
@@ -245,7 +250,7 @@ describe('PasswayClient', () => {
     })
   })
 
-  describe('createSession', async () => {
+  describe('createSession', () => {
     test('creates session with fresh credentials', async () => {
       vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
       vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
@@ -568,4 +573,122 @@ describe('PasswayClient', () => {
       }).rejects.toThrowError(LogoutError)
     })
   })
+
+  describe('upload', () => {
+    test('uploads unencrypted content', async () => {
+      const mockFileStringContent = 'mock content'
+
+      const constructorSpy = vi.fn()
+
+      class MockUpload extends Upload {
+        constructor(file: Upload['file'], options: UploadOptions) {
+          super(file, options)
+          constructorSpy(file, options)
+        }
+
+        start(): void {
+          this.options.onSuccess?.()
+        }
+      }
+
+      const input = new File([mockFileStringContent], 'text/plain')
+
+      // @ts-expect-error TypeScript assumes the browser implementation of file here,
+      // but the Node implementation is what is compatible in the test environment.
+      await passwayClient.upload(input, {
+        Upload: MockUpload,
+        enableEncryption: false,
+      })
+
+      const receivedInput: File = constructorSpy.mock.calls[0][0]
+      const receivedInputString = await receivedInput.text()
+
+      expect(receivedInputString).toEqual(mockFileStringContent)
+    })
+
+    test('uploads encrypted content', async () => {
+      vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
+      vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
+
+      vitest.spyOn(crypto, 'generateKeyData').mockResolvedValueOnce({
+        encryptedKeys: mockEncryptedKeys,
+        privateKey: mockPrivateKey,
+        publicKey: mockPublicKey,
+      })
+
+      vitest
+        .spyOn(navigator.credentials, 'get')
+        .mockResolvedValueOnce(mockPublicKeyCredential)
+
+      vitest
+        .spyOn(crypto, 'decryptSerializedKeys')
+        .mockResolvedValueOnce(mockSerializedKeys)
+
+      vitest.spyOn(crypto, 'getSignature').mockResolvedValueOnce(mockSignature)
+
+      vitest
+        .spyOn(window, 'fetch')
+        .mockResolvedValueOnce({
+          ...new Response(),
+          status: 200,
+          json: async () => mockUserGetResponse,
+        })
+        .mockResolvedValueOnce({
+          ...new Response(),
+          status: 200,
+        })
+        .mockResolvedValueOnce({
+          ...new Response(),
+          status: 400,
+        })
+
+      await passwayClient.createSession()
+
+      const mockFileStringContent = 'mock content'
+
+      const constructorSpy = vi.fn()
+
+      class MockUpload extends Upload {
+        constructor(file: Upload['file'], options: UploadOptions) {
+          constructorSpy(file, options)
+          super(file, options)
+        }
+
+        start(): void {
+          this.options.onSuccess?.()
+        }
+      }
+
+      const input = new File([mockFileStringContent], 'text/plain')
+
+      // @ts-expect-error TypeScript assumes the browser implementation of file here,
+      // but the Node implementation is what is compatible in the test environment.
+      await passwayClient.upload(input, {
+        Upload: MockUpload,
+      })
+
+      const receivedData: ReadableStreamDefaultReader =
+        constructorSpy.mock.calls[0][0]
+
+      const readerStream = dataTransform.convertReaderToStream(receivedData)
+
+      const decryptedReadableStream = await crypto
+        .getKeychain(mockUserHandleString)
+        .decryptStream(readerStream)
+
+      const decryptedUploadedData = await dataTransform.streamToString(
+        decryptedReadableStream
+      )
+
+      expect(decryptedUploadedData).toEqual(mockFileStringContent)
+    })
+
+    test('can encrypt data prior to upload', async () => {})
+
+    test('handles upload failure', async () => {})
+  })
+
+  describe.skip('listContent', () => {})
+
+  describe.skip('download', () => {})
 })

@@ -2,7 +2,6 @@ import { resolve } from 'node:path'
 import fs from 'node:fs'
 
 import { defineConfig } from 'vite'
-import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 /** @type {Buffer | undefined} */
 let cert
@@ -25,13 +24,6 @@ export default defineConfig({
       fileName: 'passway-client',
     },
   },
-  plugins: [
-    nodePolyfills({
-      globals: {
-        Buffer: true,
-      },
-    }),
-  ],
   test: {
     globals: true,
     environment: 'jsdom',

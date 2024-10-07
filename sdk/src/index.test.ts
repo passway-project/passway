@@ -1,3 +1,7 @@
+import { Readable } from 'node:stream'
+
+import { Upload } from 'tus-js-client'
+
 import {
   LoginError,
   LogoutError,
@@ -9,6 +13,12 @@ import { dataTransform } from './services/DataTransform'
 import { crypto } from './services/Crypto'
 
 import { GetUserResponse, PasswayClient, SerializedKeys } from '.'
+
+// @ts-expect-error Needed to short-circuit some test setup
+PasswayClient.prototype.setUserHandle = function (userHandle: string) {
+  // @ts-expect-error Needed to short-circuit some test setup
+  this.userHandle = dataTransform.stringToUintArray(userHandle)
+}
 
 let passwayClient = new PasswayClient({ apiRoot: '' })
 
@@ -68,7 +78,7 @@ beforeEach(() => {
 })
 
 describe('PasswayClient', () => {
-  describe('createPasskey', async () => {
+  describe('createPasskey', () => {
     test('creates a passkey', async () => {
       const createSpy = vitest
         .spyOn(navigator.credentials, 'create')
@@ -129,7 +139,7 @@ describe('PasswayClient', () => {
     })
   })
 
-  describe('createUser', async () => {
+  describe('createUser', () => {
     test('creates user', async () => {
       const mockPublicKeyCredential = Object.assign(
         new window.PublicKeyCredential(),
@@ -245,7 +255,7 @@ describe('PasswayClient', () => {
     })
   })
 
-  describe('createSession', async () => {
+  describe('createSession', () => {
     test('creates session with fresh credentials', async () => {
       vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
       vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
@@ -568,4 +578,33 @@ describe('PasswayClient', () => {
       }).rejects.toThrowError(LogoutError)
     })
   })
+
+  describe('upload', () => {
+    test('uploads content', async () => {
+      const mockFileStringContent = 'mock content'
+
+      class MockUpload extends Upload {
+        start(): void {
+          this.options.onSuccess?.()
+        }
+      }
+
+      // @ts-expect-error Short-circuits some test setup
+      passwayClient.setUserHandle('password')
+
+      await passwayClient.upload(Readable.from(mockFileStringContent), {
+        Upload: MockUpload,
+      })
+
+      // FIXME: Perform assertions
+    })
+
+    test('can encrypt data prior to upload', async () => {})
+
+    test('handles upload failure', async () => {})
+  })
+
+  describe.skip('listContent', () => {})
+
+  describe.skip('download', () => {})
 })

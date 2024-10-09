@@ -14,13 +14,19 @@ import { crypto } from './services/Crypto'
 
 import { GetUserResponse, PasswayClient, SerializedKeys } from '.'
 
-// @ts-expect-error Needed to short-circuit some test setup
-PasswayClient.prototype.setUserHandle = function (userHandle: string) {
-  // @ts-expect-error Needed to short-circuit some test setup
-  this.userHandle = dataTransform.stringToUintArray(userHandle)
+class MockPasswayClient extends PasswayClient {
+  /**
+   * NOTE: This is not actually deprecated, it just highlights setUserHandle as
+   * a nonstandard method in editors.
+   * @deprecated
+   */
+  setUserHandle = (userHandle: string) => {
+    // @ts-expect-error Needed to short-circuit some test setup
+    this.userHandle = dataTransform.stringToUintArray(userHandle)
+  }
 }
 
-let passwayClient = new PasswayClient({ apiRoot: '' })
+let passwayClient = new MockPasswayClient({ apiRoot: '' })
 
 const mockUserHandle = dataGenerator.getRandomUint8Array(1)
 const passkeyId = 'abc123'
@@ -74,7 +80,7 @@ const mockUserGetResponse: GetUserResponse = {
 }
 
 beforeEach(() => {
-  passwayClient = new PasswayClient({ apiRoot: '' })
+  passwayClient = new MockPasswayClient({ apiRoot: '' })
 })
 
 describe('PasswayClient', () => {
@@ -589,7 +595,6 @@ describe('PasswayClient', () => {
         }
       }
 
-      // @ts-expect-error Short-circuits some test setup
       passwayClient.setUserHandle('password')
 
       await passwayClient.upload(Readable.from(mockFileStringContent), {

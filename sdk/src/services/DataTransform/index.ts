@@ -19,13 +19,40 @@ export class DataTransformService {
     return base64String
   }
 
+  streamToString = async (stream: ReadableStream): Promise<string> => {
+    const reader = stream.getReader()
+    const decoder = new TextDecoder() // Used to decode binary data to string
+    let result = ''
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const readData = await reader.read()
+
+      const { done, value } = readData
+
+      if (done) {
+        break // Stream is fully read
+      }
+
+      // Convert binary chunks (if any) to string and append to result
+      result += decoder.decode(value, { stream: true })
+    }
+
+    // Finish decoding (some streams may need final decoding)
+    result += decoder.decode()
+
+    return result
+  }
+
   // NOTE: Adapted from https://chatgpt.com/share/66e796d0-e340-8011-affe-8c6199269cbf
   convertReaderToStream = (
     reader: Pick<ReadableStreamDefaultReader, 'read'>
   ): ReadableStream => {
     return new ReadableStream({
       async pull(controller) {
-        const { done, value } = await reader.read()
+        const readData = await reader.read()
+
+        const { done, value } = readData
 
         if (done) {
           controller.close()

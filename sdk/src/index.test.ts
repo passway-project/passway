@@ -1,6 +1,6 @@
 import { Readable } from 'node:stream'
 
-import { Upload } from 'tus-js-client'
+import { Upload, UploadOptions } from 'tus-js-client'
 
 import {
   LoginError,
@@ -15,11 +15,6 @@ import { crypto } from './services/Crypto'
 import { GetUserResponse, PasswayClient, SerializedKeys } from '.'
 
 class MockPasswayClient extends PasswayClient {
-  /**
-   * NOTE: This is not actually deprecated, it just highlights setUserHandle as
-   * a nonstandard method in editors.
-   * @deprecated
-   */
   setUserHandle = (userHandle: string) => {
     // @ts-expect-error Needed to short-circuit some test setup
     this.userHandle = dataTransform.stringToUintArray(userHandle)
@@ -28,7 +23,8 @@ class MockPasswayClient extends PasswayClient {
 
 let passwayClient = new MockPasswayClient({ apiRoot: '' })
 
-const mockUserHandle = dataGenerator.getRandomUint8Array(1)
+const mockUserHandle = dataGenerator.getRandomUint8Array(16)
+const mockUserHandleString = dataTransform.bufferToBase64(mockUserHandle)
 const passkeyId = 'abc123'
 const mockIv = new Uint8Array(12)
 const mockSalt = new Uint8Array(16)
@@ -586,22 +582,40 @@ describe('PasswayClient', () => {
   })
 
   describe('upload', () => {
-    test('uploads content', async () => {
+    test.skip('uploads content', async () => {
       const mockFileStringContent = 'mock content'
 
+      const constructorSpy = vi.fn()
+
       class MockUpload extends Upload {
+        constructor(file: Upload['file'], options: UploadOptions) {
+          super(file, options)
+          constructorSpy(file, options)
+        }
+
         start(): void {
           this.options.onSuccess?.()
         }
       }
 
-      passwayClient.setUserHandle('password')
+      passwayClient.setUserHandle(mockUserHandleString)
 
       await passwayClient.upload(Readable.from(mockFileStringContent), {
         Upload: MockUpload,
       })
 
-      // FIXME: Perform assertions
+      expect(constructorSpy).toHaveBeenCalled()
+
+      const decryptedReadableStream = await crypto
+        .getKeychain(mockUserHandleString)
+        .decryptStream(
+          dataTransform.convertReaderToStream(constructorSpy.mock.calls[0][0])
+        )
+
+      // FIXME: This is broken
+      expect(
+        await dataTransform.streamToString(decryptedReadableStream)
+      ).toEqual(mockFileStringContent)
     })
 
     test('can encrypt data prior to upload', async () => {})

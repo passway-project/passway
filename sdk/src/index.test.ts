@@ -3,6 +3,22 @@ import { File } from 'node:buffer'
 import { Upload, UploadOptions } from 'tus-js-client'
 
 import {
+  authenticateSession,
+  mockAuthenticatorAssertionResponse,
+  mockEncryptedKeys,
+  mockIv,
+  mockPrivateKey,
+  mockPublicKey,
+  mockPublicKeyCredential,
+  mockSalt,
+  mockSerializedKeys,
+  mockSignature,
+  mockUserGetResponse,
+  mockUserHandleString,
+  passkeyId,
+} from '../test/integration/utils/session'
+
+import {
   LoginError,
   LogoutError,
   PasskeyCreationError,
@@ -12,102 +28,9 @@ import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
 import { crypto } from './services/Crypto'
 
-import { GetUserResponse, PasswayClient, SerializedKeys } from '.'
+import { PasswayClient } from '.'
 
 let passwayClient = new PasswayClient({ apiRoot: '' })
-
-const mockUserHandle = dataGenerator.getRandomUint8Array(16)
-const mockUserHandleString = dataTransform.bufferToBase64(mockUserHandle)
-const passkeyId = 'abc123'
-const mockIv = new Uint8Array(12)
-const mockSalt = new Uint8Array(16)
-const mockEncryptedKeys = 'encrypted keys'
-const mockPrivateKey = 'private key'
-const mockPublicKey = 'public key'
-
-const mockAuthenticatorAssertionResponse = Object.assign(
-  new window.AuthenticatorAssertionResponse(),
-  {
-    clientDataJSON: dataGenerator.getRandomUint8Array(1),
-    signature: dataGenerator.getRandomUint8Array(1),
-    userHandle: mockUserHandle,
-  }
-)
-
-const mockPublicKeyCredential = Object.assign(
-  new window.PublicKeyCredential(),
-  {
-    authenticatorAttachment: '',
-    getClientExtensionResults: () => {
-      throw new Error()
-    },
-    id: passkeyId,
-    rawId: dataGenerator.getRandomUint8Array(1),
-    response: mockAuthenticatorAssertionResponse,
-    type: '',
-  }
-)
-
-const mockSerializedKeys: SerializedKeys = {
-  encryptionKey: mockEncryptedKeys,
-  salt: dataTransform.bufferToBase64(mockSalt),
-  iv: dataTransform.bufferToBase64(mockIv),
-  signatureKeys: {
-    privateKey: 'signature private key',
-    publicKey: 'signature public key',
-  },
-}
-
-const mockSignature = dataGenerator.getRandomUint8Array(1)
-
-const mockUserGetResponse: GetUserResponse = {
-  user: {
-    keys: mockEncryptedKeys,
-    salt: dataTransform.bufferToBase64(mockSalt),
-    iv: dataTransform.bufferToBase64(mockIv),
-  },
-}
-
-const authenticateSession = async (passwayClient: PasswayClient) => {
-  vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
-  vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
-
-  vitest.spyOn(crypto, 'generateKeyData').mockResolvedValueOnce({
-    encryptedKeys: mockEncryptedKeys,
-    privateKey: mockPrivateKey,
-    publicKey: mockPublicKey,
-  })
-
-  vitest
-    .spyOn(navigator.credentials, 'get')
-    .mockResolvedValueOnce(mockPublicKeyCredential)
-
-  vitest
-    .spyOn(crypto, 'decryptSerializedKeys')
-    .mockResolvedValueOnce(mockSerializedKeys)
-
-  vitest.spyOn(crypto, 'getSignature').mockResolvedValueOnce(mockSignature)
-
-  const fetchSpy = vitest
-    .spyOn(window, 'fetch')
-    .mockResolvedValueOnce({
-      ...new Response(),
-      status: 200,
-      json: async () => mockUserGetResponse,
-    })
-    .mockResolvedValueOnce({
-      ...new Response(),
-      status: 200,
-    })
-    .mockResolvedValueOnce({
-      ...new Response(),
-      status: 400,
-    })
-
-  const didAuthenticate = await passwayClient.createSession()
-
-  return { didAuthenticate, fetchSpy }
-}
 
 beforeEach(() => {
   passwayClient = new PasswayClient({ apiRoot: '' })

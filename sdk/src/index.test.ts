@@ -32,6 +32,25 @@ import { PasswayClient } from '.'
 
 let passwayClient = new PasswayClient({ apiRoot: '' })
 
+const getMockUpload = () => {
+  const constructorSpy = vi.fn()
+
+  class MockUpload extends Upload {
+    constructor(file: Upload['file'], options: UploadOptions) {
+      constructorSpy(file, options)
+      super(file, options)
+    }
+
+    start(): void {
+      this.options.onSuccess?.()
+    }
+  }
+
+  return { Upload: MockUpload, constructorSpy }
+}
+
+const mockFileStringContent = 'mock content'
+
 beforeEach(() => {
   passwayClient = new PasswayClient({ apiRoot: '' })
 })
@@ -476,27 +495,14 @@ describe('PasswayClient', () => {
 
   describe('upload', () => {
     test('uploads unencrypted content', async () => {
-      const mockFileStringContent = 'mock content'
-
-      const constructorSpy = vi.fn()
-
-      class MockUpload extends Upload {
-        constructor(file: Upload['file'], options: UploadOptions) {
-          super(file, options)
-          constructorSpy(file, options)
-        }
-
-        start(): void {
-          this.options.onSuccess?.()
-        }
-      }
+      const { Upload, constructorSpy } = getMockUpload()
 
       const input = new File([mockFileStringContent], 'text/plain')
 
       // @ts-expect-error TypeScript assumes the browser implementation of file here,
       // but the Node implementation is what is compatible in the test environment.
       await passwayClient.upload(input, {
-        Upload: MockUpload,
+        Upload,
         enableEncryption: false,
       })
 
@@ -509,27 +515,14 @@ describe('PasswayClient', () => {
     test('uploads encrypted content', async () => {
       await authenticateSession(passwayClient)
 
-      const mockFileStringContent = 'mock content'
-
-      const constructorSpy = vi.fn()
-
-      class MockUpload extends Upload {
-        constructor(file: Upload['file'], options: UploadOptions) {
-          constructorSpy(file, options)
-          super(file, options)
-        }
-
-        start(): void {
-          this.options.onSuccess?.()
-        }
-      }
+      const { Upload, constructorSpy } = getMockUpload()
 
       const input = new File([mockFileStringContent], 'text/plain')
 
       // @ts-expect-error TypeScript assumes the browser implementation of file here,
       // but the Node implementation is what is compatible in the test environment.
       await passwayClient.upload(input, {
-        Upload: MockUpload,
+        Upload,
       })
 
       const receivedData: ReadableStreamDefaultReader =

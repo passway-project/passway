@@ -1,6 +1,5 @@
 import { Upload as TusUpload } from 'tus-js-client'
 
-export * from './types'
 import {
   GetSessionHeaders,
   GetUserHeaders,
@@ -21,10 +20,13 @@ import {
 import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
 import { crypto } from './services/Crypto'
-import { uploadChunkSizeMB, signatureMessage } from './constants'
+import { signatureMessage } from './constants'
 import { Route, RouteService } from './services/Route'
+import { ContentService } from './services/Content'
 
-interface PasswayClientConfig {
+export * from './types'
+
+export interface PasswayClientConfig {
   apiRoot: string
   apiVersion?: number
 }
@@ -285,7 +287,6 @@ export class PasswayClient {
     return true
   }
 
-  // FIXME: Test this
   upload = async (
     data: TusUpload['file'],
     { enableEncryption = true, Upload = TusUpload }: UploadOptions = {}
@@ -294,49 +295,12 @@ export class PasswayClient {
       ? await this.getEncryptedDataStreamReader(data)
       : data
 
-    const uploadPromise = new Promise<void>((resolve, reject) => {
-      const contentRoute = this.route.resolve(Route.content)
+    const contentRoute = this.route.resolve(Route.content)
+    const content = new ContentService({ UploadImpl: Upload, contentRoute })
 
-      const upload = new Upload(dataStream, {
-        chunkSize: uploadChunkSizeMB * 1024 * 1024,
-        uploadLengthDeferred: true,
-        endpoint: contentRoute,
-        retryDelays: [0, 3000, 5000, 10000, 20000],
-        metadata: {
-          isEncrypted: enableEncryption ? '1' : '0',
-        },
-
-        onError: error => {
-          console.error('Upload failed: ' + error)
-          reject(error)
-        },
-
-        onSuccess: () => {
-          resolve()
-        },
-
-        onShouldRetry(err) {
-          const status = err.originalResponse
-            ? err.originalResponse.getStatus()
-            : 0
-
-          if (status === 403 || status === 500) {
-            return false
-          }
-
-          return true
-        },
-
-        onBeforeRequest: request => {
-          const xhr: XMLHttpRequest = request.getUnderlyingObject()
-          xhr.withCredentials = true
-        },
-      })
-
-      upload.start()
+    return content.upload(dataStream, {
+      isEncrypted: enableEncryption ? '1' : '0',
     })
-
-    return uploadPromise
   }
 
   // FIXME: Test this

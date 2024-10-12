@@ -497,10 +497,8 @@ describe('PasswayClient', () => {
     test('uploads unencrypted content', async () => {
       const { Upload, constructorSpy } = getMockUpload()
 
-      const input = new File([mockFileStringContent], 'text/plain')
+      const input = new window.File([mockFileStringContent], 'text/plain')
 
-      // @ts-expect-error TypeScript assumes the browser implementation of file here,
-      // but the Node implementation is what is compatible in the test environment.
       await passwayClient.upload(input, {
         Upload,
         enableEncryption: false,
@@ -517,10 +515,8 @@ describe('PasswayClient', () => {
 
       const { Upload, constructorSpy } = getMockUpload()
 
-      const input = new File([mockFileStringContent], 'text/plain')
+      const input = new window.File([mockFileStringContent], 'text/plain')
 
-      // @ts-expect-error TypeScript assumes the browser implementation of file here,
-      // but the Node implementation is what is compatible in the test environment.
       await passwayClient.upload(input, {
         Upload,
       })

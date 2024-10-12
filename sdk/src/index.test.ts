@@ -68,6 +68,47 @@ const mockUserGetResponse: GetUserResponse = {
   },
 }
 
+const authenticateSession = async (passwayClient: PasswayClient) => {
+  vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
+  vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
+
+  vitest.spyOn(crypto, 'generateKeyData').mockResolvedValueOnce({
+    encryptedKeys: mockEncryptedKeys,
+    privateKey: mockPrivateKey,
+    publicKey: mockPublicKey,
+  })
+
+  vitest
+    .spyOn(navigator.credentials, 'get')
+    .mockResolvedValueOnce(mockPublicKeyCredential)
+
+  vitest
+    .spyOn(crypto, 'decryptSerializedKeys')
+    .mockResolvedValueOnce(mockSerializedKeys)
+
+  vitest.spyOn(crypto, 'getSignature').mockResolvedValueOnce(mockSignature)
+
+  const fetchSpy = vitest
+    .spyOn(window, 'fetch')
+    .mockResolvedValueOnce({
+      ...new Response(),
+      status: 200,
+      json: async () => mockUserGetResponse,
+    })
+    .mockResolvedValueOnce({
+      ...new Response(),
+      status: 200,
+    })
+    .mockResolvedValueOnce({
+      ...new Response(),
+      status: 400,
+    })
+
+  const didAuthenticate = await passwayClient.createSession()
+
+  return { didAuthenticate, fetchSpy }
+}
+
 beforeEach(() => {
   passwayClient = new PasswayClient({ apiRoot: '' })
 })
@@ -252,39 +293,10 @@ describe('PasswayClient', () => {
 
   describe('createSession', () => {
     test('creates session with fresh credentials', async () => {
-      vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
-      vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
+      const { didAuthenticate, fetchSpy } =
+        await authenticateSession(passwayClient)
 
-      vitest.spyOn(crypto, 'generateKeyData').mockResolvedValueOnce({
-        encryptedKeys: mockEncryptedKeys,
-        privateKey: mockPrivateKey,
-        publicKey: mockPublicKey,
-      })
-
-      vitest
-        .spyOn(navigator.credentials, 'get')
-        .mockResolvedValueOnce(mockPublicKeyCredential)
-
-      vitest
-        .spyOn(crypto, 'decryptSerializedKeys')
-        .mockResolvedValueOnce(mockSerializedKeys)
-
-      vitest.spyOn(crypto, 'getSignature').mockResolvedValueOnce(mockSignature)
-
-      const fetchSpy = vitest
-        .spyOn(window, 'fetch')
-        .mockResolvedValueOnce({
-          ...new Response(),
-          status: 200,
-          json: async () => mockUserGetResponse,
-        })
-        .mockResolvedValueOnce({
-          ...new Response(),
-          status: 200,
-        })
-
-      const result = await passwayClient.createSession()
-      expect(result).toEqual(true)
+      expect(didAuthenticate).toEqual(true)
 
       expect(fetchSpy).toHaveBeenNthCalledWith(1, '/v1/user', {
         headers: { 'x-passway-id': passkeyId },
@@ -531,42 +543,7 @@ describe('PasswayClient', () => {
     })
 
     test('handles logout failure', async () => {
-      vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
-      vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
-
-      vitest.spyOn(crypto, 'generateKeyData').mockResolvedValueOnce({
-        encryptedKeys: mockEncryptedKeys,
-        privateKey: mockPrivateKey,
-        publicKey: mockPublicKey,
-      })
-
-      vitest
-        .spyOn(navigator.credentials, 'get')
-        .mockResolvedValueOnce(mockPublicKeyCredential)
-
-      vitest
-        .spyOn(crypto, 'decryptSerializedKeys')
-        .mockResolvedValueOnce(mockSerializedKeys)
-
-      vitest.spyOn(crypto, 'getSignature').mockResolvedValueOnce(mockSignature)
-
-      vitest
-        .spyOn(window, 'fetch')
-        .mockResolvedValueOnce({
-          ...new Response(),
-          status: 200,
-          json: async () => mockUserGetResponse,
-        })
-        .mockResolvedValueOnce({
-          ...new Response(),
-          status: 200,
-        })
-        .mockResolvedValueOnce({
-          ...new Response(),
-          status: 400,
-        })
-
-      await passwayClient.createSession()
+      await authenticateSession(passwayClient)
 
       await expect(async () => {
         await passwayClient.destroySession()
@@ -607,42 +584,7 @@ describe('PasswayClient', () => {
     })
 
     test('uploads encrypted content', async () => {
-      vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
-      vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
-
-      vitest.spyOn(crypto, 'generateKeyData').mockResolvedValueOnce({
-        encryptedKeys: mockEncryptedKeys,
-        privateKey: mockPrivateKey,
-        publicKey: mockPublicKey,
-      })
-
-      vitest
-        .spyOn(navigator.credentials, 'get')
-        .mockResolvedValueOnce(mockPublicKeyCredential)
-
-      vitest
-        .spyOn(crypto, 'decryptSerializedKeys')
-        .mockResolvedValueOnce(mockSerializedKeys)
-
-      vitest.spyOn(crypto, 'getSignature').mockResolvedValueOnce(mockSignature)
-
-      vitest
-        .spyOn(window, 'fetch')
-        .mockResolvedValueOnce({
-          ...new Response(),
-          status: 200,
-          json: async () => mockUserGetResponse,
-        })
-        .mockResolvedValueOnce({
-          ...new Response(),
-          status: 200,
-        })
-        .mockResolvedValueOnce({
-          ...new Response(),
-          status: 400,
-        })
-
-      await passwayClient.createSession()
+      await authenticateSession(passwayClient)
 
       const mockFileStringContent = 'mock content'
 

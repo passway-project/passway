@@ -1,12 +1,28 @@
-import { DetailedError, HttpRequest, Upload } from 'tus-js-client'
+import {
+  DetailedError,
+  HttpRequest,
+  Upload,
+  UploadOptions,
+} from 'tus-js-client'
 import { mockDeep } from 'vitest-mock-extended'
 
 import { ContentService } from '.'
 
-class MockUpload extends Upload {
-  start(): void {
-    this.options.onSuccess?.()
+const getMockUpload = () => {
+  const constructorSpy = vi.fn()
+
+  class MockUpload extends Upload {
+    constructor(file: Upload['file'], options: UploadOptions) {
+      constructorSpy(file, options)
+      super(file, options)
+    }
+
+    start(): void {
+      this.options.onSuccess?.()
+    }
   }
+
+  return { MockUpload, constructorSpy }
 }
 
 describe('ContentService', () => {
@@ -18,6 +34,8 @@ describe('ContentService', () => {
       { statusType: 'locked error', statusCode: 423 },
       { statusType: 'server error', statusCode: 500 },
     ])('causes retry on $statusType', ({ statusCode }) => {
+      const { MockUpload } = getMockUpload()
+
       const contentService = new ContentService({
         UploadImpl: MockUpload,
         contentRoute: '',
@@ -34,6 +52,8 @@ describe('ContentService', () => {
     test.each([{ statusType: 'authentication error', statusCode: 403 }])(
       'does not cause retry on $statusType',
       ({ statusCode }) => {
+        const { MockUpload } = getMockUpload()
+
         const contentService = new ContentService({
           UploadImpl: MockUpload,
           contentRoute: '',
@@ -51,6 +71,8 @@ describe('ContentService', () => {
 
   describe('onBeforeRequest', () => {
     test('authenticates request', () => {
+      const { MockUpload } = getMockUpload()
+
       const contentService = new ContentService({
         UploadImpl: MockUpload,
         contentRoute: '',
@@ -69,5 +91,20 @@ describe('ContentService', () => {
     })
   })
 
-  describe.skip('upload', () => {})
+  describe('upload', () => {
+    test('uploads file', async () => {
+      const { MockUpload, constructorSpy } = getMockUpload()
+
+      const mockFile = new File([], 'plain/text')
+
+      const contentService = new ContentService({
+        UploadImpl: MockUpload,
+        contentRoute: '',
+      })
+
+      await contentService.upload(mockFile, {})
+
+      expect(constructorSpy).toHaveBeenCalledWith(mockFile, expect.any(Object))
+    })
+  })
 })

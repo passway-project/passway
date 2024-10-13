@@ -30,7 +30,6 @@ export class ContentService {
     return true
   }
 
-  // FIXME: Test this
   onBeforeRequest: NonNullable<UploadOptions['onBeforeRequest']> = request => {
     const xhr: XMLHttpRequest = request.getUnderlyingObject()
     xhr.withCredentials = true

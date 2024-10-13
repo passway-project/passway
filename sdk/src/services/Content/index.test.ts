@@ -1,4 +1,4 @@
-import { DetailedError, Upload } from 'tus-js-client'
+import { DetailedError, HttpRequest, Upload } from 'tus-js-client'
 import { mockDeep } from 'vitest-mock-extended'
 
 import { ContentService } from '.'
@@ -49,7 +49,25 @@ describe('ContentService', () => {
     )
   })
 
-  describe.skip('onBeforeRequest', () => {})
+  describe('onBeforeRequest', () => {
+    test('authenticates request', () => {
+      const contentService = new ContentService({
+        UploadImpl: MockUpload,
+        contentRoute: '',
+      })
+
+      const mockRequest = mockDeep<HttpRequest>()
+      const xhr = {
+        withCredentials: false,
+      }
+
+      mockRequest.getUnderlyingObject.mockReturnValueOnce(xhr)
+
+      contentService.onBeforeRequest(mockRequest)
+
+      expect(xhr.withCredentials).toEqual(true)
+    })
+  })
 
   describe.skip('upload', () => {})
 })

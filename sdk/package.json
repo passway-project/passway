@@ -45,6 +45,7 @@
     "openapi-typescript": "^7.3.0",
     "serve": "^14.2.3",
     "streamsaver": "^2.0.6",
-    "typedoc": "^0.26.5"
+    "typedoc": "^0.26.5",
+    "vitest-mock-extended": "^2.0.2"
   }
 }

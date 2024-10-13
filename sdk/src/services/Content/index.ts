@@ -20,11 +20,10 @@ export class ContentService {
     this.contentRoute = contentRoute
   }
 
-  // FIXME: Test this
-  onShouldRetry: UploadOptions['onShouldRetry'] = err => {
+  onShouldRetry: NonNullable<UploadOptions['onShouldRetry']> = err => {
     const status = err.originalResponse ? err.originalResponse.getStatus() : 0
 
-    if (status === 403 || status === 500) {
+    if (status === 403) {
       return false
     }
 
@@ -32,7 +31,7 @@ export class ContentService {
   }
 
   // FIXME: Test this
-  onBeforeRequest: UploadOptions['onBeforeRequest'] = request => {
+  onBeforeRequest: NonNullable<UploadOptions['onBeforeRequest']> = request => {
     const xhr: XMLHttpRequest = request.getUnderlyingObject()
     xhr.withCredentials = true
   }

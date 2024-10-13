@@ -6,8 +6,8 @@ import { uploadChunkSizeMB } from '../../constants'
  * @internal
  */
 export class ContentService {
-  UploadImpl: typeof Upload
-  contentRoute: string
+  private UploadImpl: typeof Upload
+  private contentRoute: string
 
   constructor({
     UploadImpl = Upload,
@@ -18,6 +18,23 @@ export class ContentService {
   }) {
     this.UploadImpl = UploadImpl
     this.contentRoute = contentRoute
+  }
+
+  // FIXME: Test this
+  onShouldRetry: UploadOptions['onShouldRetry'] = err => {
+    const status = err.originalResponse ? err.originalResponse.getStatus() : 0
+
+    if (status === 403 || status === 500) {
+      return false
+    }
+
+    return true
+  }
+
+  // FIXME: Test this
+  onBeforeRequest: UploadOptions['onBeforeRequest'] = request => {
+    const xhr: XMLHttpRequest = request.getUnderlyingObject()
+    xhr.withCredentials = true
   }
 
   upload = (
@@ -41,22 +58,8 @@ export class ContentService {
           resolve()
         },
 
-        onShouldRetry(err) {
-          const status = err.originalResponse
-            ? err.originalResponse.getStatus()
-            : 0
-
-          if (status === 403 || status === 500) {
-            return false
-          }
-
-          return true
-        },
-
-        onBeforeRequest: request => {
-          const xhr: XMLHttpRequest = request.getUnderlyingObject()
-          xhr.withCredentials = true
-        },
+        onShouldRetry: this.onShouldRetry,
+        onBeforeRequest: this.onBeforeRequest,
       })
 
       upload.start()

@@ -303,7 +303,6 @@ export class PasswayClient {
     })
   }
 
-  // FIXME: Test this
   listContent = async () => {
     const contentListRoute = this.route.resolve(Route.contentList)
 

@@ -23,12 +23,13 @@ import {
   LogoutError,
   PasskeyCreationError,
   RegistrationError,
+  ResponseBodyError,
 } from './errors'
 import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
 import { crypto } from './services/Crypto'
 
-import { PasswayClient } from '.'
+import { GetContentListResponse, PasswayClient } from '.'
 
 let passwayClient = new PasswayClient({ apiRoot: '' })
 
@@ -536,13 +537,71 @@ describe('PasswayClient', () => {
 
       expect(decryptedUploadedData).toEqual(mockFileStringContent)
     })
-
-    test('can encrypt data prior to upload', async () => {})
-
-    test('handles upload failure', async () => {})
   })
 
-  describe.skip('listContent', () => {})
+  describe('listContent', () => {
+    test('retrieves a list of content', async () => {
+      await authenticateSession(passwayClient)
+
+      const mockGetContentListResponse: GetContentListResponse = [
+        {
+          contentId: 'mock-content-id',
+          contentSize: 0,
+          isEncrypted: true,
+        },
+      ]
+
+      vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
+        ...new Response(),
+        status: 200,
+        json: async () => mockGetContentListResponse,
+      })
+
+      const content = await passwayClient.listContent()
+
+      expect(content).toEqual(mockGetContentListResponse)
+    })
+
+    test('handles an unexpected response status', async () => {
+      await authenticateSession(passwayClient)
+
+      const mockInvalidResponse = [
+        {
+          someOtherProperty: true,
+        },
+      ]
+
+      vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
+        ...new Response(),
+        status: 500,
+        json: async () => mockInvalidResponse,
+      })
+
+      await expect(async () => {
+        await passwayClient.listContent()
+      }).rejects.toThrow(Error)
+    })
+
+    test('handles an unexpected response body', async () => {
+      await authenticateSession(passwayClient)
+
+      const mockInvalidResponse = [
+        {
+          someOtherProperty: true,
+        },
+      ]
+
+      vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
+        ...new Response(),
+        status: 200,
+        json: async () => mockInvalidResponse,
+      })
+
+      await expect(async () => {
+        await passwayClient.listContent()
+      }).rejects.toThrow(ResponseBodyError)
+    })
+  })
 
   describe.skip('download', () => {})
 })

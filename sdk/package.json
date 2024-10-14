@@ -12,9 +12,9 @@
     "start:dev": "npm run generate:types && npm run build && npm run generate:dev-cert && npm start",
     "start:playground": "vite --host=0.0.0.0 --port=$SDK_PORT",
     "start:docs": "serve -p 3001 dist/doc",
-    "test": "vitest --config vite.config-unit-test.js",
+    "test": "vitest --config vite.config-unit-test.ts",
     "test:debug": "npm run test --  --inspect-brk=0.0.0.0:9231 --no-file-parallelism --run",
-    "test:integration": "vitest --config vite.config-integration.js --run",
+    "test:integration": "vitest --config vite.config-integration.ts --run",
     "test:watch": "npm run test -- --watch",
     "check:types": "tsc --noEmit"
   },

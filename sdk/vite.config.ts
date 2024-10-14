@@ -4,10 +4,8 @@ import fs from 'node:fs'
 import { defineConfig } from 'vite'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
-/** @type {Buffer | undefined} */
-let cert
-/** @type {Buffer | undefined} */
-let key
+let cert: Buffer | undefined
+let key: Buffer | undefined
 
 try {
   cert = fs.readFileSync('localhost.crt')
@@ -31,7 +29,6 @@ export default defineConfig({
     nodePolyfills({
       globals: {
         Buffer: true,
-        Blob: true,
       },
     }),
   ],

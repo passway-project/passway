@@ -1,7 +1,7 @@
 import { resolve } from 'node:path'
 import fs from 'node:fs'
 
-import { defineConfig } from 'vite'
+import { Plugin, defineConfig } from 'vite'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 let cert: Buffer | undefined
@@ -14,6 +14,16 @@ try {
   console.warn('SSL certificates not found')
 }
 
+export const runtimePlugins: Plugin[] = [
+  nodePolyfills({
+    globals: {
+      Buffer: true,
+    },
+  }),
+]
+
+export const testPlugins: Plugin[] = []
+
 export default defineConfig({
   root: __dirname,
   build: {
@@ -24,14 +34,7 @@ export default defineConfig({
     },
   },
 
-  plugins: [
-    // NOTE: nodePolyfills plugin must ONLY be enabled in non-test environments
-    nodePolyfills({
-      globals: {
-        Buffer: true,
-      },
-    }),
-  ],
+  plugins: runtimePlugins,
   test: {
     globals: true,
     environment: 'jsdom',

@@ -23,3 +23,7 @@ export class ResponseBodyError extends Error {
 }
 
 export class ArgumentError extends Error {}
+
+export class DecryptionError extends Error {
+  message = 'Data decryption failed'
+}

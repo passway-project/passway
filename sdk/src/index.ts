@@ -11,6 +11,7 @@ import {
 import {
   ArgumentError,
   AuthenticationError,
+  DecryptionError,
   LoginError,
   LogoutError,
   PasskeyCreationError,
@@ -363,12 +364,16 @@ export class PasswayClient {
       throw new ResponseBodyError()
     }
 
-    const decryptedStream = isEncrypted
-      ? await crypto
-          .getKeychain(dataTransform.bufferToBase64(userHandle))
-          .decryptStream(body)
-      : body
+    try {
+      const decryptedStream = isEncrypted
+        ? await crypto
+            .getKeychain(dataTransform.bufferToBase64(userHandle))
+            .decryptStream(body)
+        : body
 
-    return decryptedStream
+      return decryptedStream
+    } catch (e) {
+      throw new DecryptionError()
+    }
   }
 }

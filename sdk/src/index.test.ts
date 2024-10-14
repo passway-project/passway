@@ -21,6 +21,7 @@ import {
 import {
   ArgumentError,
   AuthenticationError,
+  DecryptionError,
   LoginError,
   LogoutError,
   PasskeyCreationError,
@@ -731,6 +732,38 @@ describe('PasswayClient', () => {
       await expect(async () => {
         await passwayClient.download('content-id')
       }).rejects.toThrow(ResponseBodyError)
+    })
+
+    test('handles decryption failure', async () => {
+      await authenticateSession(passwayClient)
+
+      const { Upload, constructorSpy } = getMockUpload()
+
+      const input = new window.File([mockFileStringContent], 'text/plain')
+
+      await passwayClient.upload(input, {
+        Upload,
+      })
+
+      const uploadedData: ReadableStreamDefaultReader =
+        constructorSpy.mock.calls[0][0]
+
+      const readerStream: ReadableStream<Uint8Array> =
+        dataTransform.convertReaderToStream(uploadedData)
+
+      vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
+        ...new Response(),
+        status: 200,
+        body: readerStream,
+      })
+
+      vi.spyOn(crypto, 'getKeychain').mockImplementationOnce(() => {
+        throw new Error()
+      })
+
+      await expect(async () => {
+        await passwayClient.download('content-id')
+      }).rejects.toThrow(DecryptionError)
     })
   })
 })

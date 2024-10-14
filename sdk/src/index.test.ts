@@ -19,6 +19,8 @@ import {
 } from '../test/integration/utils/session'
 
 import {
+  ArgumentError,
+  AuthenticationError,
   LoginError,
   LogoutError,
   PasskeyCreationError,
@@ -603,5 +605,132 @@ describe('PasswayClient', () => {
     })
   })
 
-  describe.skip('download', () => {})
+  describe('download', () => {
+    test('downloads content', async () => {
+      await authenticateSession(passwayClient)
+
+      const { Upload, constructorSpy } = getMockUpload()
+
+      const input = new window.File([mockFileStringContent], 'text/plain')
+
+      await passwayClient.upload(input, {
+        Upload,
+        enableEncryption: false,
+      })
+
+      const uploadedData: File = constructorSpy.mock.calls[0][0]
+
+      const readerStream = uploadedData.stream() as ReadableStream<Uint8Array>
+
+      vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
+        ...new Response(),
+        status: 200,
+        body: readerStream,
+      })
+
+      // TODO: Use content ID that was returned by upload method
+      const downloadedData = await passwayClient.download('content-id', {
+        isEncrypted: false,
+      })
+
+      const downloadedDataString =
+        await dataTransform.streamToString(downloadedData)
+
+      expect(downloadedDataString).toEqual(mockFileStringContent)
+    })
+
+    test('decrypts content', async () => {
+      await authenticateSession(passwayClient)
+
+      const { Upload, constructorSpy } = getMockUpload()
+
+      const input = new window.File([mockFileStringContent], 'text/plain')
+
+      await passwayClient.upload(input, {
+        Upload,
+      })
+
+      const uploadedData: ReadableStreamDefaultReader =
+        constructorSpy.mock.calls[0][0]
+
+      const readerStream: ReadableStream<Uint8Array> =
+        dataTransform.convertReaderToStream(uploadedData)
+
+      vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
+        ...new Response(),
+        status: 200,
+        body: readerStream,
+      })
+
+      // TODO: Use content ID that was returned by upload method
+      const downloadedData = await passwayClient.download('content-id')
+
+      const downloadedDataString =
+        await dataTransform.streamToString(downloadedData)
+
+      expect(downloadedDataString).toEqual(mockFileStringContent)
+    })
+
+    test('handles invalid contentId', async () => {
+      await expect(async () => {
+        await passwayClient.download('')
+      }).rejects.toThrow(ArgumentError)
+    })
+
+    test('handles unauthenticated download attempts', async () => {
+      await expect(async () => {
+        await passwayClient.download('content-id')
+      }).rejects.toThrow(AuthenticationError)
+    })
+
+    test('handles download failures', async () => {
+      await authenticateSession(passwayClient)
+
+      const { Upload, constructorSpy } = getMockUpload()
+
+      const input = new window.File([mockFileStringContent], 'text/plain')
+
+      await passwayClient.upload(input, {
+        Upload,
+      })
+
+      const uploadedData: ReadableStreamDefaultReader =
+        constructorSpy.mock.calls[0][0]
+
+      const readerStream: ReadableStream<Uint8Array> =
+        dataTransform.convertReaderToStream(uploadedData)
+
+      vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
+        ...new Response(),
+        status: 404,
+        body: readerStream,
+      })
+
+      await expect(async () => {
+        await passwayClient.download('content-id')
+      }).rejects.toThrow(Error)
+    })
+
+    test('handles unexpected server response', async () => {
+      await authenticateSession(passwayClient)
+
+      const { Upload } = getMockUpload()
+
+      const input = new window.File([mockFileStringContent], 'text/plain')
+
+      await passwayClient.upload(input, {
+        Upload,
+      })
+
+      vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
+        ...new Response(),
+        status: 200,
+        body: null,
+      })
+
+      await expect(async () => {
+        await passwayClient.download('content-id')
+      }).rejects.toThrow(ResponseBodyError)
+    })
+  })
 })

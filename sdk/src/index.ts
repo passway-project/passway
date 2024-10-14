@@ -298,6 +298,7 @@ export class PasswayClient {
     const contentRoute = this.route.resolve(Route.content)
     const content = new ContentService({ UploadImpl: Upload, contentRoute })
 
+    // TODO: Return metadata about the uploaded data
     return content.upload(dataStream, {
       isEncrypted: enableEncryption ? '1' : '0',
     })
@@ -328,7 +329,7 @@ export class PasswayClient {
     return getContentListResponseBody
   }
 
-  // FIXME: Test this
+  // TODO: Infer isEncrypted from content metadata
   download = async (contentId: string, { isEncrypted = true } = {}) => {
     if (contentId.length === 0) {
       throw new ArgumentError('contentId is empty')

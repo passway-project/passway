@@ -32,12 +32,11 @@
     "tus-js-client": "^4.1.0",
     "vite": "^5.3.4",
     "vite-plugin-node-polyfills": "^0.22.0",
-    "vitest": "^2.0.4",
     "wormhole-crypto": "^0.3.1"
   },
   "devDependencies": {
     "@types/streamsaver": "^2.0.5",
-    "@vitest/coverage-v8": "^2.0.5",
+    "@vitest/coverage-v8": "^2.1.3",
     "fetch-cookie": "^3.0.1",
     "jsdom": "^24.1.1",
     "node-fetch": "^3.3.2",
@@ -46,6 +45,7 @@
     "serve": "^14.2.3",
     "streamsaver": "^2.0.6",
     "typedoc": "^0.26.5",
+    "vitest": "^2.1.3",
     "vitest-mock-extended": "^2.0.2"
   }
 }

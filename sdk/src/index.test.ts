@@ -17,6 +17,7 @@ import {
   mockUserHandleString,
   passkeyId,
 } from '../test/utils/session'
+import { mockFileStringContent } from '../test/utils/mocks'
 
 import {
   ArgumentError,
@@ -52,8 +53,6 @@ const getMockUpload = () => {
 
   return { Upload: MockUpload, constructorSpy }
 }
-
-const mockFileStringContent = 'mock content'
 
 beforeEach(() => {
   passwayClient = new PasswayClient({ apiRoot: '' })

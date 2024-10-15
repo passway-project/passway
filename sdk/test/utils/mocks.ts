@@ -3,6 +3,7 @@ import { dataGenerator } from '../../src/services/DataGenerator'
 export const mockUserHandle = dataGenerator.getRandomUint8Array(64)
 export const mockPasskeyId = 'b1KMe302QMK9sduTOjKK9w'
 export const mockRawId = dataGenerator.getRandomUint8Array(16)
+export const mockFileStringContent = 'mock content'
 
 export const mockAuthenticatorAttestationResponse =
   new window.AuthenticatorAttestationResponse()

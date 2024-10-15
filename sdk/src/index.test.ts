@@ -16,7 +16,7 @@ import {
   mockUserGetResponse,
   mockUserHandleString,
   passkeyId,
-} from '../test/integration/utils/session'
+} from '../test/utils/session'
 
 import {
   ArgumentError,

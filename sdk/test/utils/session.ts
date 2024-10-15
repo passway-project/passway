@@ -1,7 +1,7 @@
-import { GetUserResponse, PasswayClient, SerializedKeys } from '../../../src'
-import { crypto } from '../../../src/services/Crypto'
-import { dataGenerator } from '../../../src/services/DataGenerator'
-import { dataTransform } from '../../../src/services/DataTransform'
+import { GetUserResponse, PasswayClient, SerializedKeys } from '../../src'
+import { crypto } from '../../src/services/Crypto'
+import { dataGenerator } from '../../src/services/DataGenerator'
+import { dataTransform } from '../../src/services/DataTransform'
 
 export const mockUserHandle = dataGenerator.getRandomUint8Array(16)
 export const mockUserHandleString = dataTransform.bufferToBase64(mockUserHandle)

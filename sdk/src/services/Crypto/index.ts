@@ -1,3 +1,4 @@
+import window from 'global/window'
 import { Keychain } from 'wormhole-crypto'
 
 import { SerializedKeys, isSerializedKeys } from '../../types'

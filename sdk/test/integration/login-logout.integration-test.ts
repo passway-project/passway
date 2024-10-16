@@ -1,3 +1,5 @@
+import window from 'global/window'
+
 import { PasswayClient } from '../../src'
 import {
   mockCreatePublicKeyCredential,
@@ -7,11 +9,11 @@ import {
 describe('login and logout', () => {
   test('user can be created and then log in and log out', async () => {
     vitest
-      .spyOn(navigator.credentials, 'create')
+      .spyOn(window.navigator.credentials, 'create')
       .mockResolvedValue(mockCreatePublicKeyCredential)
 
     vitest
-      .spyOn(navigator.credentials, 'get')
+      .spyOn(window.navigator.credentials, 'get')
       .mockResolvedValue(mockGetPublicKeyCredential)
 
     const passwayClient = new PasswayClient({ apiRoot: 'http://api:3000/api' })

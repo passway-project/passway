@@ -1,3 +1,5 @@
+import window from 'global/window'
+
 import { PasskeyConfig } from '../../types'
 
 export class DataGeneratorService {

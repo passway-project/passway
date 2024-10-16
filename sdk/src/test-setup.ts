@@ -1,5 +1,7 @@
 import { File, Blob } from 'node:buffer'
 
+import window from 'global/window'
+
 import nodeFetch from 'node-fetch'
 import fetchCookie from 'fetch-cookie'
 
@@ -12,7 +14,19 @@ global.Blob = Blob
 // used across fetch requests as they would in a browser.
 window.fetch = fetchCookie(nodeFetch)
 
-Object.assign(navigator, {
+vi.mock(
+  'global/window',
+  async (importOriginal): Promise<Partial<Window & typeof globalThis>> => {
+    const originalWindow =
+      await importOriginal<typeof import('global/window')>()
+
+    return {
+      ...originalWindow,
+    }
+  }
+)
+
+Object.assign(window.navigator, {
   credentials: {
     create: vi.fn(),
     get: vi.fn(),

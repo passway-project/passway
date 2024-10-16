@@ -1,4 +1,5 @@
 import { Upload as TusUpload } from 'tus-js-client'
+import window from 'global/window'
 
 import {
   GetSessionHeaders,
@@ -72,7 +73,7 @@ export class PasswayClient {
 
   createPasskey = async (registrationConfig: PasskeyConfig) => {
     try {
-      await navigator.credentials.create({
+      await window.navigator.credentials.create({
         publicKey: dataGenerator.getRegistrationOptions(registrationConfig),
       })
     } catch (e) {
@@ -91,7 +92,7 @@ export class PasswayClient {
       }
 
     try {
-      const retrievedCredential = await navigator.credentials.get({
+      const retrievedCredential = await window.navigator.credentials.get({
         publicKey: publicKeyCredentialRequestOptions,
       })
 
@@ -173,7 +174,7 @@ export class PasswayClient {
       let { passkeyId, userHandle } = this
 
       if (passkeyId === null || userHandle === null) {
-        const retrievedCredential = await navigator.credentials.get({
+        const retrievedCredential = await window.navigator.credentials.get({
           publicKey: publicKeyCredentialRequestOptions,
         })
 

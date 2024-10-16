@@ -143,3 +143,7 @@ consumes the data in `encryptedStream` and returns a plaintext version.
    */
   export function encryptedSize(plaintextSize: number): number
 }
+
+declare module 'global/window' {
+  export default global.window
+}

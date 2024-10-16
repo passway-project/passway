@@ -1,5 +1,7 @@
 import { File } from 'node:buffer'
 
+import window from 'global/window'
+
 import { Upload, UploadOptions } from 'tus-js-client'
 
 import {
@@ -62,7 +64,7 @@ describe('PasswayClient', () => {
   describe('createPasskey', () => {
     test('creates a passkey', async () => {
       const createSpy = vitest
-        .spyOn(navigator.credentials, 'create')
+        .spyOn(window.navigator.credentials, 'create')
         .mockResolvedValueOnce({
           id: 'id',
           type: 'type',
@@ -105,7 +107,7 @@ describe('PasswayClient', () => {
 
     test('handles passkey creation error', async () => {
       vitest
-        .spyOn(navigator.credentials, 'create')
+        .spyOn(window.navigator.credentials, 'create')
         .mockRejectedValueOnce(undefined)
 
       const mockRegistrationConfig = {
@@ -146,7 +148,7 @@ describe('PasswayClient', () => {
       })
 
       vitest
-        .spyOn(navigator.credentials, 'get')
+        .spyOn(window.navigator.credentials, 'get')
         .mockResolvedValueOnce(mockPublicKeyCredential)
 
       const fetchSpy = vitest
@@ -188,7 +190,7 @@ describe('PasswayClient', () => {
       const fetchSpy = vitest.spyOn(window, 'fetch')
 
       vitest
-        .spyOn(navigator.credentials, 'get')
+        .spyOn(window.navigator.credentials, 'get')
         .mockRejectedValueOnce(undefined)
 
       await expect(async () => {
@@ -223,7 +225,7 @@ describe('PasswayClient', () => {
       })
 
       vitest
-        .spyOn(navigator.credentials, 'get')
+        .spyOn(window.navigator.credentials, 'get')
         .mockResolvedValueOnce(mockPublicKeyCredential)
 
       vitest
@@ -259,7 +261,7 @@ describe('PasswayClient', () => {
     })
 
     test('creates session with reused credentials', async () => {
-      const getSpy = vitest.spyOn(navigator.credentials, 'get')
+      const getSpy = vitest.spyOn(window.navigator.credentials, 'get')
       const fetchSpy = vitest.spyOn(window, 'fetch')
 
       for (let i = 0; i < 2; i++) {
@@ -344,7 +346,7 @@ describe('PasswayClient', () => {
       })
 
       vitest
-        .spyOn(navigator.credentials, 'get')
+        .spyOn(window.navigator.credentials, 'get')
         .mockResolvedValueOnce(mockPublicKeyCredential)
 
       vitest
@@ -378,7 +380,7 @@ describe('PasswayClient', () => {
       })
 
       vitest
-        .spyOn(navigator.credentials, 'get')
+        .spyOn(window.navigator.credentials, 'get')
         .mockResolvedValueOnce(mockPublicKeyCredential)
 
       vitest
@@ -417,7 +419,7 @@ describe('PasswayClient', () => {
       })
 
       vitest
-        .spyOn(navigator.credentials, 'get')
+        .spyOn(window.navigator.credentials, 'get')
         .mockRejectedValueOnce(undefined)
 
       vitest
@@ -450,7 +452,7 @@ describe('PasswayClient', () => {
       })
 
       vitest
-        .spyOn(navigator.credentials, 'get')
+        .spyOn(window.navigator.credentials, 'get')
         .mockResolvedValueOnce(mockPublicKeyCredential)
 
       vitest

@@ -1,4 +1,5 @@
 /* c8 ignore start */
+import window from 'global/window'
 import { createWriteStream } from 'streamsaver'
 
 import { dataTransform } from './services/DataTransform'

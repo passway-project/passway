@@ -1,3 +1,5 @@
+import window from 'global/window'
+
 import { PasswayClient } from '../../src'
 import { dataTransform } from '../../src/services/DataTransform'
 import {

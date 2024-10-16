@@ -1,3 +1,5 @@
+import window from 'global/window'
+
 import { GetUserResponse, PasswayClient, SerializedKeys } from '../../src'
 import { crypto } from '../../src/services/Crypto'
 import { dataGenerator } from '../../src/services/DataGenerator'
@@ -66,7 +68,7 @@ export const authenticateSession = async (passwayClient: PasswayClient) => {
   })
 
   vitest
-    .spyOn(navigator.credentials, 'get')
+    .spyOn(window.navigator.credentials, 'get')
     .mockResolvedValueOnce(mockPublicKeyCredential)
 
   vitest

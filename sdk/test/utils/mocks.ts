@@ -1,3 +1,5 @@
+import window from 'global/window'
+
 import { dataGenerator } from '../../src/services/DataGenerator'
 
 export const mockUserHandle = dataGenerator.getRandomUint8Array(64)

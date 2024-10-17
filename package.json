@@ -7,7 +7,7 @@
     "build:dev": "dotenvx run -f .env -- docker compose -f compose.yml -f compose.dev.yml up --build --no-start",
     "start": "dotenvx run -f .env -- docker compose up --detach",
     "start:dev": "UID=$(id -u) GID=$(id -g) dotenvx run -f .env -- docker compose -f compose.yml -f compose.dev.yml up --detach",
-    "start:integration": "dotenvx run -f .env -- docker compose -f compose.yml -f compose.integration-test.yml -p int up --detach && docker compose -p int exec api npx prisma migrate dev",
+    "start:integration": "dotenvx run -f .env -- docker compose -f compose.yml -f compose.integration-test.yml -p int up --build --detach && docker compose -p int exec api npx prisma migrate dev",
     "stop": "docker compose down",
     "stop:dev": "UID=$(id -u) GID=$(id -g) docker compose -f compose.yml -f compose.dev.yml down",
     "stop:integration": "docker compose -f compose.yml -f compose.integration-test.yml -p int down --volumes",

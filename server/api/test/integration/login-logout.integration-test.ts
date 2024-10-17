@@ -1,4 +1,6 @@
 /* c8 ignore start */
+import { randomUUID } from 'node:crypto'
+
 import { StatusCodes } from 'http-status-codes'
 import fastify, { FastifyInstance } from 'fastify'
 
@@ -30,8 +32,8 @@ afterAll(async () => {
 
 describe('login and logout', () => {
   test('user can be created and then log in and log out', async () => {
-    const passkeyId = 'foo'
-    const passkeySecret = 'abc123'
+    const passkeyId = randomUUID()
+    const passkeySecret = randomUUID()
 
     // NOTE: These seed values MUST only be used for test setup here and NOT
     // decryption in order for this integration test to be valid.

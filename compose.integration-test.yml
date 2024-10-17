@@ -12,8 +12,6 @@ services:
     env_file:
       - .env
       - .env.integration-test
-    volumes:
-      - ./server/api/src:/usr/src/app/src
 
   db:
     ports: !reset []
@@ -34,8 +32,6 @@ services:
     env_file:
       - .env
       - .env.integration-test
-    volumes:
-      - ./sdk:/usr/src/app
 
   content-store:
     ports: !reset []

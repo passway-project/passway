@@ -56,11 +56,15 @@ export class UploadService {
     })
 
     this.server = new Server({
-      generateUrl: (_request, { host, id, path, proto }) =>
-        `${proto}://${host}:${process.env.API_PORT}${path}/${id}`,
+      generateUrl: (_request, { host, id, path, proto }) => {
+        return process.env.MODE === 'integration-test'
+          ? `${proto}://${host}${path}/${id}`
+          : `${proto}://${host}:${process.env.API_PORT}${path}/${id}`
+      },
       path,
       datastore: s3Store,
       onUploadFinish: this.handleUploadFinish,
+      allowedCredentials: true,
     })
   }
 

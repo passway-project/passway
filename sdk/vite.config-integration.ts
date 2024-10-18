@@ -25,6 +25,9 @@ const userConfig: UserConfig = {
     ...standardConfig.test,
     include: ['**/?(*.)+(integration-test).[tj]s'],
     silent: false,
+    alias: {
+      'tus-js-client': 'tus-js-client/lib.es5/browser/index.js',
+    },
     //setupFiles: ['src/integration-test-setup.ts'],
     //browser: {
     //screenshotFailures: false,

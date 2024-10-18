@@ -1,3 +1,5 @@
+import { PassThrough } from 'node:stream'
+
 export class DataTransformService {
   stringToUintArray = (str: string) => {
     const textEncoder = new TextEncoder()
@@ -19,6 +21,7 @@ export class DataTransformService {
     return base64String
   }
 
+  // NOTE: Adapted from https://chatgpt.com/share/6715437d-6cfc-8011-ad1f-97d52c2bed3f
   streamToString = async (stream: ReadableStream): Promise<string> => {
     const reader = stream.getReader()
     const decoder = new TextDecoder() // Used to decode binary data to string
@@ -70,6 +73,7 @@ export class DataTransformService {
 
   // TODO: Currently this is only used by the playground. Expose it in actual
   // SDK methods somehow.
+  // NOTE: Adapted from https://chatgpt.com/share/66e796d0-e340-8011-affe-8c6199269cbf
   convertWriterToStream = (
     writer: WritableStreamDefaultWriter<Uint8Array>
   ): WritableStream<Uint8Array> => {
@@ -82,6 +86,35 @@ export class DataTransformService {
       },
       async abort(err) {
         await writer.abort(err)
+      },
+    })
+  }
+
+  // Adapted from https://chatgpt.com/share/6715435c-c7a0-8011-b267-c4c9a2627f5b
+  passThroughToReadableStream = (
+    passThrough: PassThrough
+  ): ReadableStream<Uint8Array> => {
+    return new ReadableStream<Uint8Array>({
+      start(controller) {
+        passThrough.on('data', (chunk: Buffer) => {
+          // Push the chunk as a Uint8Array
+          controller.enqueue(new Uint8Array(chunk))
+        })
+
+        passThrough.on('end', () => {
+          // Close the stream when PassThrough finishes
+          controller.close()
+        })
+
+        passThrough.on('error', err => {
+          // If an error occurs, cancel the stream
+          controller.error(err)
+        })
+      },
+
+      cancel() {
+        // If the consumer cancels, destroy the PassThrough stream
+        passThrough.destroy()
       },
     })
   }

@@ -1,3 +1,5 @@
+import { PassThrough } from 'node:stream'
+
 import { Upload as TusUpload } from 'tus-js-client'
 import window from 'global/window'
 
@@ -366,10 +368,18 @@ export class PasswayClient {
     }
 
     try {
+      const bodyStream =
+        body instanceof PassThrough
+          ? // NOTE: This is only needed for the integration test environment
+            // due to  the implementation details of the fetch polyfill.
+            /* c8 ignore next */
+            dataTransform.passThroughToReadableStream(body)
+          : body
+
       const decryptedStream = isEncrypted
         ? await crypto
             .getKeychain(dataTransform.bufferToBase64(userHandle))
-            .decryptStream(body)
+            .decryptStream(bodyStream)
         : body
 
       return decryptedStream

@@ -38,9 +38,7 @@ services:
     networks:
       - passway-int-network
     volumes:
-      !reset [
-        ./server/content-storage/provision-minio.sh:/opt/provision-minio.sh:ro,
-      ]
+      - ./server/content-storage/provision-minio.sh:/opt/provision-minio.sh:ro
     env_file:
       - .env
       - .env.integration-test

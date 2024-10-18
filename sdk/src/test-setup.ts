@@ -5,6 +5,8 @@ import window from 'global/window'
 import nodeFetch from 'node-fetch'
 import fetchCookie from 'fetch-cookie'
 
+import { cookieJar } from '../test/utils/cookie-jar'
+
 // @ts-expect-error Necessary patch for Node-based test environment
 global.File = File
 // @ts-expect-error Necessary patch for Node-based test environment
@@ -12,7 +14,7 @@ global.Blob = Blob
 
 // @ts-expect-error This is a polyfill that enables cookies to be automatically
 // used across fetch requests as they would in a browser.
-window.fetch = fetchCookie(nodeFetch)
+window.fetch = fetchCookie(nodeFetch, cookieJar)
 
 vi.mock(
   'global/window',

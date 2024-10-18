@@ -51,10 +51,13 @@ export const buildApp = async (options?: FastifyServerOptions) => {
     store: sessionStore,
     cookieName: sessionKeyName,
     cookie: {
+      sameSite: 'none',
       // NOTE: This needs to be disabled for tests because the environment in
       // which they run does not support HTTPS.
       secure: process.env.MODE !== 'integration-test',
-      sameSite: 'none',
+      // NOTE: This needs to be disabled for integration tests because of
+      // test-specific patching that needs to be done.
+      httpOnly: process.env.MODE !== 'integration-test',
     },
   })
 

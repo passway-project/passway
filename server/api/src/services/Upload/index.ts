@@ -61,6 +61,7 @@ export class UploadService {
       path,
       datastore: s3Store,
       onUploadFinish: this.handleUploadFinish,
+      allowedCredentials: true,
     })
   }
 

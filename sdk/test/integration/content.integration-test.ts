@@ -3,16 +3,37 @@ import window from 'global/window'
 import { PasswayClient } from '../../src'
 import { dataTransform } from '../../src/services/DataTransform'
 import {
+  generateMockAuthenticatorAssertionResponse,
   generateMockCreatePublicKeyCredential,
+  generateMockGetPublicKeyCredential,
+  generateMockPasskeyId,
+  generateMockRawId,
+  generateMockUserHandle,
   mockFileStringContent,
-  mockGetPublicKeyCredential,
 } from '../utils/mocks'
 
 describe('content', () => {
   // FIXME:Make this pass
   test.skip('content can be encrypted, uploaded, downloaded, and decrypted', async () => {
-    const mockCreatePublicKeyCredential =
-      generateMockCreatePublicKeyCredential()
+    const mockUserHandle = generateMockUserHandle()
+    const mockPasskeyId = generateMockPasskeyId()
+    const mockRawId = generateMockRawId()
+
+    const mockAuthenticatorAssertionResponse =
+      generateMockAuthenticatorAssertionResponse({ userHandle: mockUserHandle })
+
+    const mockCreatePublicKeyCredential = generateMockCreatePublicKeyCredential(
+      {
+        id: mockPasskeyId,
+        rawId: mockRawId,
+      }
+    )
+
+    const mockGetPublicKeyCredential = generateMockGetPublicKeyCredential({
+      id: mockPasskeyId,
+      rawId: mockRawId,
+      response: mockAuthenticatorAssertionResponse,
+    })
 
     vitest
       .spyOn(navigator.credentials, 'create')

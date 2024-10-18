@@ -2,14 +2,35 @@ import window from 'global/window'
 
 import { PasswayClient } from '../../src'
 import {
+  generateMockAuthenticatorAssertionResponse,
   generateMockCreatePublicKeyCredential,
-  mockGetPublicKeyCredential,
+  generateMockGetPublicKeyCredential,
+  generateMockPasskeyId,
+  generateMockRawId,
+  generateMockUserHandle,
 } from '../utils/mocks'
 
 describe('login and logout', () => {
   test('user can be created and then log in and log out', async () => {
-    const mockCreatePublicKeyCredential =
-      generateMockCreatePublicKeyCredential()
+    const mockUserHandle = generateMockUserHandle()
+    const mockPasskeyId = generateMockPasskeyId()
+    const mockRawId = generateMockRawId()
+
+    const mockAuthenticatorAssertionResponse =
+      generateMockAuthenticatorAssertionResponse({ userHandle: mockUserHandle })
+
+    const mockCreatePublicKeyCredential = generateMockCreatePublicKeyCredential(
+      {
+        id: mockPasskeyId,
+        rawId: mockRawId,
+      }
+    )
+
+    const mockGetPublicKeyCredential = generateMockGetPublicKeyCredential({
+      id: mockPasskeyId,
+      rawId: mockRawId,
+      response: mockAuthenticatorAssertionResponse,
+    })
 
     vitest
       .spyOn(window.navigator.credentials, 'create')

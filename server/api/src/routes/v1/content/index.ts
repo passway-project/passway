@@ -68,7 +68,7 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
         },
       })
 
-      reply.send(result)
+      return reply.send(result)
     }
   )
 

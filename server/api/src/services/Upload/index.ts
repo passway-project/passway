@@ -58,7 +58,8 @@ export class UploadService {
     this.server = new Server({
       generateUrl: (_request, { host, id, path, proto }) => {
         return process.env.MODE === 'integration-test'
-          ? `${proto}://${host}${path}/${id}`
+          ? /* c8 ignore next */
+            `${proto}://${host}${path}/${id}`
           : `${proto}://${host}:${process.env.API_PORT}${path}/${id}`
       },
       path,

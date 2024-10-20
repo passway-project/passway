@@ -371,7 +371,8 @@ export class PasswayClient {
       const bodyStream =
         body instanceof PassThrough
           ? // NOTE: This is only needed for the integration test environment
-            // due to  the implementation details of the fetch polyfill.
+            // due to the nonstandard implementation details of the node-fetch
+            // polyfill.
             /* c8 ignore next */
             dataTransform.passThroughToReadableStream(body)
           : body
@@ -380,10 +381,11 @@ export class PasswayClient {
         ? await crypto
             .getKeychain(dataTransform.bufferToBase64(userHandle))
             .decryptStream(bodyStream)
-        : body
+        : bodyStream
 
       return decryptedStream
     } catch (e) {
+      console.error(e)
       throw new DecryptionError()
     }
   }

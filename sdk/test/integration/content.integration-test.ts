@@ -59,6 +59,10 @@ describe('content', () => {
     const sessionCookieString =
       await cookieJar.getCookieString('http://api:3000')
 
+    // NOTE: This is necessary because the test environment uses node-fetch and
+    // TUS uses XMLHttpRequest, and they don't share cookies automatically
+    // (unlike in a browser where they would).
+    //
     // @ts-expect-error The JSDOM type definition is missing this part of the API
     jsdom.cookieJar.setCookie(sessionCookieString, 'http://api:3000/api')
 

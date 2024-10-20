@@ -56,7 +56,7 @@ export const buildApp = async (options?: FastifyServerOptions) => {
       // which they run does not support HTTPS.
       secure: process.env.MODE !== 'integration-test',
       // NOTE: This needs to be disabled for integration tests because of
-      // test-specific patching that needs to be done.
+      // test-specific cookie manipulation that needs to be done.
       httpOnly: process.env.MODE !== 'integration-test',
     },
   })

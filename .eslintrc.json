@@ -11,7 +11,8 @@
     "import/order": [
       "error",
       { "newlines-between": "always-and-inside-groups" }
-    ]
+    ],
+    "object-shorthand": "error"
   },
   "env": {
     "browser": false,

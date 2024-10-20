@@ -6,11 +6,13 @@ import fastifySession from '@fastify/session'
 import swaggerUi from '@fastify/swagger-ui'
 import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes'
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
+import * as Minio from 'minio'
 
-import prismaPlugin from '../prisma/prismaPlugin'
+import { prismaPlugin } from '../prisma/prismaPlugin'
 
-import { API_ROOT, sessionKeyName } from './constants'
-import * as routes from './routes'
+import { API_ROOT, containerName, sessionKeyName } from './constants'
+import * as v1Routes from './routes/v1'
+import { healthcheckRoute } from './routes/healthcheck'
 import { sessionStore } from './sessionStore'
 import { preHandlers } from './hooks/preHandler'
 
@@ -28,6 +30,7 @@ export const buildApp = async (options?: FastifyServerOptions) => {
           ignore: 'pid,hostname',
         },
       },
+      level: process.env.MODE === 'production' ? 'info' : 'debug',
     },
     ...options,
   }).withTypeProvider<TypeBoxTypeProvider>()
@@ -48,11 +51,26 @@ export const buildApp = async (options?: FastifyServerOptions) => {
     store: sessionStore,
     cookieName: sessionKeyName,
     cookie: {
-      // NOTE: This needs to be disabled for integration tests because the
-      // environment in which they run does not support HTTPS.
-      secure: process.env.IS_INTEGRATION_TEST !== 'true',
       sameSite: 'none',
+      // NOTE: This needs to be disabled for tests because the environment in
+      // which they run does not support HTTPS.
+      secure: process.env.MODE !== 'integration-test',
+      // NOTE: This needs to be disabled for integration tests because of
+      // test-specific cookie manipulation that needs to be done.
+      httpOnly: process.env.MODE !== 'integration-test',
     },
+  })
+
+  await app.register(async () => {
+    const minioClient = new Minio.Client({
+      endPoint: containerName.CONTENT_STORE,
+      port: 9000,
+      useSSL: false,
+      accessKey: process.env.MINIO_SERVER_ACCESS_KEY ?? '',
+      secretKey: process.env.MINIO_SERVER_SECRET_KEY ?? '',
+    })
+
+    app.decorate('minioClient', minioClient)
   })
 
   await app.register(swaggerUi, {
@@ -62,15 +80,18 @@ export const buildApp = async (options?: FastifyServerOptions) => {
       deepLinking: true,
       tryItOutEnabled: true,
     },
-
     theme: {
       css: [{ filename: 'theme.css', content }],
     },
   })
 
   await app.register(preHandlers)
+  await app.register(healthcheckRoute, {
+    prefix: `/${API_ROOT}`,
+    logLevel: 'silent',
+  })
 
-  for (const route of Object.values(routes)) {
+  for (const route of Object.values(v1Routes)) {
     await app.register(route, { prefix: `/${API_ROOT}/v1` })
   }
 

@@ -1,4 +1,6 @@
 /* c8 ignore start */
+import { randomUUID } from 'node:crypto'
+
 import { StatusCodes } from 'http-status-codes'
 import fastify, { FastifyInstance } from 'fastify'
 
@@ -9,7 +11,7 @@ import {
   isUserGetSuccessResponse,
   routeName as userRouteName,
 } from '../../src/routes/v1/user'
-import { getStubKeyData } from '../getStubKeyData'
+import { getMockKeyData } from '../utils/keyData'
 import { redisClient } from '../../src/cache'
 import { decryptSerializedKeys, getSignature } from '../utils/crypto'
 import {
@@ -30,14 +32,14 @@ afterAll(async () => {
 
 describe('login and logout', () => {
   test('user can be created and then log in and log out', async () => {
-    const passkeyId = 'foo'
-    const passkeySecret = 'abc123'
+    const passkeyId = randomUUID()
+    const passkeySecret = randomUUID()
 
     // NOTE: These seed values MUST only be used for test setup here and NOT
     // decryption in order for this integration test to be valid.
     const seedIv = crypto.getRandomValues(new Uint8Array(12))
     const seedSalt = crypto.getRandomValues(new Uint8Array(16))
-    const seedKeyData = await getStubKeyData(passkeySecret, seedIv, seedSalt)
+    const seedKeyData = await getMockKeyData(passkeySecret, seedIv, seedSalt)
 
     // STEP 1: Create user.
     const putUserResponse = await app.inject({

@@ -1,66 +1,59 @@
+import { File } from 'node:buffer'
+
+import window from 'global/window'
+
+import { Upload, UploadOptions } from 'tus-js-client'
+
 import {
+  authenticateSession,
+  mockAuthenticatorAssertionResponse,
+  mockEncryptedKeys,
+  mockIv,
+  mockPrivateKey,
+  mockPublicKey,
+  mockPublicKeyCredential,
+  mockSalt,
+  mockSerializedKeys,
+  mockSignature,
+  mockUserGetResponse,
+  mockUserHandleString,
+  passkeyId,
+} from '../test/utils/session'
+import { mockFileStringContent } from '../test/utils/mocks'
+
+import {
+  ArgumentError,
+  AuthenticationError,
+  DecryptionError,
   LoginError,
   LogoutError,
   PasskeyCreationError,
   RegistrationError,
+  ResponseBodyError,
 } from './errors'
 import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
 import { crypto } from './services/Crypto'
 
-import { GetUserResponse, PasswayClient, SerializedKeys } from '.'
+import { GetContentListResponse, PasswayClient } from '.'
 
 let passwayClient = new PasswayClient({ apiRoot: '' })
 
-const mockUserHandle = dataGenerator.getRandomUint8Array(1)
-const passkeyId = 'abc123'
-const mockIv = new Uint8Array(12)
-const mockSalt = new Uint8Array(16)
-const mockEncryptedKeys = 'encrypted keys'
-const mockPrivateKey = 'private key'
-const mockPublicKey = 'public key'
+const getMockUpload = () => {
+  const constructorSpy = vi.fn()
 
-const mockAuthenticatorAssertionResponse = Object.assign(
-  new window.AuthenticatorAssertionResponse(),
-  {
-    clientDataJSON: dataGenerator.getRandomUint8Array(1),
-    signature: dataGenerator.getRandomUint8Array(1),
-    userHandle: mockUserHandle,
+  class MockUpload extends Upload {
+    constructor(file: Upload['file'], options: UploadOptions) {
+      constructorSpy(file, options)
+      super(file, options)
+    }
+
+    start(): void {
+      this.options.onSuccess?.()
+    }
   }
-)
 
-const mockPublicKeyCredential = Object.assign(
-  new window.PublicKeyCredential(),
-  {
-    authenticatorAttachment: '',
-    getClientExtensionResults: () => {
-      throw new Error()
-    },
-    id: passkeyId,
-    rawId: dataGenerator.getRandomUint8Array(1),
-    response: mockAuthenticatorAssertionResponse,
-    type: '',
-  }
-)
-
-const mockSerializedKeys: SerializedKeys = {
-  encryptionKey: mockEncryptedKeys,
-  salt: dataTransform.bufferToBase64(mockSalt),
-  iv: dataTransform.bufferToBase64(mockIv),
-  signatureKeys: {
-    privateKey: 'signature private key',
-    publicKey: 'signature public key',
-  },
-}
-
-const mockSignature = dataGenerator.getRandomUint8Array(1)
-
-const mockUserGetResponse: GetUserResponse = {
-  user: {
-    keys: mockEncryptedKeys,
-    salt: dataTransform.bufferToBase64(mockSalt),
-    iv: dataTransform.bufferToBase64(mockIv),
-  },
+  return { Upload: MockUpload, constructorSpy }
 }
 
 beforeEach(() => {
@@ -68,10 +61,10 @@ beforeEach(() => {
 })
 
 describe('PasswayClient', () => {
-  describe('createPasskey', async () => {
+  describe('createPasskey', () => {
     test('creates a passkey', async () => {
       const createSpy = vitest
-        .spyOn(navigator.credentials, 'create')
+        .spyOn(window.navigator.credentials, 'create')
         .mockResolvedValueOnce({
           id: 'id',
           type: 'type',
@@ -114,7 +107,7 @@ describe('PasswayClient', () => {
 
     test('handles passkey creation error', async () => {
       vitest
-        .spyOn(navigator.credentials, 'create')
+        .spyOn(window.navigator.credentials, 'create')
         .mockRejectedValueOnce(undefined)
 
       const mockRegistrationConfig = {
@@ -129,7 +122,7 @@ describe('PasswayClient', () => {
     })
   })
 
-  describe('createUser', async () => {
+  describe('createUser', () => {
     test('creates user', async () => {
       const mockPublicKeyCredential = Object.assign(
         new window.PublicKeyCredential(),
@@ -155,7 +148,7 @@ describe('PasswayClient', () => {
       })
 
       vitest
-        .spyOn(navigator.credentials, 'get')
+        .spyOn(window.navigator.credentials, 'get')
         .mockResolvedValueOnce(mockPublicKeyCredential)
 
       const fetchSpy = vitest
@@ -197,7 +190,7 @@ describe('PasswayClient', () => {
       const fetchSpy = vitest.spyOn(window, 'fetch')
 
       vitest
-        .spyOn(navigator.credentials, 'get')
+        .spyOn(window.navigator.credentials, 'get')
         .mockRejectedValueOnce(undefined)
 
       await expect(async () => {
@@ -232,7 +225,7 @@ describe('PasswayClient', () => {
       })
 
       vitest
-        .spyOn(navigator.credentials, 'get')
+        .spyOn(window.navigator.credentials, 'get')
         .mockResolvedValueOnce(mockPublicKeyCredential)
 
       vitest
@@ -245,41 +238,12 @@ describe('PasswayClient', () => {
     })
   })
 
-  describe('createSession', async () => {
+  describe('createSession', () => {
     test('creates session with fresh credentials', async () => {
-      vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
-      vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
+      const { didAuthenticate, fetchSpy } =
+        await authenticateSession(passwayClient)
 
-      vitest.spyOn(crypto, 'generateKeyData').mockResolvedValueOnce({
-        encryptedKeys: mockEncryptedKeys,
-        privateKey: mockPrivateKey,
-        publicKey: mockPublicKey,
-      })
-
-      vitest
-        .spyOn(navigator.credentials, 'get')
-        .mockResolvedValueOnce(mockPublicKeyCredential)
-
-      vitest
-        .spyOn(crypto, 'decryptSerializedKeys')
-        .mockResolvedValueOnce(mockSerializedKeys)
-
-      vitest.spyOn(crypto, 'getSignature').mockResolvedValueOnce(mockSignature)
-
-      const fetchSpy = vitest
-        .spyOn(window, 'fetch')
-        .mockResolvedValueOnce({
-          ...new Response(),
-          status: 200,
-          json: async () => mockUserGetResponse,
-        })
-        .mockResolvedValueOnce({
-          ...new Response(),
-          status: 200,
-        })
-
-      const result = await passwayClient.createSession()
-      expect(result).toEqual(true)
+      expect(didAuthenticate).toEqual(true)
 
       expect(fetchSpy).toHaveBeenNthCalledWith(1, '/v1/user', {
         headers: { 'x-passway-id': passkeyId },
@@ -297,7 +261,7 @@ describe('PasswayClient', () => {
     })
 
     test('creates session with reused credentials', async () => {
-      const getSpy = vitest.spyOn(navigator.credentials, 'get')
+      const getSpy = vitest.spyOn(window.navigator.credentials, 'get')
       const fetchSpy = vitest.spyOn(window, 'fetch')
 
       for (let i = 0; i < 2; i++) {
@@ -382,7 +346,7 @@ describe('PasswayClient', () => {
       })
 
       vitest
-        .spyOn(navigator.credentials, 'get')
+        .spyOn(window.navigator.credentials, 'get')
         .mockResolvedValueOnce(mockPublicKeyCredential)
 
       vitest
@@ -416,7 +380,7 @@ describe('PasswayClient', () => {
       })
 
       vitest
-        .spyOn(navigator.credentials, 'get')
+        .spyOn(window.navigator.credentials, 'get')
         .mockResolvedValueOnce(mockPublicKeyCredential)
 
       vitest
@@ -455,7 +419,7 @@ describe('PasswayClient', () => {
       })
 
       vitest
-        .spyOn(navigator.credentials, 'get')
+        .spyOn(window.navigator.credentials, 'get')
         .mockRejectedValueOnce(undefined)
 
       vitest
@@ -488,7 +452,7 @@ describe('PasswayClient', () => {
       })
 
       vitest
-        .spyOn(navigator.credentials, 'get')
+        .spyOn(window.navigator.credentials, 'get')
         .mockResolvedValueOnce(mockPublicKeyCredential)
 
       vitest
@@ -526,46 +490,281 @@ describe('PasswayClient', () => {
     })
 
     test('handles logout failure', async () => {
-      vitest.spyOn(dataGenerator, 'getIv').mockResolvedValueOnce(mockIv)
-      vitest.spyOn(dataGenerator, 'getSalt').mockResolvedValueOnce(mockSalt)
-
-      vitest.spyOn(crypto, 'generateKeyData').mockResolvedValueOnce({
-        encryptedKeys: mockEncryptedKeys,
-        privateKey: mockPrivateKey,
-        publicKey: mockPublicKey,
-      })
-
-      vitest
-        .spyOn(navigator.credentials, 'get')
-        .mockResolvedValueOnce(mockPublicKeyCredential)
-
-      vitest
-        .spyOn(crypto, 'decryptSerializedKeys')
-        .mockResolvedValueOnce(mockSerializedKeys)
-
-      vitest.spyOn(crypto, 'getSignature').mockResolvedValueOnce(mockSignature)
-
-      vitest
-        .spyOn(window, 'fetch')
-        .mockResolvedValueOnce({
-          ...new Response(),
-          status: 200,
-          json: async () => mockUserGetResponse,
-        })
-        .mockResolvedValueOnce({
-          ...new Response(),
-          status: 200,
-        })
-        .mockResolvedValueOnce({
-          ...new Response(),
-          status: 400,
-        })
-
-      await passwayClient.createSession()
+      await authenticateSession(passwayClient)
 
       await expect(async () => {
         await passwayClient.destroySession()
       }).rejects.toThrowError(LogoutError)
+    })
+  })
+
+  describe('upload', () => {
+    test('uploads unencrypted content', async () => {
+      const { Upload, constructorSpy } = getMockUpload()
+
+      const input = new window.File([mockFileStringContent], 'text/plain')
+
+      await passwayClient.upload(input, {
+        Upload,
+        enableEncryption: false,
+      })
+
+      const receivedInput: File = constructorSpy.mock.calls[0][0]
+      const receivedInputString = await receivedInput.text()
+
+      expect(receivedInputString).toEqual(mockFileStringContent)
+    })
+
+    test('uploads encrypted content', async () => {
+      await authenticateSession(passwayClient)
+
+      const { Upload, constructorSpy } = getMockUpload()
+
+      const input = new window.File([mockFileStringContent], 'text/plain')
+
+      await passwayClient.upload(input, {
+        Upload,
+      })
+
+      const receivedData: ReadableStreamDefaultReader =
+        constructorSpy.mock.calls[0][0]
+
+      const readerStream = dataTransform.convertReaderToStream(receivedData)
+
+      const decryptedReadableStream = await crypto
+        .getKeychain(mockUserHandleString)
+        .decryptStream(readerStream)
+
+      const decryptedUploadedData = await dataTransform.streamToString(
+        decryptedReadableStream
+      )
+
+      expect(decryptedUploadedData).toEqual(mockFileStringContent)
+    })
+  })
+
+  describe('listContent', () => {
+    test('retrieves a list of content', async () => {
+      await authenticateSession(passwayClient)
+
+      const mockGetContentListResponse: GetContentListResponse = [
+        {
+          contentId: 'mock-content-id',
+          contentSize: 0,
+          isEncrypted: true,
+        },
+      ]
+
+      vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
+        ...new Response(),
+        status: 200,
+        json: async () => mockGetContentListResponse,
+      })
+
+      const content = await passwayClient.listContent()
+
+      expect(content).toEqual(mockGetContentListResponse)
+    })
+
+    test('handles an unexpected response status', async () => {
+      await authenticateSession(passwayClient)
+
+      const mockInvalidResponse = [
+        {
+          someOtherProperty: true,
+        },
+      ]
+
+      vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
+        ...new Response(),
+        status: 500,
+        json: async () => mockInvalidResponse,
+      })
+
+      await expect(async () => {
+        await passwayClient.listContent()
+      }).rejects.toThrow(Error)
+    })
+
+    test('handles an unexpected response body', async () => {
+      await authenticateSession(passwayClient)
+
+      const mockInvalidResponse = [
+        {
+          someOtherProperty: true,
+        },
+      ]
+
+      vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
+        ...new Response(),
+        status: 200,
+        json: async () => mockInvalidResponse,
+      })
+
+      await expect(async () => {
+        await passwayClient.listContent()
+      }).rejects.toThrow(ResponseBodyError)
+    })
+  })
+
+  describe('download', () => {
+    test('downloads content', async () => {
+      await authenticateSession(passwayClient)
+
+      const { Upload, constructorSpy } = getMockUpload()
+
+      const input = new window.File([mockFileStringContent], 'text/plain')
+
+      await passwayClient.upload(input, {
+        Upload,
+        enableEncryption: false,
+      })
+
+      const uploadedData: File = constructorSpy.mock.calls[0][0]
+
+      const readerStream = uploadedData.stream() as ReadableStream<Uint8Array>
+
+      vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
+        ...new Response(),
+        status: 200,
+        body: readerStream,
+      })
+
+      // TODO: Use content ID that was returned by upload method
+      const downloadedData = await passwayClient.download('content-id', {
+        isEncrypted: false,
+      })
+
+      const downloadedDataString =
+        await dataTransform.streamToString(downloadedData)
+
+      expect(downloadedDataString).toEqual(mockFileStringContent)
+    })
+
+    test('decrypts content', async () => {
+      await authenticateSession(passwayClient)
+
+      const { Upload, constructorSpy } = getMockUpload()
+
+      const input = new window.File([mockFileStringContent], 'text/plain')
+
+      await passwayClient.upload(input, {
+        Upload,
+      })
+
+      const uploadedData: ReadableStreamDefaultReader =
+        constructorSpy.mock.calls[0][0]
+
+      const readerStream: ReadableStream<Uint8Array> =
+        dataTransform.convertReaderToStream(uploadedData)
+
+      vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
+        ...new Response(),
+        status: 200,
+        body: readerStream,
+      })
+
+      // TODO: Use content ID that was returned by upload method
+      const downloadedData = await passwayClient.download('content-id')
+
+      const downloadedDataString =
+        await dataTransform.streamToString(downloadedData)
+
+      expect(downloadedDataString).toEqual(mockFileStringContent)
+    })
+
+    test('handles invalid contentId', async () => {
+      await expect(async () => {
+        await passwayClient.download('')
+      }).rejects.toThrow(ArgumentError)
+    })
+
+    test('handles unauthenticated download attempts', async () => {
+      await expect(async () => {
+        await passwayClient.download('content-id')
+      }).rejects.toThrow(AuthenticationError)
+    })
+
+    test('handles download failures', async () => {
+      await authenticateSession(passwayClient)
+
+      const { Upload, constructorSpy } = getMockUpload()
+
+      const input = new window.File([mockFileStringContent], 'text/plain')
+
+      await passwayClient.upload(input, {
+        Upload,
+      })
+
+      const uploadedData: ReadableStreamDefaultReader =
+        constructorSpy.mock.calls[0][0]
+
+      const readerStream: ReadableStream<Uint8Array> =
+        dataTransform.convertReaderToStream(uploadedData)
+
+      vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
+        ...new Response(),
+        status: 404,
+        body: readerStream,
+      })
+
+      await expect(async () => {
+        await passwayClient.download('content-id')
+      }).rejects.toThrow(Error)
+    })
+
+    test('handles unexpected server response', async () => {
+      await authenticateSession(passwayClient)
+
+      const { Upload } = getMockUpload()
+
+      const input = new window.File([mockFileStringContent], 'text/plain')
+
+      await passwayClient.upload(input, {
+        Upload,
+      })
+
+      vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
+        ...new Response(),
+        status: 200,
+        body: null,
+      })
+
+      await expect(async () => {
+        await passwayClient.download('content-id')
+      }).rejects.toThrow(ResponseBodyError)
+    })
+
+    test('handles decryption failure', async () => {
+      await authenticateSession(passwayClient)
+
+      const { Upload, constructorSpy } = getMockUpload()
+
+      const input = new window.File([mockFileStringContent], 'text/plain')
+
+      await passwayClient.upload(input, {
+        Upload,
+      })
+
+      const uploadedData: ReadableStreamDefaultReader =
+        constructorSpy.mock.calls[0][0]
+
+      const readerStream: ReadableStream<Uint8Array> =
+        dataTransform.convertReaderToStream(uploadedData)
+
+      vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
+        ...new Response(),
+        status: 200,
+        body: readerStream,
+      })
+
+      vi.spyOn(crypto, 'getKeychain').mockImplementationOnce(() => {
+        throw new Error()
+      })
+
+      await expect(async () => {
+        await passwayClient.download('content-id')
+      }).rejects.toThrow(DecryptionError)
     })
   })
 })

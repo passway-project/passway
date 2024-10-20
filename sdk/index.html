@@ -6,6 +6,45 @@
   </head>
   <body>
     <div id="sdk"></div>
+    <template class="playground">
+      <style>
+        button {
+          display: block;
+          margin: 1rem;
+          font-size: 1rem;
+        }
+
+        .upload-control {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+      </style>
+
+      <h1><code>passwayClient</code></h1>
+      <button class="create-passkey"><code>createPasskey()</code></button>
+      <button class="create-user"><code>createUser()</code></button>
+      <button class="create-session"><code>createSession()</code></button>
+      <button class="destroy-session"><code>destroySession()</code></button>
+      <hr />
+      <div class="upload-control">
+        <h2>Upload a file</h2>
+        <label>
+          <input type="checkbox" checked class="encrypt-data" /><span
+            >Encrypt data</span
+          >
+        </label>
+        <input class="upload" type="file" />
+      </div>
+      <hr />
+      <button class="list-content"><code>listContent()</code></button>
+      <ul class="object-links"></ul>
+    </template>
+    <template class="object-link">
+      <li>
+        <button />
+      </li>
+    </template>
     <script type="module" src="/src/playground.ts"></script>
   </body>
 </html>

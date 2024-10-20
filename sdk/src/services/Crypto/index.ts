@@ -1,3 +1,6 @@
+import window from 'global/window'
+import { Keychain } from 'wormhole-crypto'
+
 import { SerializedKeys, isSerializedKeys } from '../../types'
 
 const signatureKeyAlgorithmName = 'ECDSA'
@@ -173,6 +176,21 @@ export class CryptoService {
     )
 
     return signature
+  }
+
+  getKeychain = (password: string, salt = window.location.host) => {
+    const encoder = new TextEncoder()
+    const keyLength = 16
+    const padding = new Array(keyLength).join('0')
+    const key = password.concat(padding).slice(0, keyLength)
+    const paddedSalt = salt.concat(padding).slice(0, keyLength)
+
+    const keychain = new Keychain(
+      encoder.encode(key),
+      encoder.encode(paddedSalt)
+    )
+
+    return keychain
   }
 }
 

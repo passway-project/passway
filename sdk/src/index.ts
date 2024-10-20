@@ -1,39 +1,81 @@
-export * from './types'
+import { PassThrough } from 'node:stream'
+
+import { Upload as TusUpload } from 'tus-js-client'
+import window from 'global/window'
+
 import {
   GetSessionHeaders,
   GetUserHeaders,
   PasskeyConfig,
   PutUserBody,
+  isGetContentListResponse,
   isGetUserResponse,
 } from './types'
 import {
+  ArgumentError,
+  AuthenticationError,
+  DecryptionError,
   LoginError,
   LogoutError,
   PasskeyCreationError,
   RegistrationError,
+  ResponseBodyError,
 } from './errors'
 import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
 import { crypto } from './services/Crypto'
 import { signatureMessage } from './constants'
+import { Route, RouteService } from './services/Route'
+import { ContentService } from './services/Content'
 
-interface PasswayClientConfig {
+export * from './types'
+
+export interface PasswayClientConfig {
   apiRoot: string
+  apiVersion?: number
+}
+
+export interface UploadOptions {
+  /**
+   * Default value: true
+   */
+  enableEncryption?: boolean
+
+  Upload?: typeof TusUpload
 }
 
 export class PasswayClient {
   readonly apiRoot: string
+  private route: RouteService
 
   private passkeyId: string | null = null
   private userHandle: ArrayBuffer | null = null
 
-  constructor({ apiRoot }: PasswayClientConfig) {
+  private getEncryptedDataStreamReader = async (data: TusUpload['file']) => {
+    const readableStream =
+      data instanceof Blob ? data.stream().getReader() : data
+
+    const { userHandle } = this
+
+    if (userHandle === null) {
+      throw new AuthenticationError()
+    }
+
+    const encryptedStream = await crypto
+      .getKeychain(dataTransform.bufferToBase64(userHandle))
+      .encryptStream(dataTransform.convertReaderToStream(readableStream))
+
+    return encryptedStream.getReader()
+  }
+
+  constructor({ apiRoot, apiVersion = 1 }: PasswayClientConfig) {
     this.apiRoot = apiRoot
+    this.route = new RouteService(apiRoot, apiVersion)
   }
 
   createPasskey = async (registrationConfig: PasskeyConfig) => {
     try {
-      await navigator.credentials.create({
+      await window.navigator.credentials.create({
         publicKey: dataGenerator.getRegistrationOptions(registrationConfig),
       })
     } catch (e) {
@@ -52,7 +94,7 @@ export class PasswayClient {
       }
 
     try {
-      const retrievedCredential = await navigator.credentials.get({
+      const retrievedCredential = await window.navigator.credentials.get({
         publicKey: publicKeyCredentialRequestOptions,
       })
 
@@ -97,7 +139,9 @@ export class PasswayClient {
         publicKey,
       }
 
-      const { status } = await window.fetch(`${this.apiRoot}/v1/user`, {
+      const userRoute = this.route.resolve(Route.user)
+
+      const { status } = await window.fetch(userRoute, {
         method: 'PUT',
         body: JSON.stringify(putUserBody),
         headers: {
@@ -132,7 +176,7 @@ export class PasswayClient {
       let { passkeyId, userHandle } = this
 
       if (passkeyId === null || userHandle === null) {
-        const retrievedCredential = await navigator.credentials.get({
+        const retrievedCredential = await window.navigator.credentials.get({
           publicKey: publicKeyCredentialRequestOptions,
         })
 
@@ -165,7 +209,9 @@ export class PasswayClient {
         'x-passway-id': passkeyId,
       }
 
-      const getUserResponse = await window.fetch(`${this.apiRoot}/v1/user`, {
+      const userRoute = this.route.resolve(Route.user)
+
+      const getUserResponse = await window.fetch(userRoute, {
         method: 'GET',
         headers: getUserHeaders,
       })
@@ -174,7 +220,7 @@ export class PasswayClient {
 
       if (getUserResponseStatus !== 200) {
         throw new Error(
-          `Received error from ${this.apiRoot}/v1/user: ${getUserResponseStatus}`
+          `Received error from ${userRoute}: ${getUserResponseStatus}`
         )
       }
 
@@ -182,7 +228,7 @@ export class PasswayClient {
 
       if (!isGetUserResponse(getUserResponseBodyJson)) {
         throw new TypeError(
-          `Unexpected response from ${this.apiRoot}/v1/user: ${JSON.stringify(getUserResponseBodyJson)}`
+          `Unexpected response from ${userRoute}: ${JSON.stringify(getUserResponseBodyJson)}`
         )
       }
 
@@ -205,20 +251,19 @@ export class PasswayClient {
         'x-passway-signature': Buffer.from(signature).toString('base64'),
       }
 
-      const getSessionResponse = await window.fetch(
-        `${this.apiRoot}/v1/session`,
-        {
-          method: 'GET',
-          headers: getSessionHeaders,
-          credentials: 'include',
-        }
-      )
+      const sessionRoute = this.route.resolve(Route.session)
+
+      const getSessionResponse = await window.fetch(sessionRoute, {
+        method: 'GET',
+        headers: getSessionHeaders,
+        credentials: 'include',
+      })
 
       const { status: getSessionResponseStatus } = getSessionResponse
 
       if (getSessionResponseStatus !== 200) {
         throw new Error(
-          `Received error from ${this.apiRoot}/v1/session: ${getSessionResponseStatus}`
+          `Received error from ${sessionRoute}: ${getSessionResponseStatus}`
         )
       }
 
@@ -230,13 +275,12 @@ export class PasswayClient {
   }
 
   destroySession = async () => {
-    const deleteSessionResponse = await window.fetch(
-      `${this.apiRoot}/v1/session`,
-      {
-        method: 'DELETE',
-        credentials: 'include',
-      }
-    )
+    const sessionRoute = this.route.resolve(Route.session)
+
+    const deleteSessionResponse = await window.fetch(sessionRoute, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
 
     const { status } = deleteSessionResponse
 
@@ -245,5 +289,104 @@ export class PasswayClient {
     }
 
     return true
+  }
+
+  upload = async (
+    data: TusUpload['file'],
+    { enableEncryption = true, Upload = TusUpload }: UploadOptions = {}
+  ) => {
+    const dataStream = enableEncryption
+      ? await this.getEncryptedDataStreamReader(data)
+      : data
+
+    const contentRoute = this.route.resolve(Route.content)
+    const content = new ContentService({ UploadImpl: Upload, contentRoute })
+
+    // TODO: Return metadata about the uploaded data
+    return content.upload(dataStream, {
+      isEncrypted: enableEncryption ? '1' : '0',
+    })
+  }
+
+  listContent = async () => {
+    const contentListRoute = this.route.resolve(Route.contentList)
+
+    const getContentListResponse = await window.fetch(contentListRoute, {
+      method: 'GET',
+      credentials: 'include',
+    })
+
+    const { status: getContentListResponseStatus } = getContentListResponse
+
+    if (getContentListResponseStatus !== 200) {
+      throw new Error(
+        `Received error from ${contentListRoute}: ${getContentListResponseStatus}`
+      )
+    }
+
+    const getContentListResponseBody = await getContentListResponse.json()
+
+    if (!isGetContentListResponse(getContentListResponseBody)) {
+      throw new ResponseBodyError()
+    }
+
+    return getContentListResponseBody
+  }
+
+  // TODO: Infer isEncrypted from content metadata
+  download = async (contentId: string, { isEncrypted = true } = {}) => {
+    if (contentId.length === 0) {
+      throw new ArgumentError('contentId is empty')
+    }
+
+    const { userHandle } = this
+
+    if (userHandle === null) {
+      throw new AuthenticationError()
+    }
+
+    const route = this.route.resolve(Route.contentDownload, { contentId })
+
+    const getContentDownloadResponse = await window.fetch(route, {
+      method: 'GET',
+      credentials: 'include',
+    })
+
+    const { status: getContentDownloadResponseStatus } =
+      getContentDownloadResponse
+
+    if (getContentDownloadResponseStatus !== 200) {
+      throw new Error(
+        `Received error from ${route}: ${getContentDownloadResponseStatus}`
+      )
+    }
+
+    const { body } = getContentDownloadResponse
+
+    if (body === null) {
+      throw new ResponseBodyError()
+    }
+
+    try {
+      const bodyStream =
+        body instanceof PassThrough
+          ? // NOTE: This is only needed for the integration test environment
+            // due to the nonstandard implementation details of the node-fetch
+            // polyfill.
+            /* c8 ignore next */
+            dataTransform.passThroughToReadableStream(body)
+          : body
+
+      const decryptedStream = isEncrypted
+        ? await crypto
+            .getKeychain(dataTransform.bufferToBase64(userHandle))
+            .decryptStream(bodyStream)
+        : bodyStream
+
+      return decryptedStream
+    } catch (e) {
+      console.error(e)
+      throw new DecryptionError()
+    }
   }
 }

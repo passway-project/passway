@@ -1,13 +1,11 @@
 import { resolve } from 'node:path'
 import fs from 'node:fs'
 
-import { defineConfig } from 'vite'
+import { Plugin, defineConfig } from 'vite'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
-/** @type {Buffer | undefined} */
-let cert
-/** @type {Buffer | undefined} */
-let key
+let cert: Buffer | undefined
+let key: Buffer | undefined
 
 try {
   cert = fs.readFileSync('localhost.crt')
@@ -15,6 +13,16 @@ try {
 } catch (e) {
   console.warn('SSL certificates not found')
 }
+
+export const runtimePlugins: Plugin[] = [
+  nodePolyfills({
+    globals: {
+      Buffer: true,
+    },
+  }),
+]
+
+export const testPlugins: Plugin[] = []
 
 export default defineConfig({
   root: __dirname,
@@ -25,13 +33,8 @@ export default defineConfig({
       fileName: 'passway-client',
     },
   },
-  plugins: [
-    nodePolyfills({
-      globals: {
-        Buffer: true,
-      },
-    }),
-  ],
+
+  plugins: runtimePlugins,
   test: {
     globals: true,
     environment: 'jsdom',

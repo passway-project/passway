@@ -13,3 +13,17 @@ export class LoginError extends Error {
 export class LogoutError extends Error {
   message = 'Logout failed'
 }
+
+export class AuthenticationError extends Error {
+  message = 'The user is not authenticated'
+}
+
+export class ResponseBodyError extends Error {
+  message = 'The expected response was not received'
+}
+
+export class ArgumentError extends Error {}
+
+export class DecryptionError extends Error {
+  message = 'Data decryption failed'
+}

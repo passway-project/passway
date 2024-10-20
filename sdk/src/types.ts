@@ -79,3 +79,27 @@ export const isGetUserResponse = (
 
 export type GetSessionHeaders =
   paths['/api/v1/session']['get']['parameters']['header']
+
+export type GetContentListResponse =
+  paths['/api/v1/content/list']['get']['responses']['200']['content']['application/json']
+
+export type GetContentListResponseItem = GetContentListResponse[number]
+
+export const isGetContentListResponseItem = (
+  response: unknown
+): response is GetContentListResponseItem => {
+  return (
+    typeof response === 'object' &&
+    response !== null &&
+    'contentId' in response &&
+    typeof response.contentId === 'string' &&
+    'contentSize' in response &&
+    typeof response.contentSize === 'number'
+  )
+}
+
+export const isGetContentListResponse = (
+  response: unknown
+): response is GetContentListResponse => {
+  return Array.isArray(response) && response.every(isGetContentListResponseItem)
+}

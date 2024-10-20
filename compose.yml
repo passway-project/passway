@@ -2,7 +2,7 @@ services:
   proxy:
     image: nginx:latest
     ports:
-      - '${AUTHENTICATION_APP_PORT}:80'
+      - '${API_PORT}:80'
     volumes:
       - ./server/proxy/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
@@ -20,12 +20,13 @@ services:
         condition: service_healthy
       cache:
         condition: service_healthy
-    env_file: '.env'
+    env_file:
+      - .env
     healthcheck:
-      test: ['CMD', 'curl', 'localhost:3000/api', '--fail']
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      test: ['CMD', 'curl', 'localhost:3000/api/healthcheck', '--fail']
+      interval: 2s
+      timeout: 20s
+      retries: 15
 
   db:
     image: postgres:16
@@ -71,10 +72,25 @@ services:
         condition: service_healthy
     networks:
       - passway-network
-    env_file: '.env'
+    env_file:
+      - .env
+
+  content-store:
+    image: bitnami/minio:2024.8.29
+    command: bash -c "/opt/bitnami/scripts/minio/run.sh & sh /opt/provision-minio.sh & wait"
+    ports:
+      - '${CONTENT_STORE_PORT}:9000'
+    volumes:
+      - ./server/content-storage/provision-minio.sh:/opt/provision-minio.sh:ro
+      - content_store_data:/bitnami/minio/data
+    env_file:
+      - .env
+    networks:
+      - passway-network
 
 networks:
   passway-network:
 
 volumes:
   db_data:
+  content_store_data:

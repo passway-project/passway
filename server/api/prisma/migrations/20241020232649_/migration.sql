@@ -4,6 +4,7 @@ CREATE TABLE "FileMetadata" (
     "userId" INTEGER NOT NULL,
     "contentId" TEXT NOT NULL,
     "contentSize" INTEGER NOT NULL,
+    "isEncrypted" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "FileMetadata_pkey" PRIMARY KEY ("id")

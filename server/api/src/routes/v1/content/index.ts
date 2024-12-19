@@ -1,3 +1,5 @@
+import { strict as assert } from 'node:assert'
+
 import { FastifyPluginAsync } from 'fastify'
 import httpErrors from 'http-errors'
 
@@ -8,6 +10,7 @@ import { S3Error } from 'minio'
 import { contentBucketName, minioNoSuchKeyCode } from '../../../constants'
 
 import { UploadService } from '../../../services/Upload'
+import { isRecord } from '../../../types'
 
 export const routeName = 'content'
 
@@ -33,8 +36,23 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
   app.get(
     `/${routeName}/list`,
     {
-      // TODO: Define schema
       schema: {
+        querystring: {
+          type: 'object',
+          properties: {
+            page: {
+              type: 'integer',
+              minimum: 0,
+              default: 0,
+            },
+            size: {
+              type: 'integer',
+              minimum: 1,
+              maximum: 100,
+              default: 20,
+            },
+          },
+        },
         response: {
           [StatusCodes.OK]: {
             description: 'Content found',
@@ -47,7 +65,7 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
                   type: 'string',
                 },
                 contentSize: {
-                  type: 'number',
+                  type: 'integer',
                 },
                 isEncrypted: {
                   type: 'boolean',
@@ -59,13 +77,29 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
       },
     },
     async (request, reply) => {
-      const { userId } = request.session
+      const {
+        query,
+        session: { userId },
+      } = request
+
+      if (!isRecord(query)) {
+        throw new TypeError()
+      }
+
+      const { page = 0, size = 0 } = query
+
+      assert(typeof userId === 'number')
+      assert(typeof page === 'number')
+      assert(typeof size === 'number')
 
       const result = await app.prisma.fileMetadata.findMany({
         select: { contentId: true, contentSize: true, isEncrypted: true },
         where: {
           userId,
         },
+        // FIXME: Test this
+        skip: page * size,
+        take: size,
       })
 
       return reply.send(result)

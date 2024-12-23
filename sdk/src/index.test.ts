@@ -37,6 +37,8 @@ import { crypto } from './services/Crypto'
 
 import { GetContentListResponse, PasswayClient } from '.'
 
+const stubContentId = 'stub content id'
+
 let passwayClient = new PasswayClient({ apiRoot: '' })
 
 const getMockUpload = () => {
@@ -507,6 +509,7 @@ describe('PasswayClient', () => {
       await passwayClient.upload(input, {
         Upload,
         enableEncryption: false,
+        id: stubContentId,
       })
 
       const receivedInput: File = constructorSpy.mock.calls[0][0]
@@ -524,6 +527,7 @@ describe('PasswayClient', () => {
 
       await passwayClient.upload(input, {
         Upload,
+        id: stubContentId,
       })
 
       const receivedData: ReadableStreamDefaultReader =
@@ -618,6 +622,7 @@ describe('PasswayClient', () => {
       await passwayClient.upload(input, {
         Upload,
         enableEncryption: false,
+        id: stubContentId,
       })
 
       const uploadedData: File = constructorSpy.mock.calls[0][0]
@@ -650,6 +655,7 @@ describe('PasswayClient', () => {
 
       await passwayClient.upload(input, {
         Upload,
+        id: stubContentId,
       })
 
       const uploadedData: ReadableStreamDefaultReader =
@@ -694,6 +700,7 @@ describe('PasswayClient', () => {
 
       await passwayClient.upload(input, {
         Upload,
+        id: stubContentId,
       })
 
       const uploadedData: ReadableStreamDefaultReader =
@@ -722,6 +729,7 @@ describe('PasswayClient', () => {
 
       await passwayClient.upload(input, {
         Upload,
+        id: stubContentId,
       })
 
       vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
@@ -744,6 +752,7 @@ describe('PasswayClient', () => {
 
       await passwayClient.upload(input, {
         Upload,
+        id: stubContentId,
       })
 
       const uploadedData: ReadableStreamDefaultReader =

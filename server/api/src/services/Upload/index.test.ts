@@ -14,9 +14,12 @@ import { UploadService } from '.'
 
 const stubUserId = 1
 const stubSessionId = 'session-id'
-const stubContentId = 'abc123'
+const stubContentObjectId = 'abc123'
+const stubContentId = 'content ID'
 const stubContentSize = 1024
 const stubFileMetadataRecordId = 1
+
+// FIXME: Add test for missing content name
 
 describe('UploadService', () => {
   describe('handleUploadFinish', () => {
@@ -29,6 +32,7 @@ describe('UploadService', () => {
       ;(
         app.prisma as DeepMockProxy<PrismaClient>
       ).fileMetadata.create.mockResolvedValueOnce({
+        contentObjectId: stubContentObjectId,
         contentId: stubContentId,
         contentSize: stubContentSize,
         createdAt: new Date(),
@@ -59,11 +63,12 @@ describe('UploadService', () => {
       const stubIncomingMessage = new IncomingMessage(new Socket())
       const stubServerResponse = new ServerResponse(stubIncomingMessage)
       const stubUpload = new Upload({
-        id: stubContentId,
+        id: stubContentObjectId,
         offset: 0,
         size: stubContentSize,
         metadata: {
           isEncrypted: '1',
+          id: stubContentId,
         },
       })
 
@@ -77,6 +82,7 @@ describe('UploadService', () => {
 
       expect(app.prisma.fileMetadata.create).toHaveBeenCalledWith({
         data: {
+          contentObjectId: stubContentObjectId,
           contentId: stubContentId,
           contentSize: stubContentSize,
           userId: stubUserId,
@@ -110,7 +116,7 @@ describe('UploadService', () => {
       const stubIncomingMessage = new IncomingMessage(new Socket())
       const stubServerResponse = new ServerResponse(stubIncomingMessage)
       const stubUpload = new Upload({
-        id: stubContentId,
+        id: stubContentObjectId,
         offset: 0,
         metadata: {},
       })
@@ -155,10 +161,11 @@ describe('UploadService', () => {
       const stubIncomingMessage = new IncomingMessage(new Socket())
       const stubServerResponse = new ServerResponse(stubIncomingMessage)
       const stubUpload = new Upload({
-        id: stubContentId,
+        id: stubContentObjectId,
         offset: 0,
         metadata: {
           isEncrypted: '1',
+          id: stubContentId,
         },
       })
 
@@ -202,10 +209,11 @@ describe('UploadService', () => {
       const stubIncomingMessage = new IncomingMessage(new Socket())
       const stubServerResponse = new ServerResponse(stubIncomingMessage)
       const stubUpload = new Upload({
-        id: stubContentId,
+        id: stubContentObjectId,
         offset: 0,
         size: stubContentSize,
         metadata: {
+          id: stubContentId,
           // @ts-expect-error This is a forced error for the sake of testing
           isEncrypted: 1,
         },
@@ -252,11 +260,12 @@ describe('UploadService', () => {
       const stubIncomingMessage = new IncomingMessage(new Socket())
       const stubServerResponse = new ServerResponse(stubIncomingMessage)
       const stubUpload = new Upload({
-        id: stubContentId,
+        id: stubContentObjectId,
         offset: 0,
         size: stubContentSize,
         metadata: {
           isEncrypted: '1',
+          id: stubContentId,
         },
       })
 

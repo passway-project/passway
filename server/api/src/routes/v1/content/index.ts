@@ -5,7 +5,13 @@ import { StatusCodes } from 'http-status-codes'
 
 import { S3Error } from 'minio'
 
-import { contentBucketName, minioNoSuchKeyCode } from '../../../constants'
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
+
+import {
+  contentBucketName,
+  minioNoSuchKeyCode,
+  prismaNotFoundCode,
+} from '../../../constants'
 
 import { UploadService } from '../../../services/Upload'
 
@@ -96,28 +102,52 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
       },
     },
     async (request, reply) => {
-      const { contentId } = request.params
+      const {
+        params: { contentId },
+        session: { userId },
+      } = request
 
       try {
+        const { contentObjectId } =
+          await app.prisma.fileMetadata.findFirstOrThrow({
+            select: {
+              contentObjectId: true,
+            },
+            where: {
+              userId,
+              contentId,
+            },
+          })
+
         const objectDataStream = await app.minioClient.getObject(
           contentBucketName,
-          contentId
+          contentObjectId
         )
 
         reply.header('content-type', 'application/octet-stream')
 
         return reply.send(objectDataStream)
       } catch (e) {
-        app.log.error(e, `Object ID ${contentId} lookup failed`)
+        app.log.error(e, `Content retrieval for "${contentId}" failed`)
+
+        let recordFound = true
+
+        if (e instanceof PrismaClientKnownRequestError) {
+          if (e.code === prismaNotFoundCode) {
+            recordFound = false
+          }
+        }
 
         if (e instanceof S3Error) {
-          const { code } = e
-
-          if (code === minioNoSuchKeyCode) {
-            return reply.send(
-              httpErrors.NotFound(`Content ID "${contentId}" not found`)
-            )
+          if (e.code === minioNoSuchKeyCode) {
+            recordFound = false
           }
+        }
+
+        if (!recordFound) {
+          return reply.send(
+            httpErrors.NotFound(`Content retrieval for "${contentId}" failed`)
+          )
         }
 
         return reply.send(httpErrors.InternalServerError())

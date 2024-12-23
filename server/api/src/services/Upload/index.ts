@@ -113,7 +113,17 @@ export class UploadService {
         )
       }
 
-      const { size: contentSize, metadata: { isEncrypted } = {} } = upload
+      const {
+        size: contentSize,
+        metadata: { isEncrypted, id: contentId } = {},
+      } = upload
+
+      if (typeof contentId !== 'string') {
+        throw new UploadError(
+          'Content ID not provided',
+          StatusCodes.BAD_REQUEST
+        )
+      }
 
       if (typeof contentSize !== 'number') {
         throw new UploadError(
@@ -131,7 +141,8 @@ export class UploadService {
 
       const fileMetadataRecord: Prisma.FileMetadataCreateArgs = {
         data: {
-          contentId: upload.id,
+          contentObjectId: upload.id,
+          contentId,
           contentSize,
           userId,
           isEncrypted: isEncrypted === '1',

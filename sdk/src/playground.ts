@@ -13,6 +13,13 @@ class PasswayRegistration extends HTMLElement {
 
   private objectLinkList: HTMLUListElement | undefined | null
 
+  get id() {
+    return (
+      this.shadowRoot?.querySelector<HTMLInputElement>('.content-name')
+        ?.value || 'default content ID'
+    )
+  }
+
   get isEncryptionEnabled() {
     return (
       this.shadowRoot?.querySelector<HTMLInputElement>('.encrypt-data')
@@ -69,9 +76,12 @@ class PasswayRegistration extends HTMLElement {
         return
       }
 
-      const { isEncryptionEnabled } = this
+      const { isEncryptionEnabled, id } = this
 
-      await this.client.upload(file, { enableEncryption: isEncryptionEnabled })
+      await this.client.upload(file, {
+        enableEncryption: isEncryptionEnabled,
+        id,
+      })
     })
 
     this.objectLinkList =
@@ -139,8 +149,8 @@ class PasswayObjectLink extends HTMLElement {
     }
   }
 
-  set contentId(contentId: string) {
-    this._contentId = contentId
+  set contentId(contentName: string) {
+    this._contentId = contentName
     this.updateButtonLabel()
   }
 

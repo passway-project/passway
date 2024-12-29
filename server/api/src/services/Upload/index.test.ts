@@ -19,8 +19,6 @@ const stubContentId = 'content ID'
 const stubContentSize = 1024
 const stubFileMetadataRecordId = 1
 
-// FIXME: Add test for missing content name
-
 describe('UploadService', () => {
   describe('handleUploadFinish', () => {
     test('creates FileMetadata record upon success', async () => {
@@ -178,6 +176,52 @@ describe('UploadService', () => {
       }).rejects.toThrowError(
         '[400] contentSize must be a number. Received: undefined'
       )
+    })
+
+    test('handles missing id metadata', async () => {
+      const app = getApp()
+
+      vi.spyOn(app, 'parseCookie').mockReturnValueOnce({
+        [sessionKeyName]: stubSessionId,
+      })
+
+      vi.spyOn(app.prisma.fileMetadata, 'create')
+
+      vi.spyOn(sessionStore, 'get').mockImplementationOnce(
+        (_sessionId, callback) => {
+          callback(null, {
+            cookie: {
+              originalMaxAge: null,
+            },
+            authenticated: true,
+            userId: stubUserId,
+          })
+        }
+      )
+
+      const uploadService = new UploadService({
+        app,
+        path: '/',
+      })
+
+      const stubIncomingMessage = new IncomingMessage(new Socket())
+      const stubServerResponse = new ServerResponse(stubIncomingMessage)
+      const stubUpload = new Upload({
+        id: stubContentObjectId,
+        offset: 0,
+        size: stubContentSize,
+        metadata: {
+          isEncrypted: '1',
+        },
+      })
+
+      expect(async () => {
+        await uploadService.handleUploadFinish(
+          stubIncomingMessage,
+          stubServerResponse,
+          stubUpload
+        )
+      }).rejects.toThrowError('[400] Content ID not provided')
     })
 
     test('handles invalid isEncrypted metadata', async () => {

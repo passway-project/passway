@@ -53,6 +53,8 @@ export class PasswayClient {
   private passkeyId: string | null = null
   private userHandle: ArrayBuffer | null = null
 
+  private readonly maxContentIdLength = 64
+
   private getEncryptedDataStreamReader = async (data: TusUpload['file']) => {
     const readableStream =
       data instanceof Blob ? data.stream().getReader() : data
@@ -305,10 +307,15 @@ export class PasswayClient {
     const contentRoute = this.route.resolve(Route.content)
     const content = new ContentService({ UploadImpl: Upload, contentRoute })
 
+    const hashedId = (await crypto.hashString(id)).slice(
+      0,
+      this.maxContentIdLength
+    )
+
     // TODO: Return metadata about the uploaded data
     return content.upload(dataStream, {
       isEncrypted: enableEncryption ? '1' : '0',
-      id,
+      id: hashedId,
     })
   }
 
@@ -353,8 +360,13 @@ export class PasswayClient {
       throw new AuthenticationError()
     }
 
+    const hashedId = (await crypto.hashString(id)).slice(
+      0,
+      this.maxContentIdLength
+    )
+
     const route = this.route.resolve(Route.contentDownload, {
-      contentId: id,
+      contentId: hashedId,
     })
 
     const getContentDownloadResponse = await window.fetch(route, {

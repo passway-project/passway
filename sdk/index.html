@@ -32,7 +32,7 @@
         <label
           ><span>Content ID</span>:
           <input
-            class="content-id"
+            class="upload-content-id"
             value="Default content ID"
             placeholder="Content ID"
           />
@@ -43,6 +43,24 @@
           >
         </label>
         <input class="upload" type="file" />
+      </div>
+      <hr />
+      <div class="download-control">
+        <h2>Download a file</h2>
+        <label
+          ><span>Content ID</span>:
+          <input
+            class="download-content-id"
+            value="Default content ID"
+            placeholder="Content ID"
+          />
+        </label>
+        <label style="display: block">
+          <input type="checkbox" checked class="decrypt-data" /><span
+            >Decrypt data</span
+          >
+        </label>
+        <button class="download">Download</button>
       </div>
       <hr />
       <button class="list-content"><code>listContent()</code></button>

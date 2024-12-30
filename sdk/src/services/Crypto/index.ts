@@ -3,9 +3,9 @@ import { Keychain } from 'wormhole-crypto'
 
 import { SerializedKeys, isSerializedKeys } from '../../types'
 
+const hashAlgorithm = 'SHA-256'
 const signatureKeyAlgorithmName = 'ECDSA'
 const signatureKeyNamedCurve = 'P-521'
-const signatureKeyHashingAlgorithm = 'SHA-256'
 const signatureKeySaltLength = 32
 const contentEncryptionKeyAlgorithmName = 'AES-GCM'
 const contentEncryptionKeyAlgorithmLength = 256
@@ -29,7 +29,7 @@ export class CryptoService {
         name: 'PBKDF2',
         salt,
         iterations: 100000,
-        hash: signatureKeyHashingAlgorithm,
+        hash: hashAlgorithm,
       },
       keyMaterial,
       {
@@ -168,7 +168,7 @@ export class CryptoService {
     const signature = await window.crypto.subtle.sign(
       {
         name: signatureKeyAlgorithmName,
-        hash: signatureKeyHashingAlgorithm,
+        hash: hashAlgorithm,
         saltLength: signatureKeySaltLength,
       },
       signaturePrivateKey,
@@ -191,6 +191,20 @@ export class CryptoService {
     )
 
     return keychain
+  }
+
+  hashString = async (input: string) => {
+    const encoder = new TextEncoder()
+    const data = encoder.encode(input)
+
+    const hashBuffer = await window.crypto.subtle.digest(hashAlgorithm, data)
+
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const hashHex = hashArray
+      .map(byte => byte.toString(16).padStart(2, '0'))
+      .join('')
+
+    return hashHex
   }
 }
 

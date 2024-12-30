@@ -15,7 +15,7 @@ class PasswayRegistration extends HTMLElement {
 
   get id() {
     return (
-      this.shadowRoot?.querySelector<HTMLInputElement>('.content-name')
+      this.shadowRoot?.querySelector<HTMLInputElement>('.download-content-id')
         ?.value || 'default content ID'
     )
   }
@@ -82,6 +82,35 @@ class PasswayRegistration extends HTMLElement {
         enableEncryption: isEncryptionEnabled,
         id,
       })
+    })
+
+    const downloadButton =
+      shadow.querySelector<HTMLButtonElement>('button.download')
+
+    downloadButton?.addEventListener('click', async () => {
+      const contentIdInput = shadow.querySelector<HTMLInputElement>(
+        '.download-content-id'
+      )
+
+      const contentId = contentIdInput?.value
+
+      if (!contentId) {
+        throw new TypeError('contentId is falsy')
+      }
+
+      const decryptDataCheckbox =
+        shadow.querySelector<HTMLInputElement>('input.decrypt-data')
+
+      const decryptData = Boolean(decryptDataCheckbox?.checked)
+
+      const reader = await this.client.download(contentId ?? '', {
+        isEncrypted: decryptData,
+      })
+
+      const writeStream = createWriteStream('download')
+
+      const writer = writeStream.getWriter()
+      reader.pipeTo(dataTransform.convertWriterToStream(writer))
     })
 
     this.objectLinkList =

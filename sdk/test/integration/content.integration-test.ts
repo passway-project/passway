@@ -68,8 +68,7 @@ describe('content', () => {
     jsdom.cookieJar.setCookie(sessionCookieString, 'http://api:3000/api')
 
     await passwayClient.upload(input, { id: stubContentId })
-    const [{ contentId }] = await passwayClient.listContent()
-    const downloadedData = await passwayClient.download(contentId)
+    const downloadedData = await passwayClient.download(stubContentId)
 
     const downloadedDataString =
       await dataTransform.streamToString(downloadedData)

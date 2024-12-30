@@ -13,8 +13,8 @@ class PasswayRegistration extends HTMLElement {
 
   get id() {
     return (
-      this.shadowRoot?.querySelector<HTMLInputElement>('.download-content-id')
-        ?.value || 'default content ID'
+      this.shadowRoot?.querySelector<HTMLInputElement>('.content-id')?.value ||
+      'default content ID'
     )
   }
 
@@ -86,11 +86,7 @@ class PasswayRegistration extends HTMLElement {
       shadow.querySelector<HTMLButtonElement>('button.download')
 
     downloadButton?.addEventListener('click', async () => {
-      const contentIdInput = shadow.querySelector<HTMLInputElement>(
-        '.download-content-id'
-      )
-
-      const contentId = contentIdInput?.value
+      const contentId = this.id
 
       if (!contentId) {
         throw new TypeError('contentId is falsy')

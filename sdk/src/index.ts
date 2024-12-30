@@ -294,7 +294,6 @@ export class PasswayClient {
     return true
   }
 
-  // FIXME: Hash content name
   upload = async (
     data: TusUpload['file'],
     { id, enableEncryption = true, Upload = TusUpload }: UploadOptions

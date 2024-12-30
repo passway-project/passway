@@ -27,41 +27,33 @@
       <button class="create-session"><code>createSession()</code></button>
       <button class="destroy-session"><code>destroySession()</code></button>
       <hr />
-      <div class="upload-control">
-        <h2>Upload a file</h2>
-        <label
-          ><span>Content ID</span>:
-          <input
-            class="upload-content-id"
-            value="Default content ID"
-            placeholder="Content ID"
-          />
-        </label>
+      <h2>Content Operations</h2>
+      <label
+        ><span>Content ID</span>:
+        <input
+          class="content-id"
+          value="Default content ID"
+          placeholder="Content ID"
+        />
+      </label>
+      <fieldset>
+        <legend>Upload</legend>
         <label>
           <input type="checkbox" checked class="encrypt-data" /><span
             >Encrypt data</span
           >
         </label>
-        <input class="upload" type="file" />
-      </div>
-      <hr />
-      <div class="download-control">
-        <h2>Download a file</h2>
-        <label
-          ><span>Content ID</span>:
-          <input
-            class="download-content-id"
-            value="Default content ID"
-            placeholder="Content ID"
-          />
-        </label>
+        <input class="upload" type="file" style="display: block" />
+      </fieldset>
+      <fieldset>
+        <legend>Download</legend>
         <label style="display: block">
           <input type="checkbox" checked class="decrypt-data" /><span
             >Decrypt data</span
           >
         </label>
         <button class="download">Download</button>
-      </div>
+      </fieldset>
     </template>
     <script type="module" src="/src/playground.ts"></script>
   </body>

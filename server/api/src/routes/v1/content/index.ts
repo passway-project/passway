@@ -26,57 +26,9 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
     path: `${options.prefix}/${routeName}`,
   })
 
+  // FIXME: Make uploads upsert operations
   app.all(`/${routeName}`, uploadService.handleRequest)
   app.all(`/${routeName}/*`, uploadService.handleRequest)
-
-  // NOTE: This is a minimal implementation of the content/list route. At the
-  // moment it only serves to stand up just enough functionality to test
-  // content uploading and downloading. It is not complete and will change
-  // significantly.
-  //
-  // TODO: Implement pagination
-  // TODO: Implement filtering
-  app.get(
-    `/${routeName}/list`,
-    {
-      // TODO: Define schema
-      schema: {
-        response: {
-          [StatusCodes.OK]: {
-            description: 'Content found',
-            type: 'array',
-            items: {
-              type: 'object',
-              required: ['contentId', 'contentSize', 'isEncrypted'],
-              properties: {
-                contentId: {
-                  type: 'string',
-                },
-                contentSize: {
-                  type: 'number',
-                },
-                isEncrypted: {
-                  type: 'boolean',
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-    async (request, reply) => {
-      const { userId } = request.session
-
-      const result = await app.prisma.fileMetadata.findMany({
-        select: { contentId: true, contentSize: true, isEncrypted: true },
-        where: {
-          userId,
-        },
-      })
-
-      return reply.send(result)
-    }
-  )
 
   app.get<{ Params: { contentId: string } }>(
     `/${routeName}/:contentId`,

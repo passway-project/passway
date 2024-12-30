@@ -8,7 +8,6 @@ import {
   GetUserHeaders,
   PasskeyConfig,
   PutUserBody,
-  isGetContentListResponse,
   isGetUserResponse,
 } from './types'
 import {
@@ -317,31 +316,6 @@ export class PasswayClient {
       isEncrypted: enableEncryption ? '1' : '0',
       id: hashedId,
     })
-  }
-
-  listContent = async () => {
-    const contentListRoute = this.route.resolve(Route.contentList)
-
-    const getContentListResponse = await window.fetch(contentListRoute, {
-      method: 'GET',
-      credentials: 'include',
-    })
-
-    const { status: getContentListResponseStatus } = getContentListResponse
-
-    if (getContentListResponseStatus !== 200) {
-      throw new Error(
-        `Received error from ${contentListRoute}: ${getContentListResponseStatus}`
-      )
-    }
-
-    const getContentListResponseBody = await getContentListResponse.json()
-
-    if (!isGetContentListResponse(getContentListResponseBody)) {
-      throw new ResponseBodyError()
-    }
-
-    return getContentListResponseBody
   }
 
   // TODO: Infer isEncrypted from content metadata

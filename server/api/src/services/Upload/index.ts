@@ -118,6 +118,7 @@ export class UploadService {
         metadata: { isEncrypted, id: contentId } = {},
       } = upload
 
+      // FIXME: Check for contentId before upload begins
       if (typeof contentId !== 'string') {
         throw new UploadError(
           'Content ID not provided',

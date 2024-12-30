@@ -18,13 +18,6 @@ class PasswayRegistration extends HTMLElement {
     )
   }
 
-  get isEncryptionEnabled() {
-    return (
-      this.shadowRoot?.querySelector<HTMLInputElement>('.encrypt-data')
-        ?.checked ?? false
-    )
-  }
-
   connectedCallback() {
     const template = document.querySelector<HTMLTemplateElement>(
       'template.playground'
@@ -74,10 +67,9 @@ class PasswayRegistration extends HTMLElement {
         return
       }
 
-      const { isEncryptionEnabled, id } = this
+      const { id } = this
 
       await this.client.upload(file, {
-        enableEncryption: isEncryptionEnabled,
         id,
       })
     })
@@ -92,14 +84,7 @@ class PasswayRegistration extends HTMLElement {
         throw new TypeError('contentId is falsy')
       }
 
-      const decryptDataCheckbox =
-        shadow.querySelector<HTMLInputElement>('input.decrypt-data')
-
-      const decryptData = Boolean(decryptDataCheckbox?.checked)
-
-      const reader = await this.client.download(contentId ?? '', {
-        isEncrypted: decryptData,
-      })
+      const reader = await this.client.download(contentId ?? '')
 
       const writeStream = createWriteStream('download')
 

@@ -35,7 +35,6 @@ describe('UploadService', () => {
         contentSize: stubContentSize,
         createdAt: new Date(),
         id: stubFileMetadataRecordId,
-        isEncrypted: true,
         userId: stubUserId,
       })
 
@@ -65,7 +64,6 @@ describe('UploadService', () => {
         offset: 0,
         size: stubContentSize,
         metadata: {
-          isEncrypted: '1',
           id: stubContentId,
         },
       })
@@ -84,7 +82,6 @@ describe('UploadService', () => {
           contentId: stubContentId,
           contentSize: stubContentSize,
           userId: stubUserId,
-          isEncrypted: true,
         },
       })
     })
@@ -162,7 +159,6 @@ describe('UploadService', () => {
         id: stubContentObjectId,
         offset: 0,
         metadata: {
-          isEncrypted: '1',
           id: stubContentId,
         },
       })
@@ -210,9 +206,7 @@ describe('UploadService', () => {
         id: stubContentObjectId,
         offset: 0,
         size: stubContentSize,
-        metadata: {
-          isEncrypted: '1',
-        },
+        metadata: {},
       })
 
       expect(async () => {
@@ -222,56 +216,6 @@ describe('UploadService', () => {
           stubUpload
         )
       }).rejects.toThrowError('[400] Content ID not provided')
-    })
-
-    test('handles invalid isEncrypted metadata', async () => {
-      const app = getApp()
-
-      vi.spyOn(app, 'parseCookie').mockReturnValueOnce({
-        [sessionKeyName]: stubSessionId,
-      })
-
-      vi.spyOn(app.prisma.fileMetadata, 'create')
-
-      vi.spyOn(sessionStore, 'get').mockImplementationOnce(
-        (_sessionId, callback) => {
-          callback(null, {
-            cookie: {
-              originalMaxAge: null,
-            },
-            authenticated: true,
-            userId: stubUserId,
-          })
-        }
-      )
-
-      const uploadService = new UploadService({
-        app,
-        path: '/',
-      })
-
-      const stubIncomingMessage = new IncomingMessage(new Socket())
-      const stubServerResponse = new ServerResponse(stubIncomingMessage)
-      const stubUpload = new Upload({
-        id: stubContentObjectId,
-        offset: 0,
-        size: stubContentSize,
-        metadata: {
-          id: stubContentId,
-          // @ts-expect-error This is a forced error for the sake of testing
-          isEncrypted: 1,
-        },
-      })
-
-      expect(async () => {
-        await uploadService.handleUploadFinish(
-          stubIncomingMessage,
-          stubServerResponse,
-          stubUpload
-        )
-      }).rejects.toThrowError(
-        '[400] metadata.isEncrypted must be either "0" or "1" (string). Received: 1 (number)'
-      )
     })
 
     test('handles FileMetadata creation failure', async () => {
@@ -308,7 +252,6 @@ describe('UploadService', () => {
         offset: 0,
         size: stubContentSize,
         metadata: {
-          isEncrypted: '1',
           id: stubContentId,
         },
       })

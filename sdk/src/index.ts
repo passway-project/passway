@@ -37,11 +37,6 @@ export interface PasswayClientConfig {
 export interface UploadOptions {
   id: string
 
-  /**
-   * Default value: true
-   */
-  enableEncryption?: boolean
-
   Upload?: typeof TusUpload
 }
 
@@ -296,12 +291,10 @@ export class PasswayClient {
 
   upload = async (
     data: TusUpload['file'],
-    { id, enableEncryption = true, Upload = TusUpload }: UploadOptions
+    // FIXME: Make ID a formal parameter
+    { id, Upload = TusUpload }: UploadOptions
   ) => {
-    const dataStream = enableEncryption
-      ? await this.getEncryptedDataStreamReader(data)
-      : data
-
+    const dataStream = await this.getEncryptedDataStreamReader(data)
     const contentRoute = this.route.resolve(Route.content)
     const content = new ContentService({ UploadImpl: Upload, contentRoute })
 
@@ -312,17 +305,11 @@ export class PasswayClient {
 
     // TODO: Return metadata about the uploaded data
     return content.upload(dataStream, {
-      isEncrypted: enableEncryption ? '1' : '0',
       id: hashedId,
     })
   }
 
-  // TODO: Infer isEncrypted from content metadata
-  download = async (
-    id: string,
-
-    { isEncrypted = true } = {}
-  ) => {
+  download = async (id: string) => {
     if (id.length === 0) {
       throw new ArgumentError('contentId is empty')
     }
@@ -372,11 +359,9 @@ export class PasswayClient {
             dataTransform.passThroughToReadableStream(body)
           : body
 
-      const decryptedStream = isEncrypted
-        ? await crypto
-            .getKeychain(dataTransform.bufferToBase64(userHandle))
-            .decryptStream(bodyStream)
-        : bodyStream
+      const decryptedStream = await crypto
+        .getKeychain(dataTransform.bufferToBase64(userHandle))
+        .decryptStream(bodyStream)
 
       return decryptedStream
     } catch (e) {

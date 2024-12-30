@@ -38,7 +38,6 @@ const mockFileMetadataRecord1: Prisma.$FileMetadataPayload['scalars'] = {
   contentSize: 1024,
   createdAt: new Date(),
   id: 0,
-  isEncrypted: true,
   userId: stubUserId,
 }
 

@@ -1,5 +1,3 @@
-import { File } from 'node:buffer'
-
 import window from 'global/window'
 
 import { Upload, UploadOptions } from 'tus-js-client'
@@ -501,24 +499,7 @@ describe('PasswayClient', () => {
   })
 
   describe('upload', () => {
-    test('uploads unencrypted content', async () => {
-      const { Upload, constructorSpy } = getMockUpload()
-
-      const input = new window.File([mockFileStringContent], 'text/plain')
-
-      await passwayClient.upload(input, {
-        Upload,
-        enableEncryption: false,
-        id: stubContentId,
-      })
-
-      const receivedInput: File = constructorSpy.mock.calls[0][0]
-      const receivedInputString = await receivedInput.text()
-
-      expect(receivedInputString).toEqual(mockFileStringContent)
-    })
-
-    test('uploads encrypted content', async () => {
+    test('uploads content', async () => {
       await authenticateSession(passwayClient)
 
       const { Upload, constructorSpy } = getMockUpload()
@@ -548,40 +529,6 @@ describe('PasswayClient', () => {
   })
 
   describe('download', () => {
-    test('downloads content', async () => {
-      await authenticateSession(passwayClient)
-
-      const { Upload, constructorSpy } = getMockUpload()
-
-      const input = new window.File([mockFileStringContent], 'text/plain')
-
-      await passwayClient.upload(input, {
-        Upload,
-        enableEncryption: false,
-        id: stubContentId,
-      })
-
-      const uploadedData: File = constructorSpy.mock.calls[0][0]
-
-      const readerStream = uploadedData.stream() as ReadableStream<Uint8Array>
-
-      vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
-        ...new Response(),
-        status: 200,
-        body: readerStream,
-      })
-
-      // TODO: Use content ID that was returned by upload method
-      const downloadedData = await passwayClient.download('content-id', {
-        isEncrypted: false,
-      })
-
-      const downloadedDataString =
-        await dataTransform.streamToString(downloadedData)
-
-      expect(downloadedDataString).toEqual(mockFileStringContent)
-    })
-
     test('decrypts content', async () => {
       await authenticateSession(passwayClient)
 

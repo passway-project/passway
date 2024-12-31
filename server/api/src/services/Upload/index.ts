@@ -64,6 +64,7 @@ export class UploadService {
       },
       path,
       datastore: s3Store,
+      onUploadCreate: this.handleUploadCreate,
       onUploadFinish: this.handleUploadFinish,
       allowedCredentials: true,
     })
@@ -71,6 +72,21 @@ export class UploadService {
 
   handleRequest = (request: FastifyRequest, reply: FastifyReply) => {
     this.server.handle(request.raw, reply.raw)
+  }
+
+  // FIXME: Test this
+  handleUploadCreate = async (
+    _request: IncomingMessage,
+    response: ServerResponse<IncomingMessage>,
+    upload: Upload
+  ) => {
+    const { metadata: { id: contentId } = {} } = upload
+
+    if (typeof contentId !== 'string') {
+      throw new UploadError('Content ID not provided', StatusCodes.BAD_REQUEST)
+    }
+
+    return response
   }
 
   handleUploadFinish = async (
@@ -115,7 +131,6 @@ export class UploadService {
 
       const { size: contentSize, metadata: { id: contentId } = {} } = upload
 
-      // FIXME: Check for contentId before upload begins
       if (typeof contentId !== 'string') {
         throw new UploadError(
           'Content ID not provided',

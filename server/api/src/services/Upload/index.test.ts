@@ -265,4 +265,58 @@ describe('UploadService', () => {
       }).rejects.toThrowError('[500] Could not record file metadata')
     })
   })
+
+  describe('handleUploadFinish', () => {
+    test('enables sequence to proceed', async () => {
+      const app = getApp()
+
+      const uploadService = new UploadService({
+        app,
+        path: '/',
+      })
+
+      const stubIncomingMessage = new IncomingMessage(new Socket())
+      const stubServerResponse = new ServerResponse(stubIncomingMessage)
+      const stubUpload = new Upload({
+        id: stubContentObjectId,
+        offset: 0,
+        metadata: {
+          id: stubContentId,
+        },
+      })
+
+      const response = await uploadService.handleUploadCreate(
+        stubIncomingMessage,
+        stubServerResponse,
+        stubUpload
+      )
+
+      expect(response.statusCode).toEqual(StatusCodes.OK)
+    })
+
+    test('handles missing session data', async () => {
+      const app = getApp()
+
+      const uploadService = new UploadService({
+        app,
+        path: '/',
+      })
+
+      const stubIncomingMessage = new IncomingMessage(new Socket())
+      const stubServerResponse = new ServerResponse(stubIncomingMessage)
+      const stubUpload = new Upload({
+        id: stubContentObjectId,
+        offset: 0,
+        metadata: {},
+      })
+
+      expect(async () => {
+        await uploadService.handleUploadCreate(
+          stubIncomingMessage,
+          stubServerResponse,
+          stubUpload
+        )
+      }).rejects.toThrowError('[400] Content ID not provided')
+    })
+  })
 })

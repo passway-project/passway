@@ -67,7 +67,7 @@ describe('content', () => {
     // @ts-expect-error The JSDOM type definition is missing this part of the API
     jsdom.cookieJar.setCookie(sessionCookieString, 'http://api:3000/api')
 
-    await passwayClient.upload(input, { id: stubContentId })
+    await passwayClient.upload(stubContentId, input)
     const downloadedData = await passwayClient.download(stubContentId)
 
     const downloadedDataString =

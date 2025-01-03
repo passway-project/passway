@@ -26,7 +26,6 @@ export const contentRoute: FastifyPluginAsync<{ prefix: string }> = async (
     path: `${options.prefix}/${routeName}`,
   })
 
-  // FIXME: Make uploads upsert operations
   app.all(`/${routeName}`, uploadService.handleRequest)
   app.all(`/${routeName}/*`, uploadService.handleRequest)
 

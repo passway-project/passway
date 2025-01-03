@@ -35,8 +35,6 @@ export interface PasswayClientConfig {
 }
 
 export interface UploadOptions {
-  id: string
-
   Upload?: typeof TusUpload
 }
 
@@ -290,9 +288,10 @@ export class PasswayClient {
   }
 
   upload = async (
+    id: string,
     data: TusUpload['file'],
-    // FIXME: Make ID a formal parameter
-    { id, Upload = TusUpload }: UploadOptions
+
+    { Upload = TusUpload }: UploadOptions = {}
   ) => {
     const dataStream = await this.getEncryptedDataStreamReader(data)
     const contentRoute = this.route.resolve(Route.content)

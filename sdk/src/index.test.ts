@@ -506,9 +506,8 @@ describe('PasswayClient', () => {
 
       const input = new window.File([mockFileStringContent], 'text/plain')
 
-      await passwayClient.upload(input, {
+      await passwayClient.upload(stubContentId, input, {
         Upload,
-        id: stubContentId,
       })
 
       const receivedData: ReadableStreamDefaultReader =
@@ -536,9 +535,8 @@ describe('PasswayClient', () => {
 
       const input = new window.File([mockFileStringContent], 'text/plain')
 
-      await passwayClient.upload(input, {
+      await passwayClient.upload(stubContentId, input, {
         Upload,
-        id: stubContentId,
       })
 
       const uploadedData: ReadableStreamDefaultReader =
@@ -581,9 +579,8 @@ describe('PasswayClient', () => {
 
       const input = new window.File([mockFileStringContent], 'text/plain')
 
-      await passwayClient.upload(input, {
+      await passwayClient.upload(stubContentId, input, {
         Upload,
-        id: stubContentId,
       })
 
       const uploadedData: ReadableStreamDefaultReader =
@@ -610,9 +607,8 @@ describe('PasswayClient', () => {
 
       const input = new window.File([mockFileStringContent], 'text/plain')
 
-      await passwayClient.upload(input, {
+      await passwayClient.upload(stubContentId, input, {
         Upload,
-        id: stubContentId,
       })
 
       vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
@@ -633,9 +629,8 @@ describe('PasswayClient', () => {
 
       const input = new window.File([mockFileStringContent], 'text/plain')
 
-      await passwayClient.upload(input, {
+      await passwayClient.upload(stubContentId, input, {
         Upload,
-        id: stubContentId,
       })
 
       const uploadedData: ReadableStreamDefaultReader =

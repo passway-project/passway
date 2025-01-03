@@ -69,9 +69,7 @@ class PasswayRegistration extends HTMLElement {
 
       const { id } = this
 
-      await this.client.upload(file, {
-        id,
-      })
+      await this.client.upload(id, file)
     })
 
     const downloadButton =

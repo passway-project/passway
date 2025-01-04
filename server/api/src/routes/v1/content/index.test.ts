@@ -1,5 +1,6 @@
 import { Readable } from 'stream'
 
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 import { DeepMockProxy } from 'vitest-mock-extended'
 import { PrismaClient, Prisma } from '@prisma/client'
 import { StatusCodes } from 'http-status-codes'
@@ -9,6 +10,7 @@ import { S3Error } from 'minio'
 import {
   API_ROOT,
   minioNoSuchKeyCode,
+  prismaNotFoundCode,
   sessionKeyName,
 } from '../../../constants'
 import { requestAuthenticatedSession } from '../../../../test/utils/session'
@@ -31,20 +33,11 @@ const mockUser = getStubUser()
 const mockContentDataString = 'content data'
 
 const mockFileMetadataRecord1: Prisma.$FileMetadataPayload['scalars'] = {
-  contentId: 'mock-content-id-1',
+  contentObjectId: 'mock-content-object-id-1',
+  contentId: 'mock content ID 1',
   contentSize: 1024,
   createdAt: new Date(),
   id: 0,
-  isEncrypted: true,
-  userId: stubUserId,
-}
-
-const mockFileMetadataRecord2: Prisma.$FileMetadataPayload['scalars'] = {
-  contentId: 'mock-content-id-2',
-  contentSize: 2048,
-  createdAt: new Date(),
-  id: 1,
-  isEncrypted: false,
   userId: stubUserId,
 }
 
@@ -54,50 +47,6 @@ beforeAll(async () => {
 })
 
 describe(endpointRoute, () => {
-  describe(`/${routeName}/list`, () => {
-    describe('GET', () => {
-      test('lists content', async () => {
-        const app = getApp()
-
-        const sessionResponse = await requestAuthenticatedSession(app, {
-          userId: stubUserId,
-          ...mockKeyData,
-        })
-
-        ;(
-          app.prisma as DeepMockProxy<PrismaClient>
-        ).fileMetadata.findMany.mockResolvedValueOnce([
-          mockFileMetadataRecord1,
-          mockFileMetadataRecord2,
-        ])
-
-        const response = await app.inject({
-          method: 'GET',
-          url: `${endpointRoute}/list`,
-          cookies: {
-            [sessionKeyName]: sessionResponse.cookies[0].value,
-          },
-        })
-
-        const bodyJson = await response.json()
-
-        expect(response.statusCode).toEqual(StatusCodes.OK)
-        expect(bodyJson).toEqual([
-          {
-            contentId: mockFileMetadataRecord1.contentId,
-            contentSize: mockFileMetadataRecord1.contentSize,
-            isEncrypted: mockFileMetadataRecord1.isEncrypted,
-          },
-          {
-            contentId: mockFileMetadataRecord2.contentId,
-            contentSize: mockFileMetadataRecord2.contentSize,
-            isEncrypted: mockFileMetadataRecord2.isEncrypted,
-          },
-        ])
-      })
-    })
-  })
-
   describe(`/${routeName}/:contentId`, () => {
     describe('GET', () => {
       test('responds with content data', async () => {
@@ -107,6 +56,12 @@ describe(endpointRoute, () => {
           userId: stubUserId,
           ...mockKeyData,
         })
+
+        ;(
+          app.prisma as DeepMockProxy<PrismaClient>
+        ).fileMetadata.findFirstOrThrow.mockResolvedValueOnce(
+          mockFileMetadataRecord1
+        )
 
         vi.spyOn(app.minioClient, 'getObject').mockResolvedValueOnce(
           Readable.from(mockContentDataString)
@@ -126,7 +81,7 @@ describe(endpointRoute, () => {
         expect(retrievedContentString).toEqual(mockContentDataString)
       })
 
-      test('responds with a 404 if content is not available', async () => {
+      test('responds with a 404 if content metadata is not available', async () => {
         const app = getApp()
 
         const sessionResponse = await requestAuthenticatedSession(app, {
@@ -134,15 +89,21 @@ describe(endpointRoute, () => {
           ...mockKeyData,
         })
 
-        vi.spyOn(app.minioClient, 'getObject').mockRejectedValueOnce(
-          Object.assign(new S3Error(), { code: minioNoSuchKeyCode })
+        ;(
+          app.prisma as DeepMockProxy<PrismaClient>
+        ).fileMetadata.findFirstOrThrow.mockRejectedValueOnce(
+          new PrismaClientKnownRequestError('', {
+            code: prismaNotFoundCode,
+            clientVersion:
+              'An operation failed because it depends on one or more records that were required but not found.',
+          })
         )
 
-        const nonexistentContentId = 'some-nonexistent-content-id'
+        const nonexistentContentName = 'some-nonexistent-content-name'
 
         const response = await app.inject({
           method: 'GET',
-          url: `${endpointRoute}/${nonexistentContentId}`,
+          url: `${endpointRoute}/${nonexistentContentName}`,
           cookies: {
             [sessionKeyName]: sessionResponse.cookies[0].value,
           },
@@ -152,7 +113,43 @@ describe(endpointRoute, () => {
 
         expect(response.statusCode).toEqual(StatusCodes.NOT_FOUND)
         expect(bodyJson).toMatchObject({
-          message: `Content ID "${nonexistentContentId}" not found`,
+          message: `Content retrieval for "${nonexistentContentName}" failed`,
+        })
+      })
+
+      test('responds with a 404 if object content is not available', async () => {
+        const app = getApp()
+
+        const sessionResponse = await requestAuthenticatedSession(app, {
+          userId: stubUserId,
+          ...mockKeyData,
+        })
+
+        ;(
+          app.prisma as DeepMockProxy<PrismaClient>
+        ).fileMetadata.findFirstOrThrow.mockResolvedValueOnce(
+          mockFileMetadataRecord1
+        )
+
+        vi.spyOn(app.minioClient, 'getObject').mockRejectedValueOnce(
+          Object.assign(new S3Error(), { code: minioNoSuchKeyCode })
+        )
+
+        const nonexistentContentName = 'some-nonexistent-content-name'
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `${endpointRoute}/${nonexistentContentName}`,
+          cookies: {
+            [sessionKeyName]: sessionResponse.cookies[0].value,
+          },
+        })
+
+        const bodyJson = await response.json()
+
+        expect(response.statusCode).toEqual(StatusCodes.NOT_FOUND)
+        expect(bodyJson).toMatchObject({
+          message: `Content retrieval for "${nonexistentContentName}" failed`,
         })
       })
     })

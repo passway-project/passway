@@ -24,3 +24,9 @@ export const contentBucketName = 'passway-bucket'
  * @see: https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-aws-sdk-client-s3/Class/NoSuchKey/
  */
 export const minioNoSuchKeyCode = 'NoSuchKey'
+
+// NOTE: This does not appear to be defined as a type in Prisma, so it is a constant here.
+/**
+ * @see: https://www.prisma.io/docs/orm/reference/error-reference#p2025
+ */
+export const prismaNotFoundCode = 'P2025'

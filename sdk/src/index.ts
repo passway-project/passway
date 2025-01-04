@@ -8,7 +8,6 @@ import {
   GetUserHeaders,
   PasskeyConfig,
   PutUserBody,
-  isGetContentListResponse,
   isGetUserResponse,
 } from './types'
 import {
@@ -36,11 +35,6 @@ export interface PasswayClientConfig {
 }
 
 export interface UploadOptions {
-  /**
-   * Default value: true
-   */
-  enableEncryption?: boolean
-
   Upload?: typeof TusUpload
 }
 
@@ -50,6 +44,8 @@ export class PasswayClient {
 
   private passkeyId: string | null = null
   private userHandle: ArrayBuffer | null = null
+
+  private readonly maxContentIdLength = 64
 
   private getEncryptedDataStreamReader = async (data: TusUpload['file']) => {
     const readableStream =
@@ -292,50 +288,28 @@ export class PasswayClient {
   }
 
   upload = async (
+    id: string,
     data: TusUpload['file'],
-    { enableEncryption = true, Upload = TusUpload }: UploadOptions = {}
-  ) => {
-    const dataStream = enableEncryption
-      ? await this.getEncryptedDataStreamReader(data)
-      : data
 
+    { Upload = TusUpload }: UploadOptions = {}
+  ) => {
+    const dataStream = await this.getEncryptedDataStreamReader(data)
     const contentRoute = this.route.resolve(Route.content)
     const content = new ContentService({ UploadImpl: Upload, contentRoute })
 
+    const hashedId = (await crypto.hashString(id)).slice(
+      0,
+      this.maxContentIdLength
+    )
+
     // TODO: Return metadata about the uploaded data
     return content.upload(dataStream, {
-      isEncrypted: enableEncryption ? '1' : '0',
+      id: hashedId,
     })
   }
 
-  listContent = async () => {
-    const contentListRoute = this.route.resolve(Route.contentList)
-
-    const getContentListResponse = await window.fetch(contentListRoute, {
-      method: 'GET',
-      credentials: 'include',
-    })
-
-    const { status: getContentListResponseStatus } = getContentListResponse
-
-    if (getContentListResponseStatus !== 200) {
-      throw new Error(
-        `Received error from ${contentListRoute}: ${getContentListResponseStatus}`
-      )
-    }
-
-    const getContentListResponseBody = await getContentListResponse.json()
-
-    if (!isGetContentListResponse(getContentListResponseBody)) {
-      throw new ResponseBodyError()
-    }
-
-    return getContentListResponseBody
-  }
-
-  // TODO: Infer isEncrypted from content metadata
-  download = async (contentId: string, { isEncrypted = true } = {}) => {
-    if (contentId.length === 0) {
+  download = async (id: string) => {
+    if (id.length === 0) {
       throw new ArgumentError('contentId is empty')
     }
 
@@ -345,7 +319,14 @@ export class PasswayClient {
       throw new AuthenticationError()
     }
 
-    const route = this.route.resolve(Route.contentDownload, { contentId })
+    const hashedId = (await crypto.hashString(id)).slice(
+      0,
+      this.maxContentIdLength
+    )
+
+    const route = this.route.resolve(Route.contentDownload, {
+      contentId: hashedId,
+    })
 
     const getContentDownloadResponse = await window.fetch(route, {
       method: 'GET',
@@ -377,11 +358,9 @@ export class PasswayClient {
             dataTransform.passThroughToReadableStream(body)
           : body
 
-      const decryptedStream = isEncrypted
-        ? await crypto
-            .getKeychain(dataTransform.bufferToBase64(userHandle))
-            .decryptStream(bodyStream)
-        : bodyStream
+      const decryptedStream = await crypto
+        .getKeychain(dataTransform.bufferToBase64(userHandle))
+        .decryptStream(bodyStream)
 
       return decryptedStream
     } catch (e) {

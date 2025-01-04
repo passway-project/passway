@@ -1,7 +1,8 @@
 import { IncomingMessage, ServerResponse } from 'http'
 import { Socket } from 'net'
 
-import { Upload } from '@tus/server'
+import { mockDeep } from 'vitest-mock-extended'
+import { Server, Upload } from '@tus/server'
 import { StatusCodes } from 'http-status-codes'
 import { DeepMockProxy } from 'vitest-mock-extended'
 import { PrismaClient } from '@prisma/client'
@@ -14,9 +15,16 @@ import { UploadService } from '.'
 
 const stubUserId = 1
 const stubSessionId = 'session-id'
-const stubContentId = 'abc123'
-const stubContentSize = 1024
-const stubFileMetadataRecordId = 1
+
+const stubContentObjectId1 = 'abc123'
+const stubContentId1 = 'content ID 1'
+const stubContentSize1 = 1024
+const stubFileMetadataRecordId1 = 1
+
+const stubContentObjectId2 = 'def456'
+const stubContentId2 = 'content ID 2'
+const stubContentSize2 = 2048
+const stubFileMetadataRecordId2 = 2
 
 describe('UploadService', () => {
   describe('handleUploadFinish', () => {
@@ -29,13 +37,16 @@ describe('UploadService', () => {
       ;(
         app.prisma as DeepMockProxy<PrismaClient>
       ).fileMetadata.create.mockResolvedValueOnce({
-        contentId: stubContentId,
-        contentSize: stubContentSize,
+        contentObjectId: stubContentObjectId1,
+        contentId: stubContentId1,
+        contentSize: stubContentSize1,
         createdAt: new Date(),
-        id: stubFileMetadataRecordId,
-        isEncrypted: true,
+        id: stubFileMetadataRecordId1,
         userId: stubUserId,
       })
+      ;(
+        app.prisma as DeepMockProxy<PrismaClient>
+      ).fileMetadata.findMany.mockResolvedValueOnce([])
 
       vi.spyOn(app.prisma.fileMetadata, 'create')
 
@@ -59,11 +70,11 @@ describe('UploadService', () => {
       const stubIncomingMessage = new IncomingMessage(new Socket())
       const stubServerResponse = new ServerResponse(stubIncomingMessage)
       const stubUpload = new Upload({
-        id: stubContentId,
+        id: stubContentObjectId1,
         offset: 0,
-        size: stubContentSize,
+        size: stubContentSize1,
         metadata: {
-          isEncrypted: '1',
+          id: stubContentId1,
         },
       })
 
@@ -77,12 +88,95 @@ describe('UploadService', () => {
 
       expect(app.prisma.fileMetadata.create).toHaveBeenCalledWith({
         data: {
-          contentId: stubContentId,
-          contentSize: stubContentSize,
+          contentObjectId: stubContentObjectId1,
+          contentId: stubContentId1,
+          contentSize: stubContentSize1,
           userId: stubUserId,
-          isEncrypted: true,
         },
       })
+    })
+
+    test('removes old versions of content', async () => {
+      const app = getApp()
+
+      vi.spyOn(app, 'parseCookie').mockReturnValueOnce({
+        [sessionKeyName]: stubSessionId,
+      })
+      ;(
+        app.prisma as DeepMockProxy<PrismaClient>
+      ).fileMetadata.create.mockResolvedValueOnce({
+        contentObjectId: stubContentObjectId1,
+        contentId: stubContentId1,
+        contentSize: stubContentSize1,
+        createdAt: new Date(),
+        id: stubFileMetadataRecordId1,
+        userId: stubUserId,
+      })
+      ;(
+        app.prisma as DeepMockProxy<PrismaClient>
+      ).fileMetadata.findMany.mockResolvedValueOnce([
+        {
+          contentObjectId: stubContentObjectId2,
+          contentId: stubContentId2,
+          contentSize: stubContentSize2,
+          createdAt: new Date(),
+          id: stubFileMetadataRecordId2,
+          userId: stubUserId,
+        },
+      ])
+
+      vi.spyOn(app.prisma.fileMetadata, 'create')
+
+      vi.spyOn(sessionStore, 'get').mockImplementationOnce(
+        (_sessionId, callback) => {
+          callback(null, {
+            cookie: {
+              originalMaxAge: null,
+            },
+            authenticated: true,
+            userId: stubUserId,
+          })
+        }
+      )
+
+      const mockServerImpl = mockDeep<Server>()
+
+      const uploadService = new UploadService({
+        app,
+        path: '/',
+        ServerImpl: mockServerImpl,
+      })
+
+      const stubIncomingMessage = new IncomingMessage(new Socket())
+      const stubServerResponse = new ServerResponse(stubIncomingMessage)
+      const stubUpload = new Upload({
+        id: stubContentObjectId1,
+        offset: 0,
+        size: stubContentSize1,
+        metadata: {
+          id: stubContentId1,
+        },
+      })
+
+      const response = await uploadService.handleUploadFinish(
+        stubIncomingMessage,
+        stubServerResponse,
+        stubUpload
+      )
+
+      expect(response.statusCode).toEqual(StatusCodes.OK)
+
+      expect(app.prisma.fileMetadata.deleteMany).toHaveBeenCalledWith({
+        where: {
+          id: {
+            in: [stubFileMetadataRecordId2],
+          },
+        },
+      })
+
+      expect(mockServerImpl.datastore.remove).toHaveBeenCalledWith(
+        stubContentObjectId2
+      )
     })
 
     test('handles missing session data', async () => {
@@ -110,7 +204,7 @@ describe('UploadService', () => {
       const stubIncomingMessage = new IncomingMessage(new Socket())
       const stubServerResponse = new ServerResponse(stubIncomingMessage)
       const stubUpload = new Upload({
-        id: stubContentId,
+        id: stubContentObjectId1,
         offset: 0,
         metadata: {},
       })
@@ -155,10 +249,10 @@ describe('UploadService', () => {
       const stubIncomingMessage = new IncomingMessage(new Socket())
       const stubServerResponse = new ServerResponse(stubIncomingMessage)
       const stubUpload = new Upload({
-        id: stubContentId,
+        id: stubContentObjectId1,
         offset: 0,
         metadata: {
-          isEncrypted: '1',
+          id: stubContentId1,
         },
       })
 
@@ -173,7 +267,7 @@ describe('UploadService', () => {
       )
     })
 
-    test('handles invalid isEncrypted metadata', async () => {
+    test('handles missing id metadata', async () => {
       const app = getApp()
 
       vi.spyOn(app, 'parseCookie').mockReturnValueOnce({
@@ -202,13 +296,10 @@ describe('UploadService', () => {
       const stubIncomingMessage = new IncomingMessage(new Socket())
       const stubServerResponse = new ServerResponse(stubIncomingMessage)
       const stubUpload = new Upload({
-        id: stubContentId,
+        id: stubContentObjectId1,
         offset: 0,
-        size: stubContentSize,
-        metadata: {
-          // @ts-expect-error This is a forced error for the sake of testing
-          isEncrypted: 1,
-        },
+        size: stubContentSize1,
+        metadata: {},
       })
 
       expect(async () => {
@@ -217,9 +308,7 @@ describe('UploadService', () => {
           stubServerResponse,
           stubUpload
         )
-      }).rejects.toThrowError(
-        '[400] metadata.isEncrypted must be either "0" or "1" (string). Received: 1 (number)'
-      )
+      }).rejects.toThrowError('[400] Content ID not provided')
     })
 
     test('handles FileMetadata creation failure', async () => {
@@ -231,6 +320,9 @@ describe('UploadService', () => {
       ;(
         app.prisma as DeepMockProxy<PrismaClient>
       ).fileMetadata.create.mockRejectedValueOnce(new Error())
+      ;(
+        app.prisma as DeepMockProxy<PrismaClient>
+      ).fileMetadata.findMany.mockResolvedValueOnce([])
 
       vi.spyOn(sessionStore, 'get').mockImplementationOnce(
         (_sessionId, callback) => {
@@ -252,11 +344,11 @@ describe('UploadService', () => {
       const stubIncomingMessage = new IncomingMessage(new Socket())
       const stubServerResponse = new ServerResponse(stubIncomingMessage)
       const stubUpload = new Upload({
-        id: stubContentId,
+        id: stubContentObjectId1,
         offset: 0,
-        size: stubContentSize,
+        size: stubContentSize1,
         metadata: {
-          isEncrypted: '1',
+          id: stubContentId1,
         },
       })
 
@@ -267,6 +359,60 @@ describe('UploadService', () => {
           stubUpload
         )
       }).rejects.toThrowError('[500] Could not record file metadata')
+    })
+  })
+
+  describe('handleUploadFinish', () => {
+    test('enables sequence to proceed', async () => {
+      const app = getApp()
+
+      const uploadService = new UploadService({
+        app,
+        path: '/',
+      })
+
+      const stubIncomingMessage = new IncomingMessage(new Socket())
+      const stubServerResponse = new ServerResponse(stubIncomingMessage)
+      const stubUpload = new Upload({
+        id: stubContentObjectId1,
+        offset: 0,
+        metadata: {
+          id: stubContentId1,
+        },
+      })
+
+      const response = await uploadService.handleUploadCreate(
+        stubIncomingMessage,
+        stubServerResponse,
+        stubUpload
+      )
+
+      expect(response.statusCode).toEqual(StatusCodes.OK)
+    })
+
+    test('handles missing session data', async () => {
+      const app = getApp()
+
+      const uploadService = new UploadService({
+        app,
+        path: '/',
+      })
+
+      const stubIncomingMessage = new IncomingMessage(new Socket())
+      const stubServerResponse = new ServerResponse(stubIncomingMessage)
+      const stubUpload = new Upload({
+        id: stubContentObjectId1,
+        offset: 0,
+        metadata: {},
+      })
+
+      expect(async () => {
+        await uploadService.handleUploadCreate(
+          stubIncomingMessage,
+          stubServerResponse,
+          stubUpload
+        )
+      }).rejects.toThrowError('[400] Content ID not provided')
     })
   })
 })

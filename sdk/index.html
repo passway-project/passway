@@ -27,23 +27,23 @@
       <button class="create-session"><code>createSession()</code></button>
       <button class="destroy-session"><code>destroySession()</code></button>
       <hr />
-      <div class="upload-control">
-        <h2>Upload a file</h2>
-        <label>
-          <input type="checkbox" checked class="encrypt-data" /><span
-            >Encrypt data</span
-          >
-        </label>
-        <input class="upload" type="file" />
-      </div>
-      <hr />
-      <button class="list-content"><code>listContent()</code></button>
-      <ul class="object-links"></ul>
-    </template>
-    <template class="object-link">
-      <li>
-        <button />
-      </li>
+      <h2>Content Operations</h2>
+      <label
+        ><span>Content ID</span>:
+        <input
+          class="content-id"
+          value="Default content ID"
+          placeholder="Content ID"
+        />
+      </label>
+      <fieldset>
+        <legend>Upload</legend>
+        <input class="upload" type="file" style="display: block" />
+      </fieldset>
+      <fieldset>
+        <legend>Download</legend>
+        <button class="download">Download</button>
+      </fieldset>
     </template>
     <script type="module" src="/src/playground.ts"></script>
   </body>

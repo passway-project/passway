@@ -13,6 +13,7 @@ import {
 } from '../utils/mocks'
 import { cookieJar } from '../utils/cookie-jar'
 
+const stubContentId = 'stub content ID'
 describe('content', () => {
   test('content can be encrypted, uploaded, downloaded, and decrypted', async () => {
     const mockUserHandle = generateMockUserHandle()
@@ -66,9 +67,8 @@ describe('content', () => {
     // @ts-expect-error The JSDOM type definition is missing this part of the API
     jsdom.cookieJar.setCookie(sessionCookieString, 'http://api:3000/api')
 
-    await passwayClient.upload(input)
-    const [{ contentId }] = await passwayClient.listContent()
-    const downloadedData = await passwayClient.download(contentId)
+    await passwayClient.upload(stubContentId, input)
+    const downloadedData = await passwayClient.download(stubContentId)
 
     const downloadedDataString =
       await dataTransform.streamToString(downloadedData)

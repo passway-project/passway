@@ -30,7 +30,15 @@ export class UploadService {
 
   private server: Server
 
-  constructor({ app, path }: { app: FastifyInstance; path: string }) {
+  constructor({
+    app,
+    path,
+    ServerImpl,
+  }: {
+    app: FastifyInstance
+    path: string
+    ServerImpl?: Server
+  }) {
     this.app = app
 
     // NOTE: This check is needed to avoid redefining the content type parser
@@ -55,22 +63,39 @@ export class UploadService {
       },
     })
 
-    this.server = new Server({
-      generateUrl: (_request, { host, id, path, proto }) => {
-        return process.env.MODE === 'integration-test'
-          ? /* c8 ignore next */
-            `${proto}://${host}${path}/${id}`
-          : `${proto}://${host}:${process.env.API_PORT}${path}/${id}`
-      },
-      path,
-      datastore: s3Store,
-      onUploadFinish: this.handleUploadFinish,
-      allowedCredentials: true,
-    })
+    this.server =
+      ServerImpl ??
+      new Server({
+        generateUrl: (_request, { host, id, path, proto }) => {
+          return process.env.MODE === 'integration-test'
+            ? /* c8 ignore next */
+              `${proto}://${host}${path}/${id}`
+            : `${proto}://${host}:${process.env.API_PORT}${path}/${id}`
+        },
+        path,
+        datastore: s3Store,
+        onUploadCreate: this.handleUploadCreate,
+        onUploadFinish: this.handleUploadFinish,
+        allowedCredentials: true,
+      })
   }
 
   handleRequest = (request: FastifyRequest, reply: FastifyReply) => {
     this.server.handle(request.raw, reply.raw)
+  }
+
+  handleUploadCreate = async (
+    _request: IncomingMessage,
+    response: ServerResponse<IncomingMessage>,
+    upload: Upload
+  ) => {
+    const { metadata: { id: contentId } = {} } = upload
+
+    if (typeof contentId !== 'string') {
+      throw new UploadError('Content ID not provided', StatusCodes.BAD_REQUEST)
+    }
+
+    return response
   }
 
   handleUploadFinish = async (
@@ -113,7 +138,14 @@ export class UploadService {
         )
       }
 
-      const { size: contentSize, metadata: { isEncrypted } = {} } = upload
+      const { size: contentSize, metadata: { id: contentId } = {} } = upload
+
+      if (typeof contentId !== 'string') {
+        throw new UploadError(
+          'Content ID not provided',
+          StatusCodes.BAD_REQUEST
+        )
+      }
 
       if (typeof contentSize !== 'number') {
         throw new UploadError(
@@ -122,27 +154,58 @@ export class UploadService {
         )
       }
 
-      if (!['0', '1'].includes(isEncrypted ?? '')) {
-        throw new UploadError(
-          `metadata.isEncrypted must be either "0" or "1" (string). Received: ${isEncrypted} (${typeof isEncrypted})`,
-          StatusCodes.BAD_REQUEST
-        )
-      }
-
       const fileMetadataRecord: Prisma.FileMetadataCreateArgs = {
         data: {
-          contentId: upload.id,
+          contentObjectId: upload.id,
+          contentId,
           contentSize,
           userId,
-          isEncrypted: isEncrypted === '1',
         },
       }
 
       try {
+        const preexistingFileMetadataRecords =
+          await this.app.prisma.fileMetadata.findMany({
+            select: { id: true, contentObjectId: true },
+            where: {
+              userId,
+              contentId,
+            },
+          })
+
+        const preexistingFileMedatadataRecordIds =
+          preexistingFileMetadataRecords.map(({ id }) => id)
+
         const result =
           await this.app.prisma.fileMetadata.create(fileMetadataRecord)
+
         this.app.log.debug(result, 'Created file metadata record')
+
+        await this.app.prisma.fileMetadata.deleteMany({
+          where: {
+            id: {
+              in: preexistingFileMedatadataRecordIds,
+            },
+          },
+        })
+
+        const preexistingContentObjectIds = preexistingFileMetadataRecords.map(
+          ({ contentObjectId }) => contentObjectId
+        )
+
+        await Promise.all(
+          preexistingContentObjectIds.map(contentObjectId => {
+            return this.server.datastore.remove(contentObjectId)
+          })
+        )
+
+        this.app.log.debug(
+          preexistingFileMetadataRecords,
+          `Deleted previous versions of contentId ${contentId} for userId ${userId}`
+        )
       } catch (e) {
+        this.app.log.error(`Could not record file metadata: ${e}`)
+
         throw new UploadError(
           'Could not record file metadata',
           StatusCodes.INTERNAL_SERVER_ERROR

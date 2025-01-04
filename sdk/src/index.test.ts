@@ -1,5 +1,3 @@
-import { File } from 'node:buffer'
-
 import window from 'global/window'
 
 import { Upload, UploadOptions } from 'tus-js-client'
@@ -35,7 +33,9 @@ import { dataGenerator } from './services/DataGenerator'
 import { dataTransform } from './services/DataTransform'
 import { crypto } from './services/Crypto'
 
-import { GetContentListResponse, PasswayClient } from '.'
+import { PasswayClient } from '.'
+
+const stubContentId = 'stub content id'
 
 let passwayClient = new PasswayClient({ apiRoot: '' })
 
@@ -499,30 +499,14 @@ describe('PasswayClient', () => {
   })
 
   describe('upload', () => {
-    test('uploads unencrypted content', async () => {
-      const { Upload, constructorSpy } = getMockUpload()
-
-      const input = new window.File([mockFileStringContent], 'text/plain')
-
-      await passwayClient.upload(input, {
-        Upload,
-        enableEncryption: false,
-      })
-
-      const receivedInput: File = constructorSpy.mock.calls[0][0]
-      const receivedInputString = await receivedInput.text()
-
-      expect(receivedInputString).toEqual(mockFileStringContent)
-    })
-
-    test('uploads encrypted content', async () => {
+    test('uploads content', async () => {
       await authenticateSession(passwayClient)
 
       const { Upload, constructorSpy } = getMockUpload()
 
       const input = new window.File([mockFileStringContent], 'text/plain')
 
-      await passwayClient.upload(input, {
+      await passwayClient.upload(stubContentId, input, {
         Upload,
       })
 
@@ -543,104 +527,7 @@ describe('PasswayClient', () => {
     })
   })
 
-  describe('listContent', () => {
-    test('retrieves a list of content', async () => {
-      await authenticateSession(passwayClient)
-
-      const mockGetContentListResponse: GetContentListResponse = [
-        {
-          contentId: 'mock-content-id',
-          contentSize: 0,
-          isEncrypted: true,
-        },
-      ]
-
-      vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
-        ...new Response(),
-        status: 200,
-        json: async () => mockGetContentListResponse,
-      })
-
-      const content = await passwayClient.listContent()
-
-      expect(content).toEqual(mockGetContentListResponse)
-    })
-
-    test('handles an unexpected response status', async () => {
-      await authenticateSession(passwayClient)
-
-      const mockInvalidResponse = [
-        {
-          someOtherProperty: true,
-        },
-      ]
-
-      vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
-        ...new Response(),
-        status: 500,
-        json: async () => mockInvalidResponse,
-      })
-
-      await expect(async () => {
-        await passwayClient.listContent()
-      }).rejects.toThrow(Error)
-    })
-
-    test('handles an unexpected response body', async () => {
-      await authenticateSession(passwayClient)
-
-      const mockInvalidResponse = [
-        {
-          someOtherProperty: true,
-        },
-      ]
-
-      vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
-        ...new Response(),
-        status: 200,
-        json: async () => mockInvalidResponse,
-      })
-
-      await expect(async () => {
-        await passwayClient.listContent()
-      }).rejects.toThrow(ResponseBodyError)
-    })
-  })
-
   describe('download', () => {
-    test('downloads content', async () => {
-      await authenticateSession(passwayClient)
-
-      const { Upload, constructorSpy } = getMockUpload()
-
-      const input = new window.File([mockFileStringContent], 'text/plain')
-
-      await passwayClient.upload(input, {
-        Upload,
-        enableEncryption: false,
-      })
-
-      const uploadedData: File = constructorSpy.mock.calls[0][0]
-
-      const readerStream = uploadedData.stream() as ReadableStream<Uint8Array>
-
-      vitest.spyOn(window, 'fetch').mockResolvedValueOnce({
-        ...new Response(),
-        status: 200,
-        body: readerStream,
-      })
-
-      // TODO: Use content ID that was returned by upload method
-      const downloadedData = await passwayClient.download('content-id', {
-        isEncrypted: false,
-      })
-
-      const downloadedDataString =
-        await dataTransform.streamToString(downloadedData)
-
-      expect(downloadedDataString).toEqual(mockFileStringContent)
-    })
-
     test('decrypts content', async () => {
       await authenticateSession(passwayClient)
 
@@ -648,7 +535,7 @@ describe('PasswayClient', () => {
 
       const input = new window.File([mockFileStringContent], 'text/plain')
 
-      await passwayClient.upload(input, {
+      await passwayClient.upload(stubContentId, input, {
         Upload,
       })
 
@@ -692,7 +579,7 @@ describe('PasswayClient', () => {
 
       const input = new window.File([mockFileStringContent], 'text/plain')
 
-      await passwayClient.upload(input, {
+      await passwayClient.upload(stubContentId, input, {
         Upload,
       })
 
@@ -720,7 +607,7 @@ describe('PasswayClient', () => {
 
       const input = new window.File([mockFileStringContent], 'text/plain')
 
-      await passwayClient.upload(input, {
+      await passwayClient.upload(stubContentId, input, {
         Upload,
       })
 
@@ -742,7 +629,7 @@ describe('PasswayClient', () => {
 
       const input = new window.File([mockFileStringContent], 'text/plain')
 
-      await passwayClient.upload(input, {
+      await passwayClient.upload(stubContentId, input, {
         Upload,
       })
 

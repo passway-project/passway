@@ -27,13 +27,16 @@ model User {
 }
 
 model FileMetadata {
-  id          Int      @id @default(autoincrement())
-  user        User     @relation(fields: [userId], references: [id])
-  userId      Int
-  // The ID of the file data in the content store (MinIO)
-  contentId   String
+  id              Int      @id @default(autoincrement())
+  user            User     @relation(fields: [userId], references: [id])
+  userId          Int
+  // The ID of the file data in the content object store (MinIO/S3)
+  // - This is determined by the server
+  contentObjectId String
+  // The ID of the content
+  // - This is determined by the client
+  contentId       String
   // The size in bytes of the file data
-  contentSize Int
-  isEncrypted Boolean  @default(true)
-  createdAt   DateTime @default(now())
+  contentSize     Int
+  createdAt       DateTime @default(now())
 }
